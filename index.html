@@ -956,20 +956,25 @@ function makeCtx(r, stage){
     s.style.left = x + 'px'; s.style.top = y + 'px';
     stage.append(s); setTimeout(() => s.remove(), 460);
   }
+  const dim = { w: stage.clientWidth, h: stage.clientHeight };
+  function measure(){ dim.w = stage.clientWidth; dim.h = stage.clientHeight; }
+  const onResize = () => measure();
+  window.addEventListener('resize', onResize);
+  r.cleanups.push(() => window.removeEventListener('resize', onResize));
   return {
     stage: stage,
-    W: () => stage.clientWidth, H: () => stage.clientHeight,
+    W: () => dim.w, H: () => dim.h,
     level: () => r.level, d: () => (r.level - 1) / 3,
     after(ms, fn){ const s = { t: r.clock + ms, fn: fn, dead: false }; r.sched.push(s); return s; },
     cancel(s){ if(s) s.dead = true; },
     loop(fn){ r.loops.push(fn); },
     on(t, ev, fn, o){
-      const safeHandler = (e) => {
-        if(!antiSpamCheck()) return;
-        fn(e);
-      };
-      t.addEventListener(ev, safeHandler, o);
-      r.cleanups.push(() => t.removeEventListener(ev, safeHandler, o));
+      o = o || {};
+      const passive = o.passive !== false;
+      const handler = o.noThrottle ? (e => fn(e)) : (e => { if(!antiSpamCheck()) return; fn(e); });
+      const opts = { passive: passive };
+      t.addEventListener(ev, handler, opts);
+      r.cleanups.push(() => t.removeEventListener(ev, handler, opts));
     },
     pos(e){ const b = stage.getBoundingClientRect(); return { x: e.clientX - b.left, y: e.clientY - b.top }; },
     ok(w, x, y){
@@ -1104,9 +1109,9 @@ const GAMES = [
  how:'التقط حبوب البن الذهبية بالكوب. تجنب الحبوب المحروقة ✕ التي تخصم 35 نقطة وتكسر الكومبو!',
  start(c){
   const st=c.stage;let cx=c.W()/2,items=[],spawn=280;
-  const cup=el('div','b-cup','☕');cup.style.left=cx+'px';st.append(cup);
-  const setX=e=>{cx=Math.max(30,Math.min(c.W()-30,c.pos(e).x));cup.style.left=cx+'px'};
-  c.on(st,'pointerdown',setX);c.on(st,'pointermove',setX);
+  const cup=el('div','b-cup','☕');cup.style.left='0';cup.style.transform='translateX('+cx+'px) translateX(-50%)';st.append(cup);
+  const setX=e=>{cx=Math.max(30,Math.min(c.W()-30,c.pos(e).x));cup.style.transform='translateX('+cx+'px) translateX(-50%)'};
+  c.on(st,'pointerdown',setX);c.on(st,'pointermove',setX,{noThrottle:true});
   c.loop(dt=>{
     const d=c.d(),W=c.W(),H=c.H();
     spawn-=dt*1000;
@@ -1114,12 +1119,12 @@ const GAMES = [
       spawn=lerp(850,420,d)*rnd(.85,1.15);
       const burnt=Math.random()<lerp(0.12,0.36,d),x=rnd(24,W-24);
       const e=el('div','bean'+(burnt?' burnt':''),burnt?'✕':'');
-      e.style.left=x+'px';e.style.top='-44px';st.append(e);
+      e.style.left=x+'px';e.style.top='0';e.style.transform='translateY(-44px)';st.append(e);
       items.push({e:e,x:x,y:-44,burnt:burnt});
     }
     const vy=lerp(180,320,d)*Math.min(H/520,1.15),half=lerp(50,38,d),cupTop=H-60;
     items=items.filter(it=>{
-      it.y+=vy*dt;it.e.style.top=it.y+'px';
+      it.y+=vy*dt;it.e.style.transform='translateY('+it.y+'px)';
       if(it.y+34>=cupTop&&it.y<H-8&&Math.abs(it.x-cx)<half){
         it.e.remove();
         if(it.burnt){ c.miss(it.x,H-90,1.2,'حبة محروقة!'); }
@@ -1157,7 +1162,7 @@ const GAMES = [
     c.after(700,newCup);
   }
   c.on(st,'pointerdown',()=>{if(state==='idle'){state='pour';msg.textContent='جاري الصب…';SFX.tap();}});
-  c.on(window,'pointerup',end);c.on(window,'pointercancel',end);
+  c.on(window,'pointerup',end,{noThrottle:true});c.on(window,'pointercancel',end,{noThrottle:true});
   c.loop(dt=>{
     if(state==='pour'){
       f+=lerp(.65,1.15,c.d())*dt;
@@ -1377,7 +1382,7 @@ const GAMES = [
   const st=c.stage,h=30;
   const COL=['#8b5a3c','#a8693f','#d4a017','#f5cf68'];
   let w0=Math.min(c.W()*.5,190),rows=[{x:(c.W()-w0)/2,w:w0}],mx=0,w=w0,dir=1,els=[];
-  const mv=el('div','t-blk mv');st.append(mv);
+  const mv=el('div','t-blk mv');st.append(mv);mv.style.left='0';
   const msg=el('div','t-msg','المس الشاشة لإنزال الكوب بدقة');st.append(msg);
   function draw(){
     const H=c.H(),vis=Math.floor((H-80)/h);
@@ -1397,7 +1402,7 @@ const GAMES = [
     mx+=dir*sp*dt;
     if(mx<=0){mx=0;dir=1}
     if(mx>=W-w){mx=W-w;dir=-1}
-    mv.style.left=mx+'px';
+    mv.style.transform='translateX('+mx+'px)';
   });
   c.on(st,'pointerdown',()=>{
     msg.style.display='none';
