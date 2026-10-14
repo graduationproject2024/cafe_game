@@ -515,9 +515,26 @@ const SFX = {
   init(){
     if(!this.ctx){
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if(AudioCtx) this.ctx = new AudioCtx();
+      if(AudioCtx){
+        this.ctx = new AudioCtx();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = 0.7;
+        if(this.ctx.createDynamicsCompressor){
+          const comp = this.ctx.createDynamicsCompressor();
+          this.master.connect(comp); comp.connect(this.ctx.destination);
+        } else {
+          this.master.connect(this.ctx.destination);
+        }
+      }
     }
     if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+  },
+  haptic(ms){
+    if(this.muted) return;
+    const now = performance.now();
+    if(now - (this._h || 0) < 250) return;
+    this._h = now;
+    try { if(navigator.vibrate) navigator.vibrate(ms); } catch(e){}
   },
   toggle(){
     this.muted = !this.muted;
@@ -535,65 +552,60 @@ const SFX = {
     try {
       this.init();
       if(!this.ctx) return;
+      const t = this.ctx.currentTime;
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
       osc.type = type || 'sine';
-      osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
-      if(rampTo) osc.frequency.exponentialRampToValueAtTime(rampTo, this.ctx.currentTime + duration);
-      gain.gain.setValueAtTime(gainVal || 0.16, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+      osc.frequency.setValueAtTime(freq, t);
+      if(rampTo) osc.frequency.exponentialRampToValueAtTime(rampTo, t + duration);
+      const peak = Math.max(0.0002, gainVal || 0.16);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.master || this.ctx.destination);
       osc.start();
-      osc.stop(this.ctx.currentTime + duration);
+      osc.stop(t + duration);
     } catch(e){}
   },
   tap(){
-    this.playTone(320, 'triangle', 0.08, 0.14, 180);
-    try { if(navigator.vibrate) navigator.vibrate(8); } catch(e){}
+    this.playTone(300 + Math.random() * 48, 'triangle', 0.07, 0.10 + Math.random() * 0.03, 180);
+    this.haptic(8);
   },
   ok(combo){
-    const notes = [440, 494, 554, 587, 659, 740, 831, 880, 988, 1046, 1175];
-    const n = notes[Math.min(combo || 1, notes.length - 1)];
-    this.playTone(n, 'sine', 0.16, 0.22);
-    if((combo || 0) >= 3){
-      setTimeout(() => this.playTone(n * 1.5, 'triangle', 0.12, 0.12), 40);
-    }
-    try { if(navigator.vibrate) navigator.vibrate(14); } catch(e){}
+    const NOTES = [440, 494, 554, 659, 740, 880, 988, 1046];
+    const i = Math.min(Math.max((combo || 1) - 1, 0), NOTES.length - 1);
+    const n = NOTES[i];
+    const g = 0.22 - Math.min(0.08, (n - 440) / 600 * 0.08);
+    this.playTone(n, 'sine', 0.18, g);
+    if((combo || 0) >= 3) setTimeout(() => this.playTone(n * 1.5, 'triangle', 0.12, 0.09), 40);
+    this.haptic(14);
   },
   miss(){
     this.playTone(160, 'sawtooth', 0.26, 0.25, 90);
-    try { if(navigator.vibrate) navigator.vibrate([35, 40, 35]); } catch(e){}
+    this.haptic([35, 40, 35]);
   },
   countdown(){
     this.playTone(600, 'sine', 0.09, 0.2);
   },
   go(){
-    [587, 740, 880].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.2, 0.22), i * 70);
-    });
+    [587, 740, 880].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.2, 0.22), i * 70));
   },
   levelUp(){
-    [523, 659, 783, 1046].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'triangle', 0.18, 0.2), i * 80);
-    });
+    [523, 659, 783].forEach((f, i) => setTimeout(() => this.playTone(f, 'triangle', 0.16, 0.14), i * 80));
   },
   reward(){
-    [587, 880, 1175, 1760].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.28, 0.22), i * 90);
-    });
-    try { if(navigator.vibrate) navigator.vibrate([40, 50, 90]); } catch(e){}
+    [659, 880, 1175, 1568].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.28, 0.2), i * 90));
+    this.haptic([40, 50, 90]);
   },
   warning(){
-    // نغمة تحذير ثنائية النبض عند رصد حركة المركبة
-    this.playTone(880, 'square', 0.18, 0.25, 440);
-    setTimeout(() => this.playTone(880, 'square', 0.18, 0.25, 440), 220);
-    try { if(navigator.vibrate) navigator.vibrate([100, 100, 100, 100]); } catch(e){}
+    this.playTone(700, 'triangle', 0.16, 0.2, 500);
+    setTimeout(() => this.playTone(1000, 'triangle', 0.16, 0.2, 700), 200);
+    this.haptic([100, 100, 100, 100]);
   },
   win(){
-    [523, 659, 783, 880, 1046].forEach((f, i) => {
-      setTimeout(() => this.playTone(f, 'sine', 0.24, 0.22), i * 110);
-    });
+    this.playTone(392, 'sine', 0.6, 0.2);
+    [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => this.playTone(f, 'sine', 0.26, 0.2), 120 + i * 110));
   }
 };
 
@@ -960,7 +972,10 @@ function tick(now){
   }
   r.raf = requestAnimationFrame(tick);
 }
-document.addEventListener('visibilitychange', () => { if(run && !run.over) run.paused = document.hidden; });
+document.addEventListener('visibilitychange', () => {
+  if(run && !run.over) run.paused = document.hidden;
+  if(!document.hidden) SFX.init();
+});
 
 function finish(){
   const r = run; r.over = true; cancelAnimationFrame(r.raf);
