@@ -483,8 +483,7 @@ var CFG = {
   roundSeconds: 60,             // مدة الجولة 60 ثانية
   levelEverySeconds: 15,        // ترقية المستوى كل 15 ثانية (4 مستويات)
   basePoints: 18,               // أساس النقاط الدقيق
-  tiers: [1200, 2400, 3600],    // حدود المكافآت الدقيقة بعد الموازنة الاحترافية
-  topTierChance: 1,             // احتمالية المشروب المجاني عند 3600+
+  tiers: [1200, 2400, 3400],    // حدود المكافآت الدقيقة بعد الموازنة الاحترافية
   validDays: 3,                 // صلاحية الكود بالأيام
   maxWaitMinutes: 12,           // قفل الألعاب تلقائياً بعد 12 دقيقة من الجلسة
   requireOrder: true,           // اشتراط رقم الفاتورة
@@ -827,7 +826,7 @@ function show(id){
 
 /* ============ حارة الجوائز ============ */
 function ladder(score){
-  const max = 4000, p = Math.min(score / max, 1) * 100;
+  const max = 3800, p = Math.min(score / max, 1) * 100;
   const mk = (pts, label) => '<span class="stop' + (score >= pts ? ' hit' : '') + '" style="inset-inline-start:' + (pts / max * 100) + '%"><b>' + label + '</b><i>' + pts + '</i></span>';
   return '<div class="lane"><div class="road"></div><span class="car" style="inset-inline-start:' + p + '%">🚗</span>' +
     mk(CFG.tiers[0], '5%') + mk(CFG.tiers[1], '10%') + mk(CFG.tiers[2], 'مجاني 🏆') + '</div>';
@@ -1050,7 +1049,7 @@ const DRINKS = [
 
 /* ============ الألعاب التسع (مضبوطة الصعوبة والنقاط الاحترافية) ============ */
 const GAMES = [
-{id:'beans',name:'اصطياد الحبوب',emoji:'☕',weight:1.1,
+{id:'beans',name:'اصطياد الحبوب',emoji:'☕',weight:1.3,
  how:'التقط حبوب البن الذهبية بالكوب. تجنب الحبوب المحروقة ✕ التي تخصم 35 نقطة وتكسر الكومبو!',
  start(c){
   const st=c.stage;let cx=c.W()/2,items=[],spawn=280;
@@ -1067,7 +1066,7 @@ const GAMES = [
       e.style.left=x+'px';e.style.top='-44px';st.append(e);
       items.push({e:e,x:x,y:-44,burnt:burnt});
     }
-    const vy=lerp(180,360,d)*(H/520),half=lerp(50,34,d),cupTop=H-60;
+    const vy=lerp(180,320,d)*Math.min(H/520,1.15),half=lerp(50,38,d),cupTop=H-60;
     items=items.filter(it=>{
       it.y+=vy*dt;it.e.style.top=it.y+'px';
       if(it.y+34>=cupTop&&it.y<H-8&&Math.abs(it.x-cx)<half){
@@ -1085,7 +1084,7 @@ const GAMES = [
     });
   });
  }},
-{id:'pour',name:'صبّة الكابتشينو',emoji:'🥛',weight:1.45,
+{id:'pour',name:'صبّة الكابتشينو',emoji:'🥛',weight:1.9,
  how:'اضغط مع الاستمرار لصب الحليب، وارفع إصبعك عند الخط الأحمر بالضبط. فيضان الكوب يخصم نقاطاً!',
  start(c){
   const st=c.stage;
@@ -1093,7 +1092,7 @@ const GAMES = [
   const fill=$('.p-fill',st),line=$('.p-line',st),msg=$('.p-msg',st);
   let state='idle',f=0,target=0,tol=0;
   function newCup(){
-    f=0;fill.style.height='0%';target=rnd(.5,.88);tol=lerp(.08,.032,c.d());
+    f=0;fill.style.height='0%';target=rnd(.5,.88);tol=lerp(.08,.045,c.d());
     line.style.bottom=(target*100)+'%';state='idle';msg.textContent='اضغط واستمر للصب';
   }
   function end(){
@@ -1117,7 +1116,7 @@ const GAMES = [
   });
   newCup();
  }},
-{id:'bubbles',name:'فقاعات البخار',emoji:'🫧',weight:1.15,
+{id:'bubbles',name:'فقاعات البخار',emoji:'🫧',weight:1.3,
  how:'المس فقاعات حليب the A&A قبل انفجارها. لمس الفراغ يكسر الكومبو ويخصم نقاطاً.',
  start(c){
   const st=c.stage;let t=180,active=0;
@@ -1138,10 +1137,10 @@ const GAMES = [
     if(t<=0&&active<Math.round(lerp(2,5,d))){t=lerp(750,420,d);spawn(d);}
   });
  }},
-{id:'memory',name:'ذاكرة الكافيه',emoji:'🃏',weight:2.2,
+{id:'memory',name:'ذاكرة الكافيه',emoji:'🃏',weight:1.5,
  how:'طابق بطاقات مشروبات وحلويات the A&A المتشابهة في أقل وقت.',
  start(c){
-  const st=c.stage,EM=['☕','🥐','🍰','🧊','🍫','🍩','🥤','🍪'],SZ=[6,8,12,16];
+  const st=c.stage,EM=['☕','🥐','🍰','🧊','🍫','🍩','🥤','🍪'],SZ=[6,8,10,12];
   let grid=null,open=[],lock=true,left=0;
   const cen=b=>{const r=b.getBoundingClientRect(),s=st.getBoundingClientRect();return {x:r.left-s.left+r.width/2,y:r.top-s.top+r.height/2}};
   function board(){
@@ -1179,7 +1178,7 @@ const GAMES = [
   }
   board();
  }},
-{id:'quiz',name:'كويز القهوة والمدينة',emoji:'❓',weight:1.9,
+{id:'quiz',name:'كويز القهوة والمدينة',emoji:'❓',weight:1.6,
  how:'اختر الإجابة الصحيحة قبل نفاد الوقت. الإجابة الخاطئة تخصم 35 نقطة وتكسر الكومبو!',
  start(c){
   const st=c.stage;
@@ -1196,7 +1195,7 @@ const GAMES = [
       b.addEventListener('pointerdown',()=>answer(b,o.ok));
       box.append(b);btns.push(b);
     });
-    tmax=lerp(7500,4200,c.d());tleft=tmax;lock=false;
+    tmax=lerp(7500,5000,c.d());tleft=tmax;lock=false;
   }
   function reveal(){btns.forEach(b=>{if(b.dataset.ok==='1')b.classList.add('good')})}
   function answer(b,ok){
@@ -1212,7 +1211,7 @@ const GAMES = [
   });
   next();
  }},
-{id:'simon',name:'كرّر التحضير',emoji:'🔁',weight:2.0,
+{id:'simon',name:'كرّر التحضير',emoji:'🔁',weight:1.3,
  how:'احفظ تسلسل مكونات the A&A وهي تضيء، وكرره بنفس الترتيب.',
  start(c){
   const P=[{e:'☕',bg:'#8b5a3c'},{e:'🥛',bg:'#9db7c0'},{e:'🧊',bg:'#5fb7d9'},{e:'🍫',bg:'#5a2e1c'}];
@@ -1252,7 +1251,7 @@ const GAMES = [
   }
   play();
  }},
-{id:'shuffle',name:'أين الحبة؟',emoji:'🥤',weight:2.8,
+{id:'shuffle',name:'أين الحبة؟',emoji:'🥤',weight:3.2,
  how:'تابع الكوب الذي يحوي حبة بن the A&A الذهبية أثناء الخلط السريع.',
  start(c){
   const st=c.stage,slots=[18,50,82];
@@ -1276,7 +1275,7 @@ const GAMES = [
     cups.forEach(cp=>cp.e.classList.remove('lift','has'));
     ball=Math.floor(Math.random()*3);cups[ball].e.classList.add('has');
     msg.textContent='راقب الكوب الذهبي';
-    const d=c.d(),n=4+Math.round(d*4),sw=lerp(380,180,d);
+    const d=c.d(),n=4+Math.round(d*3),sw=lerp(380,180,d);
     st.style.setProperty('--sw',sw+'ms');
     c.after(350,()=>cups[ball].e.classList.add('lift'));
     c.after(1000,()=>{cups[ball].e.classList.remove('lift');msg.textContent='خلط سريع… ركز!';});
@@ -1293,7 +1292,7 @@ const GAMES = [
   }
   round();
  }},
-{id:'sort',name:'ساخن أو بارد',emoji:'🔥',weight:1.35,
+{id:'sort',name:'ساخن أو بارد',emoji:'🔥',weight:1.5,
  how:'صنّف مشروبات the A&A الشهيرة: ساخنة أم باردة بسرعة قبل انتهاء الوقت!',
  start(c){
   const st=c.stage;
@@ -1303,7 +1302,7 @@ const GAMES = [
   function next(){
     let i;do{i=Math.floor(Math.random()*DRINKS.length)}while(i===lastI);
     lastI=i;cur=DRINKS[i];em.textContent=cur[0];nm.textContent=cur[1];
-    card.className='so-card';tmax=lerp(3400,1650,c.d());tleft=tmax;lock=false;
+    card.className='so-card';tmax=lerp(3400,2200,c.d());tleft=tmax;lock=false;
   }
   function answer(hot){
     if(lock)return;lock=true;
@@ -1321,7 +1320,7 @@ const GAMES = [
   });
   next();
  }},
-{id:'stack',name:'برج الكوبايات',emoji:'🏗️',weight:1.8,
+{id:'stack',name:'برج الكوبايات',emoji:'🏗️',weight:1.6,
  how:'المس لإنزال الأكواب فوق بعضها بدقة. تذبذب الأكواب يزداد سرعة وصعوبة!',
  start(c){
   const st=c.stage,h=30;
@@ -1410,7 +1409,6 @@ function claimFlow(){
   }
   let t=tierOf(S.best);if(!t)return;
   let msg='';
-  if(t===3&&Math.random()>CFG.topTierChance){t=2;msg='المشروب المجاني متاح للجولات التالية، ومبارك لك مكافأة المرحلة الثانية!'}
   $('#chMsg').textContent=msg||('مبارك! حققت '+S.best+' نقطة ووصلت لـ '+TIER_TXT[t]);
   const box=$('#chOpts');box.innerHTML='';
   TIER_OPTS[t].forEach(k=>{
