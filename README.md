@@ -32,24 +32,26 @@
 - **تم ضبط الصعوبة لمنع الوصول السهل لأعلى سكور**:
   - **المستوى الأول (خصم 5%)**: `1,200 نقطة` (متاح للاعبين العاديين).
   - **المستوى الثاني (خصم 10% أو إضافة مجانية)**: `2,400 نقطة` (يتطلب تركيزاً وسرعة).
-  - **المستوى الثالث (مشروب the A&A مجاني أو ترقية حجم)**: `3,600 نقطة` (تحدٍّ حقيقي للأبطال يتطلب الحفاظ على الكومبو والسرعة والدقة بدون أخطاء!).
+  - **المستوى الثالث (مشروب the A&A مجاني أو ترقية حجم)**: `3,400 نقطة` (تحدٍّ حقيقي للأبطال يتطلب الحفاظ على الكومبو والسرعة والدقة بدون أخطاء!).
 - **نظام الكومبو الصارم**:
   - الخطأ أو تفويت الهدف يكسر الكومبو ويعود به إلى الصفر فوراً، مع خصم نقاط جزائية.
   - الألعاب الـ 9 أصبحت متوازنة رياضياً وفق وتيرة كل لعبة وتصاعد مستوياتها الأربعة كل 15 ثانية.
 
 ---
 
-### 4. 🔒 الحماية ومكافحة التحايل (Anti-Cheat & Security Hardening)
-- **توقيع الجلسة بالهاش المشفر (Session HMAC / Tamper Proofing)**:
-  - حماية نقاط الجلسة والفاتورة والرقم من التعديل اليدوي في الذاكرة أو `localStorage`؛ أي تلاعب يلغي الجلسة فوراً.
-- **فلتر مكافحة الأوتوكليكر (Autoclicker / Rate Limiting)**:
-  - تجاهل النقرات فائقة السرعة غير البشرية (أقل من 42ms أو أكثر من 11 نقرة بالثانية).
-- **أكواد ترويجية مشفرة ذاتية التحقق**:
-  - الكود يحمل خوارزمية تشفير تربط نوع الجائزة وتاريخ اليوم وتجزئة الـ Salt لمنع التخمين أو التزوير.
-- **حماية بوابة الكاشير (`#staff`)**:
-  - تشفير رمز الدخول (PIN Hash).
-  - نظام حظر آلي (Brute-force Lockout) يقفل البوابة لمدة 60 ثانية بعد 3 محاولات خاطئة.
-  - منع الصرف المكرر لأي كود.
+## Security scope (important)
+This is a **static, client-only** app. Reward codes are minted and validated in the
+browser; redemption is stored in the customer's `localStorage`. That is enough to
+deter casual tampering but is **not** forgery-proof and does **not** enforce
+single-use across devices.
+
+Current mitigations: obfuscated code minting, a hashed staff PIN, a persisted
+staff lockout, a client-side session signature, and a per-device daily claim cap.
+
+For real protection, move minting/validation server-side: issue codes with an
+HMAC over `(type, day, nonce)` using a server secret, keep a server redemption
+ledger keyed by code body, and authenticate staff via SSO/MFA. `CFG.salt` and all
+client checks should then be removed.
 
 ---
 
