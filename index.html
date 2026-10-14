@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0a3a37">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -66,7 +66,7 @@ h2{font-size:30px}
 .brand-logo-img{height:var(--logo-h);width:auto;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,.3))}
 .madinah-tag{display:inline-flex;align-items:center;gap:4px;background:rgba(212,160,23,.18);border:1px solid rgba(212,160,23,.45);color:var(--gold-light);font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px}
 .actions-cluster{display:flex;align-items:center;gap:6px}
-.sound-btn{background:rgba(255,255,255,.16);border:0;border-radius:999px;padding:6px 12px;color:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px}
+.sound-btn{background:rgba(255,255,255,.16);border:0;border-radius:999px;min-height:44px;padding:6px 12px;color:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px}
 .sound-btn:active{transform:scale(.95)}
 .sensor-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:rgba(25,158,104,.2);border:1px solid rgba(25,158,104,.4);color:#5cf4b6}
 .sensor-pill.danger{background:rgba(232,80,68,.25);border-color:rgba(232,80,68,.6);color:#ff9087;animation:pulseWarn 1s infinite alternate}
@@ -149,7 +149,7 @@ h2{font-size:30px}
 
 /* اللعب */
 .hud{display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;min-width:0}
-.hud .x{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:18px;cursor:pointer}
+.hud .x{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.16);color:#fff;font-size:18px;cursor:pointer}
 .hud-score small{display:block;font-size:12px;opacity:.85;line-height:1.2}
 .hud-score b{font-family:'Lalezar',sans-serif;font-weight:400;font-size:clamp(30px,9vw,38px);line-height:1}
 .chip{display:inline-block;background:rgba(255,255,255,.16);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
@@ -304,6 +304,7 @@ h2{font-size:30px}
 <body>
 <div id="warn" role="status"></div>
 <div id="cd" class="cd" aria-hidden="true"></div>
+<div id="a11y" role="status" aria-live="polite" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)"></div>
 
 <!-- نافذة تنبيه حركة السيارة الأوتوماتيكية -->
 <div id="drivingLock" class="driving-modal" role="alertdialog" aria-modal="true">
@@ -345,7 +346,7 @@ h2{font-size:30px}
       <input type="checkbox" id="safe">
       <span><b>السيارة متوقفة تماماً في المسار.</b> أتعهد باللعب فقط أثناء التوقف التام، وأعلم أن اللعبة تتوقف ذاتياً عند حركة السيارة أو اقتراب دوري.</span>
     </label>
-    <label class="chk" for="consent">
+    <label class="chk" for="consent" style="opacity:.85">
       <input type="checkbox" id="consent">
       <span>أوافق على استلام عروض the A&A ومفاجآت المدينة المنورة على رقمي (اختياري).</span>
     </label>
@@ -368,7 +369,7 @@ h2{font-size:30px}
     </div>
     <div class="actions-cluster">
       <div id="homeSensorStatus" class="sensor-pill"><span class="live-dot"></span> متوقف (0 كم/س)</div>
-      <button id="sndToggleHome" class="sound-btn" type="button"><span>🔊</span></button>
+      <button id="sndToggleHome" class="sound-btn" type="button" aria-label="تبديل الصوت"><span>🔊</span></button>
     </div>
   </header>
 
@@ -383,7 +384,7 @@ h2{font-size:30px}
   <div class="claimbar" id="claimBar" hidden></div>
 
   <!-- خيار تجريبي لمحاكاة حركة السيارة لغايات التقييم والعرض -->
-  <div style="margin-top:20px;text-align:center">
+  <div id="demoWrap" style="display:none;margin-top:20px;text-align:center">
     <button id="simDriveBtn" class="btn ghost" style="font-size:12px;padding:8px;opacity:.7" type="button">
       🚗 تجربة محاكاة رصد حركة السيارة (Demo)
     </button>
@@ -867,6 +868,9 @@ function show(id){
   $$('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   window.scrollTo(0, 0);
   watch();
+  const scr = document.getElementById(id);
+  const h = scr && scr.querySelector('h1,h2');
+  if(h){ h.setAttribute('tabindex','-1'); try { h.focus({preventScroll:true}); } catch(e){} }
 }
 
 /* ============ حارة الجوائز ============ */
@@ -915,6 +919,7 @@ function countdown(my, done){
       clearInterval(my.cdIv);
       cd.style.display = 'none';
       SFX.go();
+      $('#a11y').textContent='بدأت الجولة!';
       done();
     }
   }, 800);
@@ -1540,8 +1545,11 @@ function watch(){
   if(!S.startedAt||isLocked||cur==='intro'||cur==='staff'||cur==='locked'){w.style.display='none';return}
   const left=S.startedAt+CFG.maxWaitMinutes*60000-Date.now();
   if(left<=0){lock();return}
-  if(left<=60000){w.style.display='block';w.textContent='🚗 اقتربت نافذة الاستلام! تُغلق الألعاب تلقائياً خلال '+Math.ceil(left/1000)+' ثانية.'}
-  else w.style.display='none';
+  if(left<=60000){
+    const bucket = Math.ceil(left/1000) <= 10 ? 10 : Math.ceil(left/1000) <= 30 ? 30 : 60;
+    if(bucket !== watch._b){ watch._b = bucket; w.style.display='block'; w.textContent='🚗 اقتربت نافذة الاستلام! تُغلق الألعاب خلال '+bucket+' ثانية أو أقل.'; }
+  }
+  else { watch._b = 0; w.style.display='none'; }
 }
 setInterval(watch,1000);
 
@@ -1554,10 +1562,11 @@ $('#goBtn').addEventListener('click',()=>{
   SafetySensor.init();
   SafetySensor.requestMotion();
   const phone=normDigits($('#phone').value),order=($('#order').value||'').trim(),err=$('#err');
-  err.textContent='';
-  if(phone.length<9||phone.length>15){err.textContent='يرجى كتابة رقم جوال صحيح (مثال: 05XXXXXXXX)';return}
-  if(CFG.requireOrder&&!order){err.textContent='يرجى كتابة رقم الطلب الموجود في فاتورة the A&A';return}
-  if(!$('#safe').checked){err.textContent='يجب تأكيد أن السيارة متوقفة تماماً قبل البدء';return}
+  const problems=[];
+  if(phone.length<9||phone.length>15) problems.push('رقم جوال صحيح (مثال: 05XXXXXXXX)');
+  if(CFG.requireOrder&&!order) problems.push('رقم الطلب من فاتورة the A&A');
+  if(!$('#safe').checked) problems.push('تأكيد أن السيارة متوقفة تماماً');
+  if(problems.length){ err.textContent='يرجى إكمال: ' + problems.join(' • '); return; }
   const used=store.get().used||{},day=dayNow();
   const prior=used['p:'+phone+'|'+day]||(order?used['o:'+order.toUpperCase()+'|'+day]:null)||null;
   S={phone:phone,order:order,consent:$('#consent').checked,day:day,startedAt:Date.now(),best:0,bestBy:{},claim:prior,sig:0};
@@ -1588,6 +1597,7 @@ document.addEventListener('click', e => {
 $('#simDriveBtn').addEventListener('click',()=>{
   SafetySensor.simulateToggle();
 });
+if(location.hash.indexOf('demo') >= 0) $('#demoWrap').style.display='block';
 
 $('#rwCopy').addEventListener('click',()=>{
   const code=fmtCode(S.claim.code),b=$('#rwCopy');
