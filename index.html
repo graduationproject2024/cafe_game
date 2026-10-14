@@ -500,13 +500,17 @@ function hash(s){
   for(let i = 0; i < s.length; i++){
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 16777619);
+    h ^= (h >>> 13);
+    h = Math.imul(h, 2654435761);
   }
   return (h >>> 0);
 }
 
 // توقيع الحالة الأمنية لمنع التعديل اليدوي على السكور في الذاكرة أو LocalStorage
 function signSession(s){
-  return hash(CFG.salt + '|' + s.phone + '|' + s.order + '|' + s.best + '|' + s.startedAt);
+  let acc = hash(CFG.salt + '|' + s.phone + '|' + s.order + '|' + s.best + '|' + s.startedAt);
+  for(let i = 0; i < 3; i++) acc = hash(acc + '|' + CFG.salt + '|' + s.phone);
+  return acc;
 }
 
 /* ============ مكتبة الأصوات المتطورة (Pure Web Audio Sound Synthesis) ============ */
@@ -1486,6 +1490,10 @@ function finishClaim(type){
   const o=store.get();o.S=S;o.used=o.used||{};
   o.used['p:'+S.phone+'|'+dayNow()]=S.claim;
   o.used['o:'+String(S.order).toUpperCase()+'|'+dayNow()]=S.claim;
+  const devKey = 'd:' + dayNow();
+  o.dev = o.dev || {};
+  o.dev[devKey] = (o.dev[devKey] || 0) + 1;
+  store.set(o);
   save();
   if(CFG.webhookUrl){
     try{
@@ -1569,6 +1577,8 @@ $('#goBtn').addEventListener('click',()=>{
   if(problems.length){ err.textContent='يرجى إكمال: ' + problems.join(' • '); return; }
   const used=store.get().used||{},day=dayNow();
   const prior=used['p:'+phone+'|'+day]||(order?used['o:'+order.toUpperCase()+'|'+day]:null)||null;
+  const devCount = (store.get().dev || {})['d:' + day];
+  if(devCount >= 2){ err.textContent='تم بلوغ الحد اليومي لهذا الجهاز (٢ جولات مكافأة). نراك غداً 🌴'; return; }
   S={phone:phone,order:order,consent:$('#consent').checked,day:day,startedAt:Date.now(),best:0,bestBy:{},claim:prior,sig:0};
   isLocked=false;save();goHome();
 });
@@ -1613,6 +1623,8 @@ $('#rwCopy').addEventListener('click',()=>{
 
 /* ============ بوابة الموظف والكاشير (#staff) ============ */
 let stCur=null, stFailCount=0, stLockedUntil=0;
+try { const o=store.get(); stFailCount=o.stFailCount||0; stLockedUntil=o.stLockedUntil||0; } catch(e){}
+function stickyStaff(o){ o=o||store.get(); o.stFailCount=stFailCount; o.stLockedUntil=stLockedUntil; store.set(o); }
 function renderRedList(){
   const o=store.get(),red=o.red||{},box=$('#stHistory');
   const keys=Object.keys(red);
@@ -1633,11 +1645,13 @@ $('#stGo').addEventListener('click',()=>{
   }
   const pinInput = ($('#stPin').value || '').trim();
   // التحقق عبر التجزئة Hash المشفرة
-  if(hash('salt-staff-2026:' + pinInput) !== CFG.staffPinHash && pinInput !== '2026'){
+  if(hash('salt-staff-2026:' + pinInput) !== CFG.staffPinHash){
     stFailCount++;
+    stickyStaff();
     if(stFailCount >= 3){
       stLockedUntil = now + 60000;
       stFailCount = 0;
+      stickyStaff();
       out.classList.add('bad');
       out.textContent='❌ تم قفل بوابة الموظف لمدة دقيقة بسبب إدخال رمز خاطئ 3 مرات.';
       return;
@@ -1647,6 +1661,8 @@ $('#stGo').addEventListener('click',()=>{
     return;
   }
   stFailCount = 0;
+  stLockedUntil = 0;
+  stickyStaff();
   const p=parseCode($('#stCode').value);
   if(!p){out.classList.add('bad');out.textContent='❌ كود غير صحيح أو منتهي أو معدل';return}
   const today=dayNow(),exp=p.day+CFG.validDays,red=(store.get().red||{})[p.body];
