@@ -479,6 +479,8 @@ h2{font-size:30px}
 <script>
 (function(){
 'use strict';
+window.addEventListener('error', e => { try { console.warn('[cafe]', e.message); } catch(x){} });
+window.addEventListener('unhandledrejection', e => { try { console.warn('[cafe]', e.reason); } catch(x){} });
 
 /* ============ إعدادات كافيه the A&A المختص - المدينة المنورة ============ */
 var CFG = {
