@@ -173,6 +173,7 @@ h2{font-size:30px}
 }
 .pop.good{color:var(--ok)} .pop.bad{color:var(--coral)}
 @keyframes pop{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-42px)}}
+.combo-break{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:7;pointer-events:none;font-weight:700;color:var(--coral);background:rgba(0,0,0,.35);padding:4px 12px;border-radius:999px;font-size:16px;animation:pop .9s ease-out forwards}
 .lvl-banner{
   position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:6;
   font-family:'Lalezar',sans-serif;font-size:46px;color:var(--ink);animation:lvl 1.1s ease-out forwards;direction:rtl;
@@ -937,17 +938,23 @@ function makeCtx(r, stage){
       ring(x, y, false);
       SFX.ok(r.combo);
     },
-    miss(x, y, p){
+    miss(x, y, p, msg){
       if(r.over || r.paused) return;
+      const broke = r.combo >= 2;
       r.combo = 0;
+      const lm = 1 + 0.15 * (r.level - 1);
       if(p){
-        const pen = Math.round(CFG.basePoints * g.weight * p / 5) * 5;
+        const pen = Math.round(CFG.basePoints * g.weight * p * lm / 5) * 5;
         r.score = Math.max(0, r.score - pen);
-        pop('-' + pen, x, y, 'bad');
+        pop('-' + pen + (msg ? ' ' + msg : ''), x, y, 'bad');
         ring(x, y, true);
       } else {
-        pop('✕', x, y, 'bad');
+        pop(msg || '✕', x, y, 'bad');
         ring(x, y, true);
+      }
+      if(broke){
+        const t = el('div', 'combo-break', 'انكسر الكومبو 💥');
+        stage.append(t); setTimeout(() => t.remove(), 920);
       }
       hud();
       SFX.miss();
@@ -1071,13 +1078,13 @@ const GAMES = [
       it.y+=vy*dt;it.e.style.top=it.y+'px';
       if(it.y+34>=cupTop&&it.y<H-8&&Math.abs(it.x-cx)<half){
         it.e.remove();
-        if(it.burnt){ c.miss(it.x,H-90,1.2); }
+        if(it.burnt){ c.miss(it.x,H-90,1.2,'حبة محروقة!'); }
         else { c.ok(1,it.x,H-90); }
         return false;
       }
       if(it.y>H){
         it.e.remove();
-        if(!it.burnt) c.miss(it.x,H-30,0);
+        if(!it.burnt) c.miss(it.x,H-30,0,'فاتتك حبة!');
         return false;
       }
       return true;
@@ -1099,7 +1106,7 @@ const GAMES = [
     if(state!=='pour') return;
     state='wait';
     const diff=Math.abs(f-target),W=c.W();
-    if(f>=1){ c.miss(W/2,80,1.5); msg.textContent='فاض الكوب! (-30)'; }
+    if(f>=1){ c.miss(W/2,80,1.5,'فاض الكوب!'); msg.textContent='فاض الكوب! (-30)'; }
     else if(diff>tol){ c.miss(W/2,80,0.6); msg.textContent=f<target?'ناقص عن الخط!':'تجاوزت الخط قليلاً'; }
     else if(diff<=tol*.35){ c.ok(1.6,W/2,80); msg.textContent='صبة احترافية ممتازة! 🔥'; }
     else { c.ok(1,W/2,80); msg.textContent='مظبوط!'; }
@@ -1120,7 +1127,7 @@ const GAMES = [
  how:'المس فقاعات حليب the A&A قبل انفجارها. لمس الفراغ يكسر الكومبو ويخصم نقاطاً.',
  start(c){
   const st=c.stage;let t=180,active=0;
-  c.on(st,'pointerdown',e=>{if(e.target===st){const p=c.pos(e);c.miss(p.x,p.y,0.6);}});
+  c.on(st,'pointerdown',e=>{if(e.target===st){const p=c.pos(e);c.miss(p.x,p.y,0.6,'لمسة خطأ');}});
   function spawn(d){
     const W=c.W(),H=c.H(),s=lerp(74,50,d),life=lerp(2100,1050,d);
     const x=rnd(s/2+4,W-s/2-4),y=rnd(s/2+4,H-s/2-4);
@@ -1201,7 +1208,7 @@ const GAMES = [
   function answer(b,ok){
     if(lock)return;lock=true;
     if(ok){b.classList.add('good');c.ok(1.15,c.W()/2,90);}
-    else{b.classList.add('bad');reveal();c.miss(c.W()/2,90,1.2);}
+    else{b.classList.add('bad');reveal();c.miss(c.W()/2,90,1.2,'إجابة خاطئة');}
     c.after(ok?400:800,next);
   }
   c.loop(dt=>{
@@ -1316,7 +1323,7 @@ const GAMES = [
   c.loop(dt=>{
     if(lock)return;
     tleft-=dt*1000;bar.style.transform='scaleX('+Math.max(0,tleft/tmax)+')';
-    if(tleft<=0){lock=true;card.classList.add('bad');c.miss(c.W()/2,70,.8);c.after(700,next);}
+    if(tleft<=0){lock=true;card.classList.add('bad');c.miss(c.W()/2,70,.8,'انتهى الوقت');c.after(700,next);}
   });
   next();
  }},
