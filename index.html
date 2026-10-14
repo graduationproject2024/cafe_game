@@ -313,7 +313,7 @@ h2{font-size:30px}
     <p>حرصاً على سلامتك وتركيزك على الطريق، تم إيقاف اللعبة مؤقتاً.</p>
     <div id="driveSpeedTxt" class="speed-meter">السرعة المقاسة: 15 كم/س</div>
     <p class="fine" style="margin-bottom:12px">ستستأنف الجولة تلقائياً فور توقف السيارة تماماً عند نقطة الاستلام.</p>
-    <button id="btnDriveResumeSim" class="btn alt" type="button">أنا متوقف تماماً الآن ✓</button>
+    <button id="btnDriveResumeSim" class="btn alt" type="button">إعادة الفحص — أنا متوقف تماماً ✓</button>
   </div>
 </div>
 
@@ -619,26 +619,61 @@ const SafetySensor = {
   watchId: null,
   isMoving: false,
   accelLog: [],
+  status: 'unknown',
+  _motion: null,
+  _overAt: 0,
+  _underAt: 0,
+  _noDataTimer: 0,
+  simulated: false,
   
   init(){
     if(this.active) return;
     this.active = true;
-    
-    // 1. مراقبة سرعة نظام التموضع العالمي (GPS Geolocation Watch)
+    if(!this._motion) this._motion = e => this.handleMotion(e);
+
     if('geolocation' in navigator){
       try {
         this.watchId = navigator.geolocation.watchPosition(
           pos => this.handleGeo(pos),
-          err => {/* صامت */},
-          { enableHighAccuracy: true, maximumAge: 2000, timeout: 6000 }
+          err => this.handleGeoError(err),
+          { enableHighAccuracy: false, maximumAge: 3000, timeout: 10000 }
         );
-      } catch(e){}
+      } catch(e){ this.handleGeoError(e); }
+    } else {
+      this.status = 'unsupported';
     }
-    
-    // 2. مراقبة تسارع الهاتف (Accelerometer / Motion)
+
     if(window.DeviceMotionEvent){
-      window.addEventListener('devicemotion', e => this.handleMotion(e), { passive: true });
+      window.addEventListener('devicemotion', this._motion, { passive: true });
     }
+
+    clearTimeout(this._noDataTimer);
+    this._noDataTimer = setTimeout(() => {
+      if(this.status !== 'granted' && !this.isMoving) this.renderHUD();
+    }, 4000);
+  },
+
+  stop(){
+    this.active = false;
+    clearTimeout(this._noDataTimer);
+    try { if(this.watchId != null) navigator.geolocation.clearWatch(this.watchId); } catch(e){}
+    this.watchId = null;
+    if(this._motion && window.DeviceMotionEvent){
+      window.removeEventListener('devicemotion', this._motion);
+    }
+    if(this.isMoving) this.clearLock();
+  },
+
+  requestMotion(){
+    if(window.DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function'){
+      try { DeviceMotionEvent.requestPermission().then(s => { this.status = (s === 'granted') ? 'granted' : 'denied'; }).catch(()=>{}); } catch(e){}
+    }
+    if(!this.active) this.init();
+  },
+
+  handleGeoError(){
+    if(this.status !== 'granted') this.status = 'denied';
+    this.renderHUD();
   },
   
   handleGeo(pos){
@@ -656,6 +691,7 @@ const SafetySensor = {
     this.lastLat = pos.coords.latitude;
     this.lastLon = pos.coords.longitude;
     this.lastTime = now;
+    if(this.status !== 'granted'){ this.status = 'granted'; this._noDataTimer && clearTimeout(this._noDataTimer); }
     this.checkThreshold();
   },
   
@@ -674,19 +710,22 @@ const SafetySensor = {
       this.accelLog.push(mag);
       if(this.accelLog.length > 15) this.accelLog.shift();
       const avg = this.accelLog.reduce((x, y) => x + y, 0) / this.accelLog.length;
-      if(avg > 3.8 && this.speedKmh < 8){
-        this.speedKmh = Math.max(this.speedKmh, avg * 2.8);
-      }
+      if(avg > 4.2 && this.speedKmh < 8){ this.speedKmh = Math.max(this.speedKmh, Math.min(avg * 2.8, 25)); }
     }
     this.checkThreshold();
   },
   
   checkThreshold(){
-    const moving = this.speedKmh > 7.0; // حد السرعة 7 كم/ساعة (بداية حركة المركبة)
-    if(moving && !this.isMoving){
-      this.triggerLock();
-    } else if(!moving && this.isMoving){
-      this.clearLock();
+    const now = performance.now();
+    const over = this.speedKmh > 7.0;
+    if(over){
+      if(!this._overAt) this._overAt = now;
+      this._underAt = 0;
+      if(!this.isMoving && now - this._overAt >= 1000) this.triggerLock();
+    } else {
+      if(!this._underAt) this._underAt = now;
+      this._overAt = 0;
+      if(this.isMoving && now - this._underAt >= 1500) this.clearLock();
     }
     this.renderHUD();
   },
@@ -702,6 +741,7 @@ const SafetySensor = {
   },
   
   clearLock(){
+    this.simulated = false;
     this.isMoving = false;
     this.speedKmh = 0;
     if(run && !run.over) run.paused = false;
@@ -711,16 +751,19 @@ const SafetySensor = {
   },
   
   renderHUD(){
+    const warn = this.isMoving ? 'danger' : '';
+    const label = this.isMoving
+      ? '⚠️ السيارة تتحرك (' + Math.round(this.speedKmh) + ' كم/س)'
+      : (this.status === 'granted' ? 'السيارة متوقفة (0 كم/س)'
+        : this.status === 'denied' ? 'المستشعر مرفوض — اضغط للتفعيل'
+        : this.status === 'unsupported' ? 'المستشعر غير مدعوم على هذا الجهاز'
+        : 'المستشعر غير مُفعّل — اضغط للتفعيل');
     ['#homeSensorStatus', '#gameSensorStatus'].forEach(sel => {
-      const el = document.querySelector(sel);
-      if(!el) return;
-      if(this.isMoving){
-        el.className = 'sensor-pill danger';
-        el.innerHTML = '<span class="live-dot warn"></span> ⚠️ السيارة تتحرك (' + Math.round(this.speedKmh) + ' كم/س)';
-      } else {
-        el.className = 'sensor-pill';
-        el.innerHTML = '<span class="live-dot"></span> السيارة متوقفة (0 كم/س)';
-      }
+      const el2 = document.querySelector(sel);
+      if(!el2) return;
+      el2.className = 'sensor-pill' + (warn ? ' danger' : '');
+      el2.innerHTML = '<span class="live-dot' + (warn ? ' warn' : '') + '"></span> ' + label;
+      el2.style.cursor = (this.status === 'granted') ? 'default' : 'pointer';
     });
   },
   
@@ -729,6 +772,7 @@ const SafetySensor = {
       this.clearLock();
     } else {
       this.speedKmh = 18;
+      this.simulated = true;
       this.triggerLock();
     }
   }
@@ -1482,7 +1526,7 @@ function renderLocked(){
 
 function lock(){
   if(isLocked)return;
-  isLocked=true;abortRun();renderLocked();
+  isLocked=true;abortRun();SafetySensor.stop();renderLocked();
 }
 
 function watch(){
@@ -1503,6 +1547,7 @@ $('#ladderIntro').innerHTML=ladder(0);
 $('#goBtn').addEventListener('click',()=>{
   SFX.init();
   SafetySensor.init();
+  SafetySensor.requestMotion();
   const phone=normDigits($('#phone').value),order=($('#order').value||'').trim(),err=$('#err');
   err.textContent='';
   if(phone.length<9||phone.length>15){err.textContent='يرجى كتابة رقم جوال صحيح (مثال: 05XXXXXXXX)';return}
@@ -1525,7 +1570,15 @@ $('#sndToggle').addEventListener('click',()=>SFX.toggle());
 $('#sndToggleHome').addEventListener('click',()=>SFX.toggle());
 
 $('#btnDriveResumeSim').addEventListener('click',()=>{
-  SafetySensor.clearLock();
+  if(SafetySensor.simulated || SafetySensor.speedKmh <= 0.5){
+    SafetySensor.clearLock();
+  } else {
+    const t=$('#driveSpeedTxt');
+    if(t) t.textContent='لا يزال المستشعر يرصد حركة (' + Math.round(SafetySensor.speedKmh) + ' كم/س) — توقف تماماً أولاً.';
+  }
+});
+document.addEventListener('click', e => {
+  if(e.target.closest && e.target.closest('#homeSensorStatus,#gameSensorStatus')) SafetySensor.requestMotion();
 });
 $('#simDriveBtn').addEventListener('click',()=>{
   SafetySensor.simulateToggle();
