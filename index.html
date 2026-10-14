@@ -178,6 +178,9 @@ h2{font-size:30px}
   font-family:'Lalezar',sans-serif;font-size:46px;color:var(--ink);animation:lvl 1.1s ease-out forwards;direction:rtl;
 }
 @keyframes lvl{0%{opacity:0;transform:scale(.7)}25%{opacity:1;transform:scale(1)}80%{opacity:1}100%{opacity:0}}
+.ring{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:3px solid var(--gold);pointer-events:none;z-index:4;animation:ringOut .42s ease-out forwards}
+.ring.bad{border-color:var(--coral)}
+@keyframes ringOut{0%{transform:scale(.35);opacity:.95}100%{transform:scale(3.4);opacity:0}}
 
 /* نافذة قفل حركة السيارة (Driving Safety Modal) */
 .driving-modal{
@@ -891,6 +894,12 @@ function makeCtx(r, stage){
     s.style.top = (y == null ? 70 : y) + 'px';
     stage.append(s); setTimeout(() => s.remove(), 820);
   }
+  function ring(x, y, bad){
+    if(x == null || y == null) return;
+    const s = el('span', 'ring' + (bad ? ' bad' : ''));
+    s.style.left = x + 'px'; s.style.top = y + 'px';
+    stage.append(s); setTimeout(() => s.remove(), 460);
+  }
   return {
     stage: stage,
     W: () => stage.clientWidth, H: () => stage.clientHeight,
@@ -914,6 +923,7 @@ function makeCtx(r, stage){
       const lm = 1 + 0.15 * (r.level - 1);
       const pts = Math.max(5, Math.round(CFG.basePoints * g.weight * lm * cm * w / 5) * 5);
       r.score += pts; hud(); pop('+' + pts, x, y, 'good');
+      ring(x, y, false);
       SFX.ok(r.combo);
     },
     miss(x, y, p){
@@ -923,8 +933,10 @@ function makeCtx(r, stage){
         const pen = Math.round(CFG.basePoints * g.weight * p / 5) * 5;
         r.score = Math.max(0, r.score - pen);
         pop('-' + pen, x, y, 'bad');
+        ring(x, y, true);
       } else {
         pop('✕', x, y, 'bad');
+        ring(x, y, true);
       }
       hud();
       SFX.miss();
