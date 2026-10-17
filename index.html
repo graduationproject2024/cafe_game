@@ -574,16 +574,26 @@ h2 {
 .car-runner {
   position: absolute;
   top: 50%;
-  transform: translate(50%, -50%);
+  transform: translateY(-50%) translateX(50%);
   z-index: 10;
   transition: inset-inline-start 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
   pointer-events: none;
 }
+[dir="ltr"] .car-runner {
+  transform: translateY(-50%) translateX(-50%);
+}
 .car-sprite {
-  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.45));
+}
+.car-svg {
   display: block;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-  transform: scaleX(-1); /* سيارة متجهة للأمام في RTL */
+  transform: scaleX(1); /* متجهة للأمام نحو خط النهاية والجوائز في RTL */
+}
+[dir="ltr"] .car-svg {
+  transform: scaleX(-1); /* متجهة للأمام نحو خط النهاية في LTR */
 }
 /* الطبقة السفلية: النقاط المطلوبة */
 .drive-points {
@@ -980,8 +990,11 @@ h2 {
   position: absolute; width: 100%; height: 32px;
   background: #241F16;
   display: flex; align-items: center; justify-content: center;
-  color: #F0E8D4; font-size: 9px; font-weight: 800;
-  letter-spacing: 0.5px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.s-cup-sleeve img {
+  max-height: 22px; max-width: 58px; object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.6));
 }
 .s-cup-shadow {
   position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
@@ -1021,8 +1034,10 @@ h2 {
 .cup-brand-sleeve {
   width: 100%; height: 18px;
   display: flex; align-items: center; justify-content: center;
-  color: #F0E8D4; font-size: 9px; font-weight: 800;
-  letter-spacing: 0.5px;
+}
+.cup-brand-sleeve img {
+  max-height: 13px; max-width: 44px; object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
 }
 
 /* 5. Catch the Beans (اصطياد البن) — كيس قهوة قماشي مميز بشعار the A&A */
@@ -1051,9 +1066,12 @@ h2 {
   border-top: 2px dashed #4D2F12; pointer-events: none;
 }
 .b-sack-logo {
-  color: #241F16; font-size: 11px; font-weight: 900;
-  letter-spacing: 0.5px; text-shadow: 0 1px 0 rgba(255,255,255,0.4);
   pointer-events: none; margin-top: 4px;
+  display: flex; align-items: center; justify-content: center;
+}
+.b-sack-logo img {
+  max-height: 22px; max-width: 60px; object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
 }
 .b-bean {
   position: absolute; width: 34px; height: 34px; border-radius: 50%;
@@ -1134,9 +1152,9 @@ h2 {
 .pitcher-spout {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
   width: 6px; height: 32px;
-  background: #ffffff;
+  background: linear-gradient(180deg, #D4A62A 0%, #5C3414 100%);
   border-radius: 3px;
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 8px rgba(184, 115, 51, 0.7);
   opacity: 0;
   transition: opacity 0.1s ease;
   z-index: 20;
@@ -1213,13 +1231,11 @@ h2 {
   box-shadow: 0 3px 8px rgba(0,0,0,0.22);
   pointer-events: none;
 }
-.cup-takeaway-sleeve span {
-  font-family: 'Cinzel', 'Playfair Display', serif, system-ui;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  color: #DFC07A;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+.cup-takeaway-sleeve img {
+  max-height: 40px;
+  max-width: 96px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
 }
 .cup-grad-markers {
   position: absolute;
@@ -1242,17 +1258,10 @@ h2 {
   left: 0;
   right: 0;
   height: 0%;
-  background: linear-gradient(180deg, #FFFDF8 0%, #F5E6D0 35%, #C29B38 100%);
+  background: linear-gradient(180deg, #C59A48 0%, #8A5223 18%, #4A2810 55%, #241306 100%);
   transition: height 0.04s linear;
   z-index: 4;
-}
-.liquid-espresso {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 28px;
-  background: linear-gradient(180deg, #3D2214 0%, #1A0D07 100%);
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
 }
 .liquid-art {
   position: absolute;
@@ -1474,6 +1483,53 @@ h2 {
 .t-exp { font-size: 11px; color: var(--text-muted); }
 .t-note { font-size: 11px; color: var(--secondary); text-align: center; }
 
+/* شاشة النتيجة: عرض سكور ضخم وواضح لتحفيز اللاعب */
+.res-em {
+  font-size: 58px;
+  margin-bottom: 6px;
+  animation: floatBounce 2s ease-in-out infinite alternate;
+}
+.res-score-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 16px;
+}
+.res-score-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--secondary);
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.res-score {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  font-size: 72px;
+  font-weight: 900;
+  line-height: 1;
+  background: var(--gold-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 14px rgba(212, 166, 42, 0.45));
+  margin: 2px 0 6px;
+  animation: scoreScaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+@keyframes scoreScaleIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  60% { transform: scale(1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.res-score-pts {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+  background: var(--surface-alt);
+  border: 1px solid var(--border-strong);
+  padding: 3px 14px;
+  border-radius: var(--radius-full);
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -1645,11 +1701,15 @@ h2 {
 <section id="result" class="screen">
   <div class="wrap center">
     <div class="res-em" id="resEm"></div>
-    <h2 id="resTitle"></h2>
-    <div class="res-score" id="resScore">0</div>
-    <p class="lead" id="resMsg"></p>
+    <h2 id="resTitle" style="margin-bottom:4px"></h2>
+    <div class="res-score-wrap">
+      <span class="res-score-label" id="resScoreLbl">مجموع نقاط الجولة</span>
+      <div class="res-score" id="resScore">0</div>
+      <span class="res-score-pts" id="resScorePts">نقطة ☕✨</span>
+    </div>
+    <p class="lead" id="resMsg" style="margin-bottom:12px"></p>
     <div id="ladderRes"></div>
-    <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك</button>
+    <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك 🔥</button>
     <button id="resClaim" class="btn alt">استلم مكافأتك الآن 🎁</button>
     <button id="resHome" class="btn ghost">اختر لعبة ثانية</button>
 
@@ -1715,6 +1775,23 @@ h2 {
       <div id="stHistory" style="display:none;margin-top:16px"></div>
       <button id="stExit" class="btn ghost" style="margin-top:16px">الرجوع للألعاب</button>
     </div>
+
+    <div class="card" style="margin-top:16px">
+      <h3 style="font-size:16px;color:var(--primary);margin-bottom:8px">📊 ربط بيانات العملاء بـ Google Sheets</h3>
+      <p class="fine" style="margin-bottom:12px">حفظ ومزامنة فورية لأرقام جوالات العملاء، نتائج الألعاب، وتذاكر الخصم في جدول Google Sheets سحابي خاص بالكافيه.</p>
+      <div class="field">
+        <label for="stSheetUrl">رابط تطبيق الويب (Google Apps Script Web App URL)</label>
+        <input id="stSheetUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="stSaveSheet" class="btn" style="flex:1;margin-top:0">حفظ الرابط ✓</button>
+        <button id="stTestSheet" class="btn alt" style="flex:1;margin-top:0">فحص الاتصال 🔄</button>
+      </div>
+      <div id="stSheetStatus" class="field-hint" style="margin-top:8px"></div>
+      <div style="margin-top:14px;border-top:1px dashed var(--border);padding-top:12px">
+        <button id="stExportCsv" class="btn ghost" style="width:100%;margin-top:0">📥 تصدير فوري لبيانات العملاء (ملف CSV)</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -1732,6 +1809,7 @@ var CFG = {
   staffPin: '2024',
   requireOrder: false,
   salt: 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE',
+  googleSheetUrl: (function(){ try { return localStorage.getItem('aa_cafe_gsheet_url') || ''; } catch(e){ return ''; } })(),
   social: {
     instagram: 'https://www.instagram.com/theaa.cafe',
     tiktok: 'https://www.tiktok.com/@theaa.cafe'
@@ -1829,9 +1907,118 @@ const SFX = (function(){
     } catch(e){}
   }
 
+  let bgmTimer = null;
+  let bgmPlaying = false;
+
+  function startRhythmBgm(){
+    if(muted) return () => {};
+    init();
+    if(!ctx) return () => {};
+    bgmPlaying = true;
+    if(bgmTimer) clearTimeout(bgmTimer);
+
+    const tempo = 104;
+    const beatMs = (60 / tempo) * 1000;
+    let step = 0;
+
+    const chords = [
+      [293.66, 349.23, 440.00, 523.25], // Dm7
+      [246.94, 293.66, 392.00, 440.00], // G7
+      [261.63, 329.63, 392.00, 493.88], // Cmaj7
+      [220.00, 261.63, 329.63, 392.00]  // Am7
+    ];
+
+    function playBeat(){
+      if(!bgmPlaying || muted || !ctx) return;
+      try {
+        const t = ctx.currentTime;
+        const measure = Math.floor(step / 4) % chords.length;
+        const beatInMeasure = step % 4;
+
+        // Kick / bass on beat 0 and 2
+        if(beatInMeasure === 0 || beatInMeasure === 2){
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.frequency.setValueAtTime(beatInMeasure === 0 ? 110 : 85, t);
+          osc.frequency.exponentialRampToValueAtTime(36, t + 0.16);
+          g.gain.setValueAtTime(0.18, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.20);
+        }
+
+        // Snare / snap on beat 1 and 3
+        if(beatInMeasure === 1 || beatInMeasure === 3){
+          const osc = ctx.createOscillator();
+          const g = ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, t);
+          osc.frequency.exponentialRampToValueAtTime(140, t + 0.10);
+          g.gain.setValueAtTime(0.08, t);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
+          osc.connect(g);
+          g.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.12);
+        }
+
+        // Electric piano / Rhodes chord strum on beat 0
+        if(beatInMeasure === 0){
+          const curChord = chords[measure];
+          curChord.forEach((freq, idx) => {
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, t + idx * 0.015);
+            g.gain.setValueAtTime(0.038, t + idx * 0.015);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + (beatMs * 3.4) / 1000);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t + idx * 0.015);
+            osc.stop(t + (beatMs * 3.5) / 1000);
+          });
+        }
+
+        // Soft shaker / hi-hat
+        const hatOsc = ctx.createOscillator();
+        const hatG = ctx.createGain();
+        hatOsc.type = 'square';
+        hatOsc.frequency.setValueAtTime(1800 + (step % 2) * 400, t);
+        hatG.gain.setValueAtTime(0.02, t);
+        hatG.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+        hatOsc.connect(hatG);
+        hatG.connect(ctx.destination);
+        hatOsc.start(t);
+        hatOsc.stop(t + 0.05);
+      } catch(e){}
+
+      step++;
+      bgmTimer = setTimeout(playBeat, beatMs);
+    }
+
+    playBeat();
+
+    return () => {
+      bgmPlaying = false;
+      if(bgmTimer) clearTimeout(bgmTimer);
+    };
+  }
+
+  function stopRhythmBgm(){
+    bgmPlaying = false;
+    if(bgmTimer) clearTimeout(bgmTimer);
+  }
+
   return {
+    playTone,
+    init,
+    startRhythmBgm,
+    stopRhythmBgm,
     toggle(){
       muted = !muted;
+      if(muted) stopRhythmBgm();
       updateSoundIcons();
       return !muted;
     },
@@ -2013,7 +2200,28 @@ function ladder(score){
         '<div class="road-marker-dot marker-3' + hit3 + '" style="inset-inline-start:89%"></div>' +
       '</div>' +
       '<div class="car-runner" style="inset-inline-start:' + carPos + '%">' +
-        '<span class="car-sprite" role="img" aria-label="VIP Car">🚗</span>' +
+        '<div class="car-sprite" aria-label="the A&A Car">' +
+          '<svg class="car-svg" viewBox="0 0 48 24" width="38" height="19" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+            '<defs>' +
+              '<linearGradient id="goldCarGrad" x1="4" y1="6" x2="44" y2="21" gradientUnits="userSpaceOnUse">' +
+                '<stop stop-color="#F9E8BA"/>' +
+                '<stop offset="0.5" stop-color="#D4A62A"/>' +
+                '<stop offset="1" stop-color="#B88E1F"/>' +
+              '</linearGradient>' +
+            '</defs>' +
+            '<path d="M44 14C44 14 42 8 36 7C30 6 22 6 15 8C10 9.5 6 13 4 15C2 17 2 19 3 20C4 21 6 21 6 21H42C43.5 21 44.5 20 44.5 18.5C44.5 17 44 14 44 14Z" fill="url(#goldCarGrad)"/>' +
+            '<path d="M33 7.5L34.5 12H16L20 8C23 7 28 6.8 33 7.5Z" fill="#241F16"/>' +
+            '<path d="M22 8.5L18 12H26V8C24.5 8.1 23.2 8.3 22 8.5Z" fill="#8BB2D9" opacity="0.9"/>' +
+            '<path d="M28 8V12H33.5L32.2 8.2C30.8 8 29.3 8 28 8Z" fill="#8BB2D9" opacity="0.9"/>' +
+            '<circle cx="12" cy="19" r="4.5" fill="#1A1610" stroke="#F9E8BA" stroke-width="1.5"/>' +
+            '<circle cx="12" cy="19" r="2" fill="#D4A62A"/>' +
+            '<circle cx="36" cy="19" r="4.5" fill="#1A1610" stroke="#F9E8BA" stroke-width="1.5"/>' +
+            '<circle cx="36" cy="19" r="2" fill="#D4A62A"/>' +
+            '<path d="M4 16L1 17L4 18V16Z" fill="#FFF7D6"/>' +
+            '<circle cx="4" cy="17" r="1.5" fill="#FFE175"/>' +
+            '<rect x="42" y="14" width="2.5" height="3" rx="1" fill="#FF4444"/>' +
+          '</svg>' +
+        '</div>' +
       '</div>' +
     '</div>' +
     '<div class="drive-points">' +
@@ -2023,6 +2231,62 @@ function ladder(score){
       '<span class="pt-val" style="inset-inline-start:89%">' + CFG.tiers[2] + '</span>' +
     '</div>' +
   '</div>';
+}
+
+/* ============ الربط والمزامنة السحابية مع Google Sheets ============ */
+function syncToGoogleSheet(action, payload){
+  const url = CFG.googleSheetUrl || (function(){ try { return localStorage.getItem('aa_cafe_gsheet_url') || ''; } catch(e){ return ''; } })();
+  const currentBest = (typeof S !== 'undefined' && S) ? S.best : 0;
+  const currentClaim = (typeof S !== 'undefined' && S) ? S.claim : null;
+  const currentPhone = (payload && payload.phone) || ((typeof S !== 'undefined' && S) ? S.phone : '');
+  const currentOrder = (payload && payload.order) || ((typeof S !== 'undefined' && S) ? S.order : '');
+
+  const tierText = currentBest >= CFG.tiers[2] ? 'ترقية مشروب مجانية 🏆' :
+                   currentBest >= CFG.tiers[1] ? 'خصم 10%' :
+                   currentBest >= CFG.tiers[0] ? 'خصم 5%' : 'لم يتأهل بعد';
+
+  const rewardName = currentClaim ? (REW[currentClaim.type] ? REW[currentClaim.type].name : currentClaim.type) : '';
+  const rewardCodeStr = currentClaim ? fmtCode(currentClaim.code) : '';
+  const rewardStatusStr = (payload && payload.rewardStatus) ||
+                          (currentClaim ? (currentClaim.redeemed ? 'تم الصرف لدى الكاشير ✓' : 'بانتظار الصرف لدى الكاشير') : 'لا يوجد كود');
+
+  const record = {
+    action: action || 'UPDATE',
+    timestamp: new Date().toISOString(),
+    dateTimeArabic: new Date().toLocaleString('ar-SA'),
+    phone: currentPhone,
+    order: currentOrder,
+    bestScore: currentBest,
+    qualifiedTier: tierText,
+    rewardType: rewardName,
+    rewardCode: rewardCodeStr,
+    rewardStatus: rewardStatusStr,
+    lastGame: (payload && payload.gameName) || ((typeof curGame !== 'undefined' && curGame) ? curGame.name : ''),
+    lastScore: (payload && payload.score !== undefined) ? payload.score : '',
+    allScores: JSON.stringify(((typeof S !== 'undefined' && S) && S.bestBy) ? S.bestBy : {})
+  };
+
+  try {
+    const o = store.get();
+    o.sheetLog = o.sheetLog || [];
+    o.sheetLog.unshift({ ...record, synced: !!url, time: Date.now() });
+    if(o.sheetLog.length > 50) o.sheetLog.pop();
+    store.set(o);
+  } catch(e){}
+
+  if(!url) return Promise.resolve({ queued: true, reason: 'no_url' });
+
+  return fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record)
+  }).then(() => {
+    return { success: true };
+  }).catch(err => {
+    console.warn('[GoogleSheetSync]', err);
+    return { error: err.message };
+  });
 }
 
 /* ============ الحماية من الأوتوكليكر ============ */
@@ -2075,6 +2339,8 @@ function endRun(reason){
   S.completedAt = Date.now();
   save();
 
+  syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: run.score });
+
   $('#resEm').textContent = gm.emoji;
   $('#resTitle').textContent = 'انتهت جولة ' + gm.name;
   $('#resScore').textContent = run.score;
@@ -2107,11 +2373,12 @@ const GAMES = [
     const activeTargets = new Map();
     let targetSeq = 0;
     let spawnTimer = 0;
+    let missedGoldCount = 0;
 
     c.on(st, 'pointerdown', e => {
       if(e.target === st || e.target === stageEl){
         const p = c.pos(e);
-        c.miss(p.x, p.y, 0.35, 'نقرة فارغة');
+        c.miss(p.x, p.y, 0.35, currentLang === 'en' ? 'Empty Tap' : 'نقرة فارغة');
       }
     });
 
@@ -2158,17 +2425,18 @@ const GAMES = [
           let reactionMsg = '';
           if(elapsed < 380){
             reactionBonus = 2.0;
-            reactionMsg = '⚡ سرعة خارقة!';
+            reactionMsg = currentLang === 'en' ? '⚡ Ultra Speed!' : '⚡ سرعة خارقة!';
           } else if(elapsed < 620){
             reactionBonus = 1.4;
-            reactionMsg = 'سريع! 👍';
+            reactionMsg = currentLang === 'en' ? 'Fast! 👍' : 'سريع! 👍';
           }
           c.ok(reactionBonus, x, y, reactionMsg);
         } else if(type === 'burnt'){
           c.loseHeart();
-          c.miss(x, y, 1.4, 'حبة محروقة! (-1 ❤️)');
+          c.miss(x, y, 1.4, currentLang === 'en' ? 'Burnt Bean! (-1 ❤️)' : 'حبة محروقة! (-1 ❤️)');
         } else {
-          c.miss(x, y, 0.6, 'مشتت!');
+          c.loseHeart();
+          c.miss(x, y, 0.8, currentLang === 'en' ? 'Decoy Pot! (-1 ❤️)' : 'إبريق مشتت! (-1 ❤️)');
         }
       });
 
@@ -2181,7 +2449,13 @@ const GAMES = [
         activeTargets.delete(tId);
         if(elTarget.parentNode) elTarget.remove();
         if(type === 'gold'){
-          c.miss(x, y, 0.5, 'فاتك الهدف!');
+          missedGoldCount++;
+          if(missedGoldCount % 2 === 0){
+            c.loseHeart();
+            c.miss(x, y, 0.8, currentLang === 'en' ? 'Missed Targets! (-1 ❤️)' : 'فاتتك الأهداف! (-1 ❤️)');
+          } else {
+            c.miss(x, y, 0.4, currentLang === 'en' ? 'Target Expired!' : 'فاتك الهدف!');
+          }
         }
       });
     }
@@ -2250,22 +2524,25 @@ const GAMES = [
     }
 
     function startStage(){
+      if(!run || run.over) return;
       gameState = 'SHOWING_SEQUENCE';
       userInput = [];
       nodes.forEach(n => { n.className = 'pl-node'; });
 
-      const seqLen = Math.min(7, 2 + stageLevel);
+      const seqLen = Math.min(6, 2 + stageLevel);
       currentSequence = generateSequence(seqLen);
 
-      statusEl.textContent = 'المرحلة ' + stageLevel + ': احفظ النمط (' + seqLen + ' حركات)';
-      msg.textContent = '👀 راقب النمط جيداً...';
+      statusEl.textContent = (currentLang === 'en' ? 'Stage ' : 'المرحلة ') + stageLevel + ': ' + (currentLang === 'en' ? 'Memorize pattern (' + seqLen + ' steps)' : 'احفظ النمط (' + seqLen + ' حركات)');
+      msg.textContent = (currentLang === 'en' ? '👀 Watch the brewing pattern...' : '👀 راقب النمط جيداً...');
 
       let step = 0;
       function showNext(){
+        if(!run || run.over) return;
         if(step >= currentSequence.length){
           c.after(400, () => {
+            if(!run || run.over) return;
             gameState = 'AWAITING_INPUT';
-            msg.textContent = 'دورك الآن! كرر النمط بالترتيب';
+            msg.textContent = (currentLang === 'en' ? 'Your turn! Repeat in order' : 'دورك الآن! كرر النمط بالترتيب');
             nodes.forEach(n => { n.className = 'pl-node'; });
           });
           return;
@@ -2287,19 +2564,20 @@ const GAMES = [
     }
 
     function onNodeTap(idx){
-      if(gameState !== 'AWAITING_INPUT') return;
+      if(gameState !== 'AWAITING_INPUT' || !run || run.over) return;
       const expected = currentSequence[userInput.length];
       const tappedNode = nodes[idx];
 
       if(idx === expected){
         userInput.push(idx);
         tappedNode.classList.add('user-hit');
-        SFX.ok();
+        SFX.playTone(360 + idx * 45, 'sine', 0.14, 0.22);
+        setTimeout(() => tappedNode.classList.remove('user-hit'), 280);
 
         if(userInput.length === currentSequence.length){
           gameState = 'VALIDATING_INPUT';
-          msg.textContent = 'ممتاز! اكتمل النمط بنجاح 🎯';
-          c.ok(1.8, c.W() / 2, c.H() * 0.45, 'أحسنت! ✨');
+          msg.textContent = (currentLang === 'en' ? 'Bullseye! Pattern completed 🎯' : 'ممتاز! اكتمل النمط بنجاح 🎯');
+          c.ok(1.8, c.W() / 2, c.H() * 0.45, currentLang === 'en' ? 'Great Memory! ✨' : 'أحسنت! ✨');
           stageLevel++;
           c.after(900, startStage);
         }
@@ -2307,8 +2585,8 @@ const GAMES = [
         gameState = 'VALIDATING_INPUT';
         tappedNode.classList.add('wrong');
         c.loseHeart();
-        c.miss(c.W() / 2, c.H() * 0.45, 1.2, 'خطأ في النمط! (-1 ❤️)');
-        msg.textContent = 'خطأ! كرر المحاولة';
+        c.miss(c.W() / 2, c.H() * 0.45, 1.2, currentLang === 'en' ? 'Wrong Pattern! (-1 ❤️)' : 'خطأ في النمط! (-1 ❤️)');
+        msg.textContent = (currentLang === 'en' ? 'Mistake! Try again (-1 ❤️)' : 'خطأ! كرر المحاولة (-1 ❤️)');
         c.after(1100, startStage);
       }
     }
@@ -2337,7 +2615,7 @@ const GAMES = [
         '<div class="s-cup-model">' +
           '<div class="s-cup-lid"></div>' +
           '<div class="s-cup-body">' +
-            '<div class="s-cup-sleeve"><span>the A&A</span></div>' +
+            '<div class="s-cup-sleeve"><img src="assets/logo_gold.png" alt="the A&A"></div>' +
           '</div>' +
           '<div class="s-cup-shadow"></div>' +
         '</div>'
@@ -2369,7 +2647,7 @@ const GAMES = [
       cups.forEach(cp => cp.e.classList.remove('lift', 'has'));
       ball = Math.floor(Math.random() * 3);
       cups[ball].e.classList.add('has');
-      msg.textContent = 'راقب حبة البن الذهبية...';
+      msg.textContent = currentLang === 'en' ? 'Watch the golden bean...' : 'راقب حبة البن الذهبية...';
 
       const d = c.d();
       const diffMul = c.diffMultiplier ? c.diffMultiplier() : 1.0;
@@ -2380,7 +2658,7 @@ const GAMES = [
       c.after(300, () => cups[ball].e.classList.add('lift'));
       c.after(1100, () => {
         cups[ball].e.classList.remove('lift');
-        msg.textContent = 'خلط سريع… ركز!';
+        msg.textContent = currentLang === 'en' ? 'Rapid shuffle... stay focused!' : 'خلط سريع… ركز!';
       });
 
       for(let i = 0; i < n; i++){
@@ -2388,7 +2666,7 @@ const GAMES = [
       }
       c.after(1400 + n * (sw + 45) + sw, () => {
         state = 'pick';
-        msg.textContent = 'أين حبة البن الذهبية؟ اختر الكوب!';
+        msg.textContent = currentLang === 'en' ? 'Where is the golden bean? Pick the cup!' : 'أين حبة البن الذهبية؟ اختر الكوب!';
       });
     }
 
@@ -2398,12 +2676,13 @@ const GAMES = [
       const x = slots[cups[i].slot] / 100 * c.W(), y = c.H() * 0.45;
       cups[i].e.classList.add('lift');
       if(i === ball){
-        c.ok(2.2, x, y, 'قناص! 🔥');
-        msg.textContent = 'قناص! إجابة صحيحة 🔥';
+        c.ok(2.2, x, y, currentLang === 'en' ? 'Bullseye! 🔥' : 'قناص! 🔥');
+        msg.textContent = currentLang === 'en' ? 'Bullseye! Correct Cup 🔥' : 'قناص! إجابة صحيحة 🔥';
       } else {
-        c.miss(x, y, 1.1, 'ليست هنا');
+        c.loseHeart();
+        c.miss(x, y, 1.1, currentLang === 'en' ? 'Not Here! (-1 ❤️)' : 'ليست هنا! (-1 ❤️)');
         cups[ball].e.classList.add('lift');
-        msg.textContent = 'للأسف ليست هنا (-35)';
+        msg.textContent = currentLang === 'en' ? 'Wrong cup! (-1 ❤️)' : 'للأسف ليست هنا! (-1 ❤️)';
       }
       c.after(1100, round);
     }
@@ -2451,7 +2730,7 @@ const GAMES = [
     function createCupHTML(theme, width){
       return '<div class="cup-top-rim" style="background:' + theme.rim + '"></div>' +
         '<div class="cup-taper-body" style="background:' + theme.bg + '">' +
-          '<div class="cup-brand-sleeve" style="background:' + theme.sleeve + '"><span>the A&A</span></div>' +
+          '<div class="cup-brand-sleeve" style="background:' + theme.sleeve + '"><img src="assets/logo_gold.png" alt="the A&A"></div>' +
         '</div>';
     }
 
@@ -2514,8 +2793,13 @@ const GAMES = [
         const finalW = Math.max(38, rawOl);
         rows.push({ x: nx, w: finalW, theme: curTheme });
         w = finalW;
-        c.ok(1.0, px, py);
-        SFX.tap();
+        if(rawOl < 28){
+          c.loseHeart();
+          c.miss(px, py, 0.8, currentLang === 'en' ? 'Wobbly Stack! (-1 ❤️)' : 'توازن مهتز! (-1 ❤️)');
+        } else {
+          c.ok(1.0, px, py);
+          SFX.tap();
+        }
       }
       dir = -dir;
       draw();
@@ -2555,7 +2839,7 @@ const GAMES = [
     const cup = el('div', 'b-sack',
       '<div class="b-sack-ears"><div class="b-sack-ear"></div><div class="b-sack-ear"></div></div>' +
       '<div class="b-sack-stitch"></div>' +
-      '<div class="b-sack-logo">the A&A</div>'
+      '<div class="b-sack-logo"><img src="assets/logo_gold.png" alt="the A&A"></div>'
     );
     st.append(cup);
     let cx = c.W() / 2, cupW = 90;
@@ -2627,7 +2911,10 @@ const GAMES = [
         }
         if(it.y > H){
           it.e.remove();
-          if(!it.burnt) c.miss(it.x, H - 30, 0, currentLang === 'en' ? 'Missed Bean!' : 'فاتتك حبة!');
+          if(!it.burnt){
+            c.loseHeart();
+            c.miss(it.x, H - 30, 0.8, currentLang === 'en' ? 'Missed Bean! (-1 ❤️)' : 'فاتتك حبة بن! (-1 ❤️)');
+          }
           return false;
         }
         return true;
@@ -2764,12 +3051,12 @@ const GAMES = [
   altName: 'صبّة الدقة',
   emoji: '🥛',
   weight: 2.8,
-  how: 'اضغط مطولاً لصب الحليب والمايكروفوم في كوب the A&A. أفلِت إصبعك ليتوقف السائل على خط الهدف الأحمر بالضبط دون زيادة أو نقصان!',
-  howEn: 'Press and hold to pour milk into the A&A cup. Release to stop exactly on the red target line without spilling!',
+  how: 'اضغط مطولاً لصب القهوة في كوب the A&A. أفلِت إصبعك ليتوقف السائل على خط الهدف الأحمر بالضبط دون زيادة أو نقصان!',
+  howEn: 'Press and hold to pour coffee into the A&A cup. Release to stop exactly on the red target line without spilling!',
   start(c){
     const st = c.stage;
     st.innerHTML = '<div class="pour-wrap">' +
-      '<div id="pourMsg" class="pour-guide-txt">' + (currentLang === 'en' ? 'Press & hold to pour... stop exactly on the line!' : 'اضغط واستمر بالضغط للصب... توقف على الخط بالظبط!') + '</div>' +
+      '<div id="pourMsg" class="pour-guide-txt">' + (currentLang === 'en' ? 'Press & hold to pour coffee... stop exactly on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!') + '</div>' +
       '<div class="pour-station">' +
         '<div class="pitcher-spout" id="pourStream"></div>' +
         '<div class="latte-cup-assembly">' +
@@ -2783,10 +3070,9 @@ const GAMES = [
               '<span class="target-pointer-badge" id="pourTargetBadge">الهدف: 65%</span>' +
             '</div>' +
             '<div class="latte-liquid" id="pourFill">' +
-              '<div class="liquid-espresso"></div>' +
               '<div class="liquid-art" id="pourArt">☕✨</div>' +
             '</div>' +
-            '<div class="cup-takeaway-sleeve"><span>the A&A</span></div>' +
+            '<div class="cup-takeaway-sleeve"><img src="assets/logo_gold.png" alt="the A&A"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
@@ -2796,7 +3082,7 @@ const GAMES = [
       '</div>' +
       '<div style="width:100%;max-width:320px">' +
         '<button type="button" id="pourBtn" class="btn alt pour-action-btn">' +
-          '<span class="btn-icon">🥛</span> <span id="pourBtnTxt">' + (currentLang === 'en' ? 'Hold to Pour Milk' : 'اضغط واستمر للصب') + '</span>' +
+          '<span class="btn-icon">☕</span> <span id="pourBtnTxt">' + (currentLang === 'en' ? 'Hold to Pour Coffee ☕' : 'اضغط واستمر لصب القهوة ☕') + '</span>' +
         '</button>' +
       '</div>' +
     '</div>';
@@ -2823,7 +3109,7 @@ const GAMES = [
       fillEl.style.height = '0%';
       streamEl.classList.remove('active');
       artEl.classList.remove('bloom');
-      msgEl.textContent = (currentLang === 'en' ? 'Press & hold to pour... stop exactly on the line!' : 'اضغط واستمر بالضغط للصب... توقف على الخط بالظبط!');
+      msgEl.textContent = (currentLang === 'en' ? 'Press & hold to pour coffee... stop exactly on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!');
       levelTxt.textContent = '0%';
 
       targetCenter = Math.round(rnd(45, 80));
@@ -2837,7 +3123,6 @@ const GAMES = [
     c.loop(dt => {
       if(!roundActive || !pouring) return;
       const d = c.d();
-      // سرعة واقعية ومريحة للتحكم البشري الدقيق (تمهل واقعي)
       const speed = lerp(26, 38, d);
       fillLevel += speed * dt;
       fillEl.style.height = Math.min(100, fillLevel) + '%';
@@ -2852,7 +3137,7 @@ const GAMES = [
       if(!roundActive || pouring) return;
       pouring = true;
       streamEl.classList.add('active');
-      msgEl.textContent = (currentLang === 'en' ? 'Pouring milk... get ready to release on the line!' : 'جارٍ الصب والتبخير... استعد للإفلات على الخط بالظبط!');
+      msgEl.textContent = (currentLang === 'en' ? 'Pouring specialty coffee... release on the line!' : 'جارٍ صب القهوة المختصة... استعد للإفلات على الخط بالظبط!');
       SFX.playTone(280, 'sine', 0.8, 0.15, 420);
     }
 
@@ -2874,8 +3159,9 @@ const GAMES = [
         c.ok(1.6, W / 2, H * 0.45, currentLang === 'en' ? 'Great Accuracy! 👍' : 'صبّة متقنة قريبة جداً! 👍');
         msgEl.textContent = currentLang === 'en' ? '👍 Very close to the target line!' : '👍 صبّة متقنة قريبة جداً من الخط!';
       } else if(fillLevel < targetCenter - 5.0){
-        c.miss(W / 2, H * 0.45, 0.7, currentLang === 'en' ? 'Underfilled!' : 'صبّة ناقصة!');
-        msgEl.textContent = currentLang === 'en' ? 'Underfilled! Released before reaching the line.' : 'صبّة ناقصة! أفلتت قبل الوصول للخط المطلوب.';
+        c.loseHeart();
+        c.miss(W / 2, H * 0.45, 1.0, currentLang === 'en' ? 'Underfilled! (-1 ❤️)' : 'صبّة ناقصة! (-1 ❤️)');
+        msgEl.textContent = currentLang === 'en' ? 'Underfilled! Released before reaching the line. (-1 ❤️)' : 'صبّة ناقصة! أفلتت قبل الوصول للخط المطلوب. (-1 ❤️)';
       } else {
         c.loseHeart();
         c.miss(W / 2, H * 0.45, 1.2, currentLang === 'en' ? 'Over the line! (-1 ❤️)' : 'تجاوزت الخط! (-1 ❤️)');
@@ -2905,9 +3191,12 @@ const GAMES = [
   how: 'المس زر الإيقاع أو اضغط مسافة فور تطابق قطرات الإسبريسو الذهبية مع حافة البورتافلتر بدقة!',
   howEn: 'Tap the rhythm button or press Space right when the golden espresso drops hit the portafilter rim!',
   start(c){
+    SFX.startRhythmBgm();
+    c.cleanup(SFX.stopRhythmBgm);
+
     const st = c.stage;
     st.innerHTML = '<div class="rh-wrap">' +
-      '<div class="rh-grouphead"><span>' + (currentLang === 'en' ? 'the A&A Extraction Grouphead' : 'رأس استخلاص the A&A') + '</span> ☕</div>' +
+      '<div class="rh-grouphead"><img src="assets/logo_gold.png" alt="the A&A" style="height:20px;vertical-align:middle;margin-inline-end:6px"><span>' + (currentLang === 'en' ? 'Extraction Grouphead' : 'رأس استخلاص the A&A') + '</span> ☕</div>' +
       '<div class="rh-track" id="rhTrack">' +
         '<div class="rh-rails"></div>' +
         '<div class="rh-portafilter" id="rhTarget">' +
@@ -2973,7 +3262,8 @@ const GAMES = [
 
         if(now > n.targetTime + 220 && !n.hit){
           n.el.remove();
-          c.miss(c.W() / 2, targetY, 0.4, currentLang === 'en' ? 'Missed Drop!' : 'فاتتك القطرة!');
+          c.loseHeart();
+          c.miss(c.W() / 2, targetY, 0.5, currentLang === 'en' ? 'Missed Drop! (-1 ❤️)' : 'فاتتك القطرة! (-1 ❤️)');
           return false;
         }
         if(n.hit){
@@ -3015,7 +3305,8 @@ const GAMES = [
           SFX.tap();
         }
       } else {
-        c.miss(W / 2, targetY - 10, 0.35, currentLang === 'en' ? 'Off Beat!' : 'نقرة خارج التوقيت');
+        c.loseHeart();
+        c.miss(W / 2, targetY - 10, 0.4, currentLang === 'en' ? 'Off Beat! (-1 ❤️)' : 'خارج التوقيت! (-1 ❤️)');
       }
     }
 
@@ -3118,7 +3409,8 @@ const GAMES = [
             c.after(900, buildBoard);
           }
         } else {
-          c.miss(c.W() / 2, c.H() * 0.45, 0.4, 'غير متطابق');
+          c.loseHeart();
+          c.miss(c.W() / 2, c.H() * 0.45, 0.5, currentLang === 'en' ? 'No Match! (-1 ❤️)' : 'غير متطابق! (-1 ❤️)');
           c.after(650, () => {
             firstCard.classList.remove('revealed');
             firstCard.textContent = '?';
@@ -3266,6 +3558,8 @@ function commitReward(type){
   S.claim = { type: type, code: c, day: day, redeemed: false };
   save();
 
+  syncToGoogleSheet('CLAIM_REWARD');
+
   const o = store.get();
   o.used = o.used || {};
   o.used['p:' + S.phone + '|' + day] = S.claim;
@@ -3292,6 +3586,8 @@ function checkStaffHash(){
     show('staff');
     $('#stOut').textContent = '';
     $('#stRedeem').hidden = true;
+    const sInput = $('#stSheetUrl');
+    if(sInput) sInput.value = CFG.googleSheetUrl || '';
     renderStaffHistory();
   }
 }
@@ -3336,6 +3632,7 @@ $('#stGo').addEventListener('click', () => {
     history.unshift({ code: parsed.code, type: parsed.type, time: Date.now() });
     o.history = history;
     store.set(o);
+    syncToGoogleSheet('REDEEM_REWARD', { rewardCode: parsed.code, rewardStatus: 'تم الصرف لدى الكاشير ✓' });
     btnRedeem.hidden = true;
     out.textContent = 'تم تأكيد وصرف المكافأة بنجاح ✓';
     renderStaffHistory();
@@ -3354,6 +3651,67 @@ function renderStaffHistory(){
       fmtCode(h.code) + ' — ' + (REW[h.type] ? REW[h.type].name : '') + ' (' + new Date(h.time).toLocaleTimeString('ar-SA') + ')' +
     '</div>').join('');
 }
+
+/* إدارة Google Sheets وتصدير CSV في بوابة الموظفين */
+$('#stSaveSheet').addEventListener('click', () => {
+  const url = ($('#stSheetUrl').value || '').trim();
+  CFG.googleSheetUrl = url;
+  try { localStorage.setItem('aa_cafe_gsheet_url', url); } catch(e){}
+  const stDiv = $('#stSheetStatus');
+  stDiv.style.color = 'var(--success)';
+  stDiv.textContent = 'تم حفظ رابط Google Sheet بنجاح ✓';
+  SFX.ok();
+});
+
+$('#stTestSheet').addEventListener('click', () => {
+  const stDiv = $('#stSheetStatus');
+  stDiv.style.color = 'var(--primary)';
+  stDiv.textContent = 'جارٍ فحص الاتصال بـ Google Sheet...';
+  syncToGoogleSheet('TEST_CONNECTION', { phone: '+966500000000', order: 'TEST-001' }).then(res => {
+    if(res && res.error){
+      stDiv.style.color = 'var(--error)';
+      stDiv.textContent = 'تعذر الاتصال بالرابط: ' + res.error;
+    } else {
+      stDiv.style.color = 'var(--success)';
+      stDiv.textContent = 'تم إرسال سطر فحص تجريبي بنجاح! تحقق من الشيت ✓';
+      SFX.reward();
+    }
+  });
+});
+
+$('#stExportCsv').addEventListener('click', () => {
+  const o = store.get();
+  const log = o.sheetLog || [];
+  if(!log.length){
+    alert('لا توجد بيانات مسجلة محلياً بعد.');
+    return;
+  }
+  const headers = ['Action','Timestamp','Date_Arabic','Phone','Order','Best_Score','Qualified_Tier','Reward_Type','Reward_Code','Reward_Status','Last_Game','Last_Score'];
+  const rows = log.map(r => [
+    r.action || '',
+    r.timestamp || '',
+    r.dateTimeArabic || '',
+    r.phone || '',
+    r.order || '',
+    r.bestScore || 0,
+    r.qualifiedTier || '',
+    r.rewardType || '',
+    r.rewardCode || '',
+    r.rewardStatus || '',
+    r.lastGame || '',
+    r.lastScore || ''
+  ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+
+  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'the_aa_customers_' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  SFX.ok();
+});
 
 /* ============ بيئة اللعب الموحدة (Harness) ============ */
 function makeCtx(game){
@@ -3387,6 +3745,9 @@ function makeCtx(game){
       const tid = setTimeout(fn, ms);
       cleanups.push(() => clearTimeout(tid));
       return tid;
+    },
+    cleanup(fn){
+      if(typeof fn === 'function') cleanups.push(fn);
     },
     loop(fn){
       let myLastTime = performance.now();
@@ -3586,6 +3947,7 @@ $('#goBtn').addEventListener('click', () => {
   };
 
   save();
+  syncToGoogleSheet('REGISTER', { phone: v.canonical, order: order });
   goHome();
 });
 
@@ -3685,9 +4047,11 @@ const I18N = {
     likeHeart: '👍 ضع لايك على آخر منشور في إنستغرام the A&A لتحصل على قلب إضافي ثانٍ!',
     claimBtn: 'استلام +1 ❤️',
     likeClaimBtn: 'لايك واستلام ❤️',
-    resAgain: 'العب مرة أخرى وحسّن نتيجتك',
+    resAgain: 'العب مرة أخرى وحسّن نتيجتك 🔥',
     resClaim: 'استلم مكافأتك الآن 🎁',
-    resHome: 'اختر لعبة ثانية'
+    resHome: 'اختر لعبة ثانية',
+    resScoreLbl: 'مجموع نقاط الجولة',
+    resScorePts: 'نقطة ☕✨'
   },
   en: {
     brandSub: 'Specialty Cafe & Sweets • Al-Madinah',
@@ -3710,9 +4074,11 @@ const I18N = {
     likeHeart: '👍 Like our latest Instagram post for a 2nd Extra Heart!',
     claimBtn: 'Claim +1 ❤️',
     likeClaimBtn: 'Like & Claim ❤️',
-    resAgain: 'Play Again & Beat Score',
+    resAgain: 'Play Again & Beat Score 🔥',
     resClaim: 'Claim Your Reward 🎁',
-    resHome: 'Choose Another Game'
+    resHome: 'Choose Another Game',
+    resScoreLbl: 'Round Score',
+    resScorePts: 'Points ☕✨'
   }
 };
 
@@ -3746,6 +4112,8 @@ function applyLang(lang){
   if($('#resAgain')) $('#resAgain').textContent = t.resAgain;
   if($('#resClaim')) $('#resClaim').textContent = t.resClaim;
   if($('#resHome')) $('#resHome').textContent = t.resHome;
+  if($('#resScoreLbl')) $('#resScoreLbl').textContent = t.resScoreLbl;
+  if($('#resScorePts')) $('#resScorePts').textContent = t.resScorePts;
 
   if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
   if($('#ladderHome')) $('#ladderHome').innerHTML = ladder(S.best || 0);
