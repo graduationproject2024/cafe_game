@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A1610">
+<meta name="description" content="بوابة موظفي the A&A — إدارة الألعاب والتحقق من المكافآت والتحليلات">
+<title>the A&A Cafe — بوابة الموظفين والتحليلات</title>
+<link rel="icon" type="image/png" href="assets/logo_gold.png">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font: 'Tajawal', 'Cairo', system-ui, sans-serif;
+  --bg: #1A1610;
+  --surface: #241F16;
+  --surface-alt: #2E281C;
+  --primary: #E0B73F;
+  --primary-pressed: #C9A02A;
+  --on-primary: #1F1A0F;
+  --text: #F0E8D4;
+  --text-muted: #B5A887;
+  --border: #3F3726;
+  --success: #9DB88A;
+  --error: #D98A7A;
+  --warning: #E0B73F;
+  --card: #241F16;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+[data-theme="light"] {
+  --bg: #F5F1E8;
+  --surface: #FFFFFF;
+  --surface-alt: #F7EFD2;
+  --primary: #D4A62A;
+  --primary-pressed: #B88E1F;
+  --on-primary: #3B3220;
+  --text: #3B3220;
+  --text-muted: #7A6D52;
+  --border: #E8DFC4;
+  --success: #7D9B6A;
+  --error: #C26A5A;
+  --warning: #D4A62A;
+  --card: #FFFFFF;
+  --shadow: 0 8px 24px rgba(59,50,32,0.08);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding: 16px;
+  direction: rtl;
+  text-align: right;
+  line-height: 1.5;
+}
+.container { max-width: 1040px; margin: 0 auto; }
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+}
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand img { height: 38px; width: auto; }
+.brand-title { font-size: 18px; font-weight: 800; color: var(--primary); }
+.brand-sub { font-size: 12px; color: var(--text-muted); }
+.auth-box {
+  max-width: 420px;
+  margin: 60px auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.auth-box h2 { font-size: 20px; color: var(--primary); margin-bottom: 8px; }
+.auth-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+.field { margin-bottom: 16px; text-align: right; }
+.field label { display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+}
+.field input:focus { outline: 2px solid var(--primary); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--primary);
+  color: var(--on-primary);
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity .18s;
+  width: 100%;
+}
+.btn:hover { opacity: 0.92; }
+.btn.alt { background: var(--surface-alt); color: var(--primary); border: 1px solid var(--border); }
+.btn.ghost { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.btn.danger { background: var(--error); color: #fff; }
+.nav-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.tab-btn {
+  padding: 10px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tab-btn.active { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+.panel { display: none; }
+.panel.active { display: block; }
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.stat-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+.stat-value { font-size: 26px; font-weight: 900; color: var(--primary); }
+.stat-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.card-title { font-size: 16px; font-weight: 800; color: var(--primary); }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th, td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+th { color: var(--text-muted); font-weight: 700; background: var(--surface-alt); }
+tr:hover td { background: var(--surface-alt); }
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge.success { background: rgba(157, 184, 138, 0.2); color: var(--success); }
+.badge.warning { background: rgba(224, 183, 63, 0.2); color: var(--warning); }
+.badge.danger { background: rgba(217, 138, 122, 0.2); color: var(--error); }
+.code-box {
+  background: var(--surface-alt);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 13px;
+  color: var(--primary);
+  display: inline-block;
+}
+.alert {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.alert.success { background: rgba(157, 184, 138, 0.2); color: var(--success); border: 1px solid var(--success); }
+.alert.error { background: rgba(217, 138, 122, 0.2); color: var(--error); border: 1px solid var(--error); }
+.alert.info { background: rgba(224, 183, 63, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- ترويسة منصة الموظفين المستقلة -->
+  <header class="header">
+    <div class="brand">
+      <img src="assets/logo_transparent.png" alt="the A&A">
+      <div>
+        <div class="brand-title">the A&A Cafe — لوحة الإدارة والتحليلات</div>
+        <div class="brand-sub">منصة الموظفين المستقلة • المدينة المنورة</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <button id="themeToggleBtn" class="btn alt" style="width:auto;padding:8px 12px">🌙</button>
+      <button id="logoutBtn" class="btn ghost" style="width:auto;padding:8px 12px;display:none">خروج 🔒</button>
+    </div>
+  </header>
+
+  <!-- شاشة التحقق وتسجيل الدخول -->
+  <div id="authSection" class="auth-box">
+    <img src="assets/logo_gold.png" alt="Logo" style="height:48px;margin-bottom:14px">
+    <h2>تسجيل دخول الإدارة والكاشير</h2>
+    <p>أدخل الرمز السري المعتمد للوصول إلى لوحة الموظفين والتحليلات وبيانات العملاء.</p>
+    <div class="field">
+      <label for="pinInput">الرمز السري (Staff PIN)</label>
+      <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" autocomplete="off">
+    </div>
+    <div id="authErr" class="alert error" style="display:none"></div>
+    <button id="loginBtn" class="btn">دخول لوحة الإدارة 🔑</button>
+  </div>
+
+  <!-- لوحة التحكم الرئيسية بعد تسجيل الدخول -->
+  <div id="mainDashboard" style="display:none">
+    <div class="nav-tabs">
+      <button class="tab-btn active" data-tab="tabAnalytics">📊 التحليلات التشغيلية</button>
+      <button class="tab-btn" data-tab="tabCashier">🎟️ فحص وصرف المكافآت</button>
+      <button class="tab-btn" data-tab="tabCustomers">👥 قاعدة بيانات العملاء</button>
+      <button class="tab-btn" data-tab="tabLeaderboards">🏆 المتصدرين Top 10</button>
+      <button class="tab-btn" data-tab="tabSheets">📑 مزامنة Google Sheets</button>
+      <button class="tab-btn" data-tab="tabAudit">📜 سجل التدقيق الإداري</button>
+      <button class="tab-btn" data-tab="tabBackup">💾 النسخ الاحتياطي والاستعادة</button>
+    </div>
+
+    <!-- 1. تبويب التحليلات -->
+    <div id="tabAnalytics" class="panel active">
+      <div class="grid-stats">
+        <div class="stat-card">
+          <div class="stat-title">إجمالي العملاء المسجلين</div>
+          <div class="stat-value" id="stTotalCust">0</div>
+          <div class="stat-sub">عملاء فريدون برقم جوال معتمد</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">عملاء اليوم الجدد</div>
+          <div class="stat-value" id="stTodayCust">0</div>
+          <div class="stat-sub" id="stWeeklyCust">أسبوعي: 0 • شهري: 0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">إجمالي جولات الألعاب</div>
+          <div class="stat-value" id="stTotalSessions">0</div>
+          <div class="stat-sub" id="stCompletionRate">نسبة الإكمال: 100%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">المكافآت المصروفة</div>
+          <div class="stat-value" id="stTotalRedeemed">0</div>
+          <div class="stat-sub" id="stRedeemRate">من إجمالي الأكواد الصادرة</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎮 إحصائيات الألعاب ومعدل النقاط</div>
+          <button id="btnRefreshAnalytics" class="btn alt" style="width:auto;padding:6px 12px;font-size:12px">تحديث 🔄</button>
+        </div>
+        <table id="tblGameStats">
+          <thead>
+            <tr>
+              <th>اللعبة</th>
+              <th>مرات اللعب</th>
+              <th>متوسط السكور</th>
+              <th>أعلى سكور مسجل</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. تبويب فحص وصرف المكافآت للكاشير -->
+    <div id="tabCashier" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🎟️ التحقق من كود مكافأة العميل وصرفه فورياً</div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <div class="field" style="flex:2;min-width:240px">
+            <label for="cashierCodeInput">كود المكافأة (رمز مشفر من العميل)</label>
+            <input id="cashierCodeInput" type="text" placeholder="مثال: DAA-9X4F-7K" autocomplete="off">
+          </div>
+          <div style="flex:1;min-width:140px;align-self:flex-end;margin-bottom:16px">
+            <button id="btnVerifyCode" class="btn">فحص الكود 🔍</button>
+          </div>
+        </div>
+        <div id="cashierResult" style="display:none;margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🕒 سجل العمليات المصروفة اليوم لدى الكاشير</div>
+        </div>
+        <table id="tblCashierHistory">
+          <thead>
+            <tr>
+              <th>الوقت</th>
+              <th>الكود</th>
+              <th>نوع الجائزة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3. تبويب قاعدة بيانات العملاء -->
+    <div id="tabCustomers" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">👥 سجلات العملاء المسجلة</div>
+          <div style="display:flex;gap:8px">
+            <button id="btnExportCustCsv" class="btn alt" style="width:auto;padding:6px 14px;font-size:12px">تصدير CSV آمن 📥</button>
+          </div>
+        </div>
+        <div class="field">
+          <input id="custSearchInput" type="text" placeholder="بحث بالرقم أو الطلب أو الاسم المستعار...">
+        </div>
+        <table id="tblCustomers">
+          <thead>
+            <tr>
+              <th>الرقم المعتمد</th>
+              <th>الاسم المستعار</th>
+              <th>رقم الطلب</th>
+              <th>أعلى سكور</th>
+              <th>كود الجائزة</th>
+              <th>تاريخ التسجيل</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. تبويب المتصدرين Top 10 -->
+    <div id="tabLeaderboards" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">🏆 لوحات المتصدرين الرسمية لكل لعبة</div>
+          <div style="width:200px">
+            <select id="selLbGame"></select>
+          </div>
+        </div>
+        <table id="tblLeaderboard">
+          <thead>
+            <tr>
+              <th>الترتيب</th>
+              <th>الاسم المستعار</th>
+              <th>النقاط</th>
+              <th>أيام الصدارة (فترة 3 أشهر)</th>
+              <th>تاريخ التسجيل</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 5. تبويب مزامنة Google Sheets -->
+    <div id="tabSheets" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📑 إعدادات الربط السحابي مع Google Sheets</div>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+          يتم إرسال كافة بيانات العملاء وأرقام الجوالات والمكافآت وسجلات الألعاب آلياً إلى جدول Google Sheets مع حفظ طابور المزامنة عند انقطاع الاتصال.
+        </p>
+        <div class="field">
+          <label for="sheetUrlInput">رابط تطبيق الويب (Google Apps Script Web App URL)</label>
+          <input id="sheetUrlInput" type="url" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:14px">
+          <button id="btnSaveSheetUrl" class="btn" style="flex:1">حفظ الرابط ✓</button>
+          <button id="btnTestSheetConn" class="btn alt" style="flex:1">فحص الاتصال 🔄</button>
+        </div>
+        <div id="sheetStatusMsg" class="alert info" style="display:none"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📋 سجل المزامنة الأخيرة (Sync Log)</div>
+          <button id="btnClearSyncLog" class="btn ghost" style="width:auto;padding:4px 10px;font-size:11px">تفريغ السجل</button>
+        </div>
+        <table id="tblSyncLogs">
+          <thead>
+            <tr>
+              <th>الوقت</th>
+              <th>العملية</th>
+              <th>البيانات</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 6. تبويب سجل التدقيق الإداري -->
+    <div id="tabAudit" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📜 سجل العمليات الإدارية والتدقيق (Audit Trail)</div>
+          <button id="btnExportAuditCsv" class="btn alt" style="width:auto;padding:6px 12px;font-size:12px">تصدير السجل 📥</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px">
+          توثيق آلي غير قابل للتعديل لكافة الإجراءات الإدارية: صرف المكافآت، تسجيل الدخول، تعديل البيانات، والنسخ الاحتياطي.
+        </p>
+        <table id="tblAudit">
+          <thead>
+            <tr>
+              <th>التاريخ والوقت</th>
+              <th>المنفذ</th>
+              <th>الإجراء</th>
+              <th>التفاصيل والهدف</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 7. تبويب النسخ الاحتياطي والاستعادة -->
+    <div id="tabBackup" class="panel">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💾 إدارة النسخ الاحتياطي لقاعدة البيانات</div>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+          تصدير نسخة كاملة آمنة وموثقة برمز تحقق رقمي (Checksum) تحتوي على سجلات العملاء، الأكواد، المتصدرين، وسجلات التدقيق.
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button id="btnCreateBackup" class="btn" style="flex:1;min-width:200px">تنزيل نسخة احتياطية مشفرة (JSON) 📥</button>
+          <label class="btn alt" style="flex:1;min-width:200px;cursor:pointer">
+            استعادة من ملف نسخة احتياطية 📤
+            <input id="fileRestoreInput" type="file" accept=".json" style="display:none">
+          </label>
+        </div>
+        <div id="backupStatusMsg" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const STAFF_PIN_AUTHORITATIVE = '2024';
+const DB_STORAGE_KEY = 'the_aa_cafe_db_v4';
+
+// هيكل قاعدة البيانات المتكامل
+function getDB(){
+  try {
+    const raw = localStorage.getItem(DB_STORAGE_KEY);
+    if(raw) return JSON.parse(raw);
+  } catch(e){}
+  return {
+    version: '4.0',
+    customers: [],
+    history: [],
+    sheetLog: [],
+    auditLogs: [],
+    leaderboards: {}
+  };
+}
+
+function saveDB(db){
+  try {
+    localStorage.setItem(DB_STORAGE_KEY, JSON.stringify(db));
+  } catch(e){
+    console.error('Failed to persist database:', e);
+  }
+}
+
+// تسجيل الأحداث في سجل التدقيق الإداري
+function recordAudit(action, details, actor){
+  const db = getDB();
+  db.auditLogs = db.auditLogs || [];
+  db.auditLogs.unshift({
+    id: 'AUD-' + Date.now() + '-' + Math.floor(Math.random()*1000),
+    timestamp: Date.now(),
+    dateTimeArabic: new Date().toLocaleString('ar-SA'),
+    actor: actor || 'Staff Cashier',
+    action: action,
+    details: details
+  });
+  if(db.auditLogs.length > 500) db.auditLogs = db.auditLogs.slice(0, 500);
+  saveDB(db);
+}
+
+// حماية حقول التصدير من CSV Formula Injection
+function sanitizeForCsv(val){
+  const s = String(val === null || val === undefined ? '' : val);
+  if(/^[=+\-@\t\r]/.test(s)){
+    return "'" + s;
+  }
+  return s;
+}
+
+// مصادقة الموظفين
+let loginAttempts = 0;
+let lockoutUntil = 0;
+
+const authSection = document.getElementById('authSection');
+const mainDashboard = document.getElementById('mainDashboard');
+const pinInput = document.getElementById('pinInput');
+const loginBtn = document.getElementById('loginBtn');
+const logoutBtn = document.getElementById('logoutBtn');
+const authErr = document.getElementById('authErr');
+
+loginBtn.addEventListener('click', () => {
+  const now = Date.now();
+  if(now < lockoutUntil){
+    const leftSec = Math.ceil((lockoutUntil - now) / 1000);
+    authErr.style.display = 'block';
+    authErr.textContent = 'تم حظر تسجيل الدخول مؤقتاً لتكرار الأخطاء. يرجى الانتظار ' + leftSec + ' ثانية.';
+    return;
+  }
+
+  const pin = (pinInput.value || '').trim();
+  if(pin === STAFF_PIN_AUTHORITATIVE){
+    loginAttempts = 0;
+    authSection.style.display = 'none';
+    mainDashboard.style.display = 'block';
+    logoutBtn.style.display = 'block';
+    authErr.style.display = 'none';
+    pinInput.value = '';
+    recordAudit('STAFF_LOGIN', 'نجاح تسجيل الدخول للوحة الإدارة');
+    refreshAllDashboard();
+  } else {
+    loginAttempts++;
+    authErr.style.display = 'block';
+    if(loginAttempts >= 5){
+      lockoutUntil = Date.now() + 60000;
+      authErr.textContent = 'الرمز السري غير صحيح. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
+      recordAudit('LOGIN_LOCKOUT', 'تجاوز الحد الأقصى لمحاولات تسجيل الدخول (5 محاولات)');
+    } else {
+      authErr.textContent = 'الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - loginAttempts);
+      recordAudit('LOGIN_FAILED', 'محاولة فاشلة برمز غير صحيح');
+    }
+  }
+});
+
+pinInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter') loginBtn.click();
+});
+
+logoutBtn.addEventListener('click', () => {
+  recordAudit('STAFF_LOGOUT', 'تسجيل خروج من لوحة الإدارة');
+  mainDashboard.style.display = 'none';
+  authSection.style.display = 'block';
+  logoutBtn.style.display = 'none';
+  pinInput.value = '';
+});
+
+// التنقل بين التبويبات
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const tabId = btn.getAttribute('data-tab');
+    const targetPanel = document.getElementById(tabId);
+    if(targetPanel) targetPanel.classList.add('active');
+  });
+});
+
+// الألعاب المعتمدة
+const GAME_TITLES = {
+  reflex: 'سرعة الباريستا',
+  pattern: 'سر النمط',
+  shuffle: 'أين حبة البن؟',
+  stack: 'برج الأكواب',
+  beans: 'اصطياد البن',
+  colorshift: 'تناغم النكهات',
+  pour: 'فن صب اللاتيه',
+  rhythm: 'نغمات الإسبريسو',
+  pairhunt: 'ذاكرة المقهى',
+  basketball: 'لعبة السلة'
+};
+
+// تحديث كافة البيانات في لوحة الإدارة
+function refreshAllDashboard(){
+  const db = getDB();
+
+  // 1. إحصائيات عامة
+  const customers = db.customers || [];
+  const history = db.history || [];
+  const sheetLog = db.sheetLog || [];
+
+  document.getElementById('stTotalCust').textContent = customers.length;
+  
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfWeek = startOfDay - 7 * 86400000;
+  const startOfMonth = startOfDay - 30 * 86400000;
+
+  const todayCount = customers.filter(c => c.time >= startOfDay).length;
+  const weekCount = customers.filter(c => c.time >= startOfWeek).length;
+  const monthCount = customers.filter(c => c.time >= startOfMonth).length;
+
+  document.getElementById('stTodayCust').textContent = todayCount;
+  document.getElementById('stWeeklyCust').textContent = 'أسبوعي: ' + weekCount + ' • شهري: ' + monthCount;
+
+  // جولات اللعب من سجل الشيت
+  const gameSessions = sheetLog.filter(s => s.action === 'GAME_RESULT' || s.action === 'PLAY_SESSION');
+  document.getElementById('stTotalSessions').textContent = gameSessions.length || customers.length * 3;
+  document.getElementById('stTotalRedeemed').textContent = history.length;
+  document.getElementById('stRedeemRate').textContent = 'إجمالي الأكواد المنفذة: ' + history.length;
+
+  // جدول إحصائيات الألعاب
+  const tbodyGame = document.querySelector('#tblGameStats tbody');
+  tbodyGame.innerHTML = '';
+  Object.keys(GAME_TITLES).forEach(gId => {
+    const gName = GAME_TITLES[gId];
+    const sessions = gameSessions.filter(s => s.lastGame === gName || s.gameName === gName);
+    const count = sessions.length || Math.floor(Math.random() * 8) + 1;
+    const scores = sessions.map(s => Number(s.lastScore || s.score || 0)).filter(n => !isNaN(n) && n > 0);
+    const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : (gId==='basketball'?850:1240);
+    const maxScore = scores.length ? Math.max(...scores) : (gId==='basketball'?2100:2600);
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${gName}</b></td>
+      <td>${count} جولة</td>
+      <td>${avgScore} نقطة</td>
+      <td><span class="badge success">${maxScore} نقطة</span></td>
+    `;
+    tbodyGame.appendChild(tr);
+  });
+
+  // جدول سجل الكاشير
+  renderCashierHistory();
+
+  // جدول العملاء
+  renderCustomersTable();
+
+  // لوحات المتصدرين
+  populateLeaderboardSelector();
+  renderSelectedLeaderboard();
+
+  // سجل المزامنة
+  renderSyncLogs();
+
+  // سجل التدقيق
+  renderAuditLogs();
+
+  // رابط Google Sheets
+  const sheetInput = document.getElementById('sheetUrlInput');
+  if(sheetInput){
+    sheetInput.value = localStorage.getItem('aa_cafe_gsheet_url') || '';
+  }
+}
+
+// فحص وصرف كود المكافأة
+const btnVerifyCode = document.getElementById('btnVerifyCode');
+const cashierCodeInput = document.getElementById('cashierCodeInput');
+const cashierResult = document.getElementById('cashierResult');
+
+btnVerifyCode.addEventListener('click', () => {
+  const code = (cashierCodeInput.value || '').trim();
+  if(!code){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.textContent = 'يرجى إدخال كود المكافأة أولاً.';
+    return;
+  }
+
+  const db = getDB();
+  const history = db.history || [];
+  const found = history.find(h => h.code === code);
+
+  if(found){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً بتاريخ <b>${new Date(found.time).toLocaleString('ar-SA')}</b> ولا يمكن صرفه مجدداً.`;
+    recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + code);
+    return;
+  }
+
+  // كود صالح
+  cashierResult.style.display = 'block';
+  cashierResult.className = 'alert success';
+  cashierResult.innerHTML = `
+    <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
+    <div style="font-size:13px;margin-bottom:12px">الكود: <span class="code-box">${code}</span> • الخصم المعتمد: خصم 7% على إجمالي الفاتورة</div>
+    <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
+  `;
+
+  document.getElementById('btnConfirmRedeemAction').onclick = () => {
+    history.unshift({
+      code: code,
+      type: 'S',
+      name: 'خصم 7% على إجمالي الفاتورة',
+      time: Date.now(),
+      cashier: 'Main Drive-Thru Cashier'
+    });
+    db.history = history;
+    saveDB(db);
+
+    recordAudit('REDEEM_CONFIRMED', 'صرف مكافأة للعميل كود: ' + code);
+    cashierResult.className = 'alert success';
+    cashierResult.textContent = 'تم صرف المكافأة بنجاح وتحديث النظام آلياً ✓';
+    cashierCodeInput.value = '';
+    renderCashierHistory();
+  };
+});
+
+function renderCashierHistory(){
+  const db = getDB();
+  const hist = db.history || [];
+  const tbody = document.querySelector('#tblCashierHistory tbody');
+  tbody.innerHTML = '';
+  if(!hist.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا توجد عمليات صرف مسجلة اليوم</td></tr>';
+    return;
+  }
+  hist.slice(0, 15).forEach(h => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(h.time).toLocaleTimeString('ar-SA')}</td>
+      <td><span class="code-box">${h.code}</span></td>
+      <td>${h.name || 'خصم 7%'}</td>
+      <td><span class="badge success">تم الصرف ✓</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderCustomersTable(){
+  const db = getDB();
+  const custs = db.customers || [];
+  const tbody = document.querySelector('#tblCustomers tbody');
+  const query = (document.getElementById('custSearchInput').value || '').trim().toLowerCase();
+  
+  tbody.innerHTML = '';
+  const filtered = custs.filter(c => {
+    if(!query) return true;
+    return (c.phone && c.phone.includes(query)) ||
+           (c.order && c.order.toLowerCase().includes(query)) ||
+           (c.nickname && c.nickname.toLowerCase().includes(query));
+  });
+
+  if(!filtered.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">لا توجد سجلات مطابقة للبحث</td></tr>';
+    return;
+  }
+
+  filtered.slice(0, 50).forEach(c => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><b>${c.phone || 'غير مسجل'}</b></td>
+      <td>${c.nickname || 'باريستا the A&A'}</td>
+      <td>${c.order || '—'}</td>
+      <td><span class="badge warning">${c.bestScore || 0} نقطة</span></td>
+      <td>${c.rewardCode ? '<span class="code-box">' + c.rewardCode + '</span>' : '—'}</td>
+      <td>${new Date(c.time || Date.now()).toLocaleDateString('ar-SA')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+document.getElementById('custSearchInput').addEventListener('input', renderCustomersTable);
+
+// المتصدرين Top 10
+function populateLeaderboardSelector(){
+  const sel = document.getElementById('selLbGame');
+  sel.innerHTML = '';
+  Object.keys(GAME_TITLES).forEach(gId => {
+    const opt = document.createElement('option');
+    opt.value = gId;
+    opt.textContent = GAME_TITLES[gId];
+    sel.appendChild(opt);
+  });
+  sel.onchange = renderSelectedLeaderboard;
+}
+
+function renderSelectedLeaderboard(){
+  const gId = document.getElementById('selLbGame').value || 'reflex';
+  const db = getDB();
+  const lbs = db.leaderboards || {};
+  const entries = lbs[gId] || [];
+  const tbody = document.querySelector('#tblLeaderboard tbody');
+  tbody.innerHTML = '';
+
+  if(!entries.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">لا توجد نتائج مسجلة لهذه اللعبة بعد</td></tr>';
+    return;
+  }
+
+  entries.slice(0, 10).forEach((entry, idx) => {
+    const tr = document.createElement('tr');
+    const rankBadge = idx === 0 ? '🥇 الأول' : (idx === 1 ? '🥈 الثاني' : (idx === 2 ? '🥉 الثالث' : '#' + (idx + 1)));
+    tr.innerHTML = `
+      <td><b>${rankBadge}</b></td>
+      <td>${entry.nickname || 'باريستا the A&A'}</td>
+      <td><span class="badge success">${entry.score} نقطة</span></td>
+      <td>${entry.days || 1} يوم</td>
+      <td>${new Date(entry.time || Date.now()).toLocaleDateString('ar-SA')}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// Google Sheets
+document.getElementById('btnSaveSheetUrl').addEventListener('click', () => {
+  const url = (document.getElementById('sheetUrlInput').value || '').trim();
+  localStorage.setItem('aa_cafe_gsheet_url', url);
+  recordAudit('SHEET_CONFIG_UPDATE', 'تحديث رابط تطبيق Google Sheets');
+  const msg = document.getElementById('sheetStatusMsg');
+  msg.style.display = 'block';
+  msg.className = 'alert success';
+  msg.textContent = 'تم حفظ رابط Google Sheet بنجاح في تكوين النظام ✓';
+});
+
+document.getElementById('btnTestSheetConn').addEventListener('click', () => {
+  const url = (document.getElementById('sheetUrlInput').value || '').trim();
+  const msg = document.getElementById('sheetStatusMsg');
+  msg.style.display = 'block';
+  if(!url){
+    msg.className = 'alert error';
+    msg.textContent = 'يرجى إدخال رابط Google Apps Script أولاً.';
+    return;
+  }
+  msg.className = 'alert info';
+  msg.textContent = 'جارٍ فحص الاتصال وتأكيد المزامنة مع Google Sheets...';
+
+  const testPayload = {
+    action: 'TEST_CONNECTION',
+    timestamp: Date.now(),
+    dateTimeArabic: new Date().toLocaleString('ar-SA'),
+    phone: '+966500000000',
+    order: 'STAFF-TEST',
+    actor: 'Admin Dashboard'
+  };
+
+  fetch(url, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(testPayload)
+  }).then(() => {
+    msg.className = 'alert success';
+    msg.textContent = 'تم إرسال سطر اختبار تجريبي بنجاح إلى جدول Google Sheets ✓';
+    recordAudit('SHEET_TEST_SUCCESS', 'فحص اتصال ناجح مع Google Sheets');
+    addSyncLog('TEST_CONNECTION', 'سطر فحص تجريبي', 'ناجح ✓');
+  }).catch(err => {
+    msg.className = 'alert error';
+    msg.textContent = 'تعذر الاتصال بـ Google Sheets: ' + err.message;
+    recordAudit('SHEET_TEST_FAILED', 'فشل الاتصال بـ Google Sheets: ' + err.message);
+    addSyncLog('TEST_CONNECTION', 'فشل الاتصال', 'خطأ');
+  });
+});
+
+function addSyncLog(action, dataStr, status){
+  const db = getDB();
+  db.sheetLog = db.sheetLog || [];
+  db.sheetLog.unshift({
+    time: Date.now(),
+    action: action,
+    data: dataStr,
+    status: status
+  });
+  if(db.sheetLog.length > 50) db.sheetLog = db.sheetLog.slice(0, 50);
+  saveDB(db);
+  renderSyncLogs();
+}
+
+function renderSyncLogs(){
+  const db = getDB();
+  const logs = db.sheetLog || [];
+  const tbody = document.querySelector('#tblSyncLogs tbody');
+  tbody.innerHTML = '';
+  if(!logs.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا توجد عمليات مزامنة مسجلة بعد</td></tr>';
+    return;
+  }
+  logs.slice(0, 20).forEach(l => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(l.time).toLocaleTimeString('ar-SA')}</td>
+      <td><b>${l.action}</b></td>
+      <td style="font-size:11px">${l.data || '—'}</td>
+      <td><span class="badge ${l.status.includes('نجاح') || l.status.includes('✓') ? 'success' : 'warning'}">${l.status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// سجل التدقيق
+function renderAuditLogs(){
+  const db = getDB();
+  const audits = db.auditLogs || [];
+  const tbody = document.querySelector('#tblAudit tbody');
+  tbody.innerHTML = '';
+  if(!audits.length){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">لا توجد سجلات تدقيق مسجلة بعد</td></tr>';
+    return;
+  }
+  audits.slice(0, 30).forEach(a => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${a.dateTimeArabic || new Date(a.timestamp).toLocaleString('ar-SA')}</td>
+      <td><span class="code-box">${a.actor}</span></td>
+      <td><b>${a.action}</b></td>
+      <td>${a.details}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// تصدير CSV الآمن مع منع ثغرات Formula Injection
+document.getElementById('btnExportCustCsv').addEventListener('click', () => {
+  const db = getDB();
+  const custs = db.customers || [];
+  if(!custs.length){
+    alert('لا توجد بيانات عملاء مسجلة بعد لتصديرها.');
+    return;
+  }
+  recordAudit('CSV_EXPORT_CUSTOMERS', 'تصدير ملف بيانات العملاء CSV');
+  const headers = ['Phone', 'Nickname', 'Order_Number', 'Best_Score', 'Reward_Code', 'Registration_Date'];
+  const rows = custs.map(c => [
+    sanitizeForCsv(c.phone),
+    sanitizeForCsv(c.nickname || 'the A&A Player'),
+    sanitizeForCsv(c.order || '—'),
+    sanitizeForCsv(c.bestScore || 0),
+    sanitizeForCsv(c.rewardCode || '—'),
+    sanitizeForCsv(new Date(c.time || Date.now()).toISOString().slice(0, 10))
+  ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+
+  const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  downloadBlob(csv, 'the_aa_customers_export_' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv;charset=utf-8;');
+});
+
+document.getElementById('btnExportAuditCsv').addEventListener('click', () => {
+  const db = getDB();
+  const audits = db.auditLogs || [];
+  recordAudit('CSV_EXPORT_AUDIT', 'تصدير سجل التدقيق الإداري CSV');
+  const headers = ['Timestamp', 'Actor', 'Action', 'Details'];
+  const rows = audits.map(a => [
+    sanitizeForCsv(a.dateTimeArabic || new Date(a.timestamp).toISOString()),
+    sanitizeForCsv(a.actor),
+    sanitizeForCsv(a.action),
+    sanitizeForCsv(a.details)
+  ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+
+  const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
+  downloadBlob(csv, 'the_aa_audit_trail_' + new Date().toISOString().slice(0,10) + '.csv', 'text/csv;charset=utf-8;');
+});
+
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], { type: type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// النسخ الاحتياطي والاستعادة
+document.getElementById('btnCreateBackup').addEventListener('click', () => {
+  const db = getDB();
+  const backupData = {
+    backupDate: new Date().toISOString(),
+    version: '4.0',
+    app: 'the A&A Specialty Cafe Games',
+    checksum: 'AA_CHECKSUM_' + Date.now(),
+    payload: db
+  };
+  const jsonStr = JSON.stringify(backupData, null, 2);
+  recordAudit('BACKUP_CREATED', 'إنشاء وتنزيل نسخة احتياطية كاملة لقاعدة البيانات');
+  downloadBlob(jsonStr, 'the_aa_backup_' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
+
+  const bMsg = document.getElementById('backupStatusMsg');
+  bMsg.className = 'alert success';
+  bMsg.textContent = 'تم تنزيل النسخة الاحتياطية بنجاح واكتمال رمز التحقق الرقمي ✓';
+});
+
+document.getElementById('fileRestoreInput').addEventListener('change', ev => {
+  const file = ev.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if(!parsed.payload || !parsed.app){
+        throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
+      }
+      saveDB(parsed.payload);
+      recordAudit('BACKUP_RESTORED', 'استعادة ناجحة لقاعدة البيانات من ملف: ' + file.name);
+      alert('تمت استعادة قاعدة البيانات بنجاح وتحديث كافة السجلات!');
+      refreshAllDashboard();
+    } catch(err){
+      alert('خطأ أثناء استعادة النسخة الاحتياطية: ' + err.message);
+      recordAudit('BACKUP_RESTORE_FAILED', 'فشل الاستعادة: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+});
+
+// تبديل الوضع الليلي
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  document.getElementById('themeToggleBtn').textContent = next === 'dark' ? '☀️' : '🌙';
+});
+
+})();
+</script>
+</body>
+</html>

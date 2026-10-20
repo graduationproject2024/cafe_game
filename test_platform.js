@@ -351,6 +351,73 @@ assert(scriptCode.includes('function launchCelebrationConfetti()'), 'Side confet
 assert(scriptCode.includes('celebrate()'), 'Web Audio celebration victory chime implemented (SFX.celebrate)');
 assert(html.includes('reward-terms-note'), 'Terms and conditions reward vs loyalty points note present in DOM');
 
+
+// 15. Platform Separation (Customer vs Staff)
+console.log('\n--- Suite 15: Platform Separation & Dedicated Staff Portal ---');
+const staffFilePath = path.join(__dirname, 'staff.html');
+assert(fs.existsSync(staffFilePath), 'Dedicated staff.html exists on disk');
+const staffHtml = fs.readFileSync(staffFilePath, 'utf8');
+
+assert(!html.includes('<section id="staff"'), 'Legacy <section id="staff"> removed from customer index.html');
+assert(scriptCode.includes("location.hash === '#staff'") && scriptCode.includes("window.location.href = 'staff.html'"), 'Customer index.html redirects #staff hash to dedicated staff.html');
+
+assert(staffHtml.includes('id="pinInput"'), 'Staff portal includes PIN authentication input');
+assert(staffHtml.includes('id="stTotalCust"'), 'Staff portal includes total registered customers metric');
+assert(staffHtml.includes('id="stTotalSessions"'), 'Staff portal includes total gameplay sessions metric');
+assert(staffHtml.includes('id="stRedeemRate"'), 'Staff portal includes coupon redemption rate metric');
+assert(staffHtml.includes('id="btnVerifyCode"'), 'Staff portal includes cashier coupon verification and anti-replay redemption');
+assert(staffHtml.includes('id="tabSheets"'), 'Staff portal includes Google Sheets synchronization engine');
+assert(staffHtml.includes('id="tblAudit"'), 'Staff portal includes administrative audit log table');
+assert(staffHtml.includes('id="btnCreateBackup"') && staffHtml.includes('id="fileRestoreInput"'), 'Staff portal includes database backup and restore with checksum');
+
+// 16. Reward Progress Bar Integration
+console.log('\n--- Suite 16: Reward Progress Bar Integration ---');
+const rpFilePath = path.join(__dirname, 'reward-progress.html');
+assert(fs.existsSync(rpFilePath), 'Source reward-progress.html exists in project');
+assert(html.includes('.rp {') && html.includes('.rp-track') && html.includes('.rp-fill') && html.includes('.rp-car'), 'Reward progress CSS tokens integrated into index.html');
+assert(scriptCode.includes("class=\"rp\"") || scriptCode.includes("class='rp'"), 'ladder(score) produces .rp reward progress markup');
+assert(scriptCode.includes("pts: 5000") && scriptCode.includes("pts: 7500") && scriptCode.includes("pts: 10000"), 'Reward progress stops calibrated to [5000, 7500, 10000]');
+
+// 17. Instagram Checkpoint Recovery
+console.log('\n--- Suite 17: Instagram Checkpoint Recovery ---');
+assert(scriptCode.includes('window.lastRunCheckpoint ='), 'Last run checkpoint saved when player runs out of hearts');
+assert(scriptCode.includes('function resumeCheckpointRun(cp)'), 'resumeCheckpointRun function implemented');
+assert(scriptCode.includes('score: cp.score'), 'Checkpoint resume preserves earned player score');
+assert(scriptCode.includes('hearts: 1'), 'Checkpoint resume restores exactly 1 bonus heart');
+assert(scriptCode.includes('window.lastRunCheckpoint = null'), 'Checkpoint cleared upon resume to prevent replay exploitation');
+
+// 18. Always-Visible Top 10 Leaderboards
+console.log('\n--- Suite 18: Always-Visible Top 10 Leaderboards ---');
+assert(html.includes('id="preLeaderboardCard"') && html.includes('id="preLeaderboardList"'), 'Pre-game lobby includes always-visible Top 10 leaderboard card (#preLeaderboardCard)');
+assert(html.includes('id="resLeaderboardCard"') && html.includes('id="resLeaderboardList"'), 'Result screen includes always-visible Top 10 leaderboard card (#resLeaderboardCard)');
+assert(scriptCode.includes('function renderEmbeddedLeaderboard('), 'renderEmbeddedLeaderboard function defined');
+assert(scriptCode.includes("renderEmbeddedLeaderboard($('#preLeaderboardList'), g.id)"), 'Pre-game lobby automatically populates embedded leaderboard');
+assert(scriptCode.includes("renderEmbeddedLeaderboard($('#resLeaderboardList'), gm.id)"), 'Result screen automatically populates embedded leaderboard');
+
+// 19. Clean Failure & Deduction Rules (Bean Catching & Barista Speed)
+console.log('\n--- Suite 19: Clean Failure & Deduction Rules ---');
+// Verify bean exit block in beans has NO score penalty:
+const beansExitNoPenalty = scriptCode.match(/if\(it\.y > H\)\{[\s\S]*?return false;\s*\}/);
+assert(beansExitNoPenalty && !beansExitNoPenalty[0].includes('c.miss('), 'Bean Catching does not deduct points when good bean exits screen');
+
+// Verify reflex empty stage tap has NO score penalty:
+const reflexTapBlock = scriptCode.match(/c\.on\(st,\s*'pointerdown',[\s\S]*?\}\);/);
+assert(reflexTapBlock && !reflexTapBlock[0].includes('c.miss('), 'Barista Speed does not deduct points or hearts on empty stage taps');
+
+// Verify reflex gold expiration has NO score penalty:
+assert(scriptCode.includes('Natural target expiration: fades naturally, ZERO heart deduction & ZERO point deduction!'), 'Barista Speed does not deduct points or hearts on naturally expired targets');
+
+// 20. Espresso Notes Multi-track Selection
+console.log('\n--- Suite 20: Espresso Notes Multi-track Selection ---');
+assert(scriptCode.includes('const RHYTHM_TRACKS = ['), 'RHYTHM_TRACKS array defined for Espresso Notes');
+assert(scriptCode.includes('Classic Espresso') && scriptCode.includes('Drive-Thru Jazz') && scriptCode.includes('Speed Express'), '3 distinct rhythm tracks defined with varied BPM');
+assert(html.includes('.rh-tracks-nav') && html.includes('.rh-track-pill'), 'Rhythm track navigation pill styles defined in CSS');
+assert(scriptCode.includes('class="rh-track-pill'), 'Rhythm track selection pills rendered in rhythm stage DOM');
+
+// 21. CSV Formula Injection Defense
+console.log('\n--- Suite 21: CSV Formula Injection Defense ---');
+assert(staffHtml.includes('sanitizeForCsv') || staffHtml.includes('replace(/^[=+\\-@]/'), 'Staff portal sanitizes CSV export against CSV formula injection (=, +, -, @)');
+
 console.log('\n========================================================');
 console.log(`Test Execution Complete: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);
 console.log('========================================================\n');

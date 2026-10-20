@@ -1221,7 +1221,7 @@ h2 {
   left: 0;
   right: 0;
   height: 60px;
-  background: rgba(253, 250, 244, 0.94);
+  background: rgba(253, 250, 244, 0.42); backdrop-filter: blur(2px);
   border-top: 2px solid #C49A45;
   border-bottom: 2px solid #C49A45;
   display: flex;
@@ -1578,7 +1578,7 @@ h2 {
   100% { transform: translateX(-50%) scale(1, 1); }
 }
 .bb-ball {
-  position: absolute; width: 44px; height: 44px;
+  position: absolute; top: 0; left: 0; width: 44px; height: 44px;
   background: radial-gradient(circle at 35% 35%, #FF8A50 0%, #D84315 70%, #BF360C 100%);
   border-radius: 50%;
   border: 1.5px solid #7F2200;
@@ -1595,7 +1595,7 @@ h2 {
   background: rgba(40, 10, 0, 0.65); transform: translateX(-50%);
 }
 .bb-aim-dots {
-  position: absolute; pointer-events: none; z-index: 12;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 12;
 }
 .bb-aim-dot {
   position: absolute; width: 6px; height: 6px;
@@ -1731,6 +1731,138 @@ h2 {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ==================== REWARD PROGRESS BAR COMPONENT (from reward-progress.html) ==================== */
+.rp {
+  width: 100%; max-width: 480px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 16px 18px 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+  margin: 12px 0 16px;
+  box-sizing: border-box;
+}
+.rp-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.rp-score { font-size: 26px; font-weight: 900; line-height: 1; color: var(--primary); }
+.rp-score small { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-inline-start: 6px; }
+.rp-next { font-size: 13px; font-weight: 700; color: var(--text-muted); }
+.rp-next b { color: var(--primary); font-weight: 900; }
+.rp-track-wrap { position: relative; height: 96px; margin: 6px 14px 0; }
+.rp-track {
+  position: absolute; inset-inline: 0; top: 30px; height: 14px;
+  background: var(--border); border-radius: 99px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.15);
+}
+.rp-fill {
+  position: absolute; top: 0; bottom: 0; inset-inline-start: 0; width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #b07d2a, #d4a24c);
+  transition: width .9s cubic-bezier(.22, .8, .3, 1);
+}
+.rp-car {
+  position: absolute; top: 12px; width: 44px; height: 26px;
+  transform: translateX(-50%);
+  transition: inset-inline-start .9s cubic-bezier(.22, .8, .3, 1);
+  filter: drop-shadow(0 3px 2px rgba(43, 29, 20, .3));
+  pointer-events: none;
+}
+.rp-stop {
+  position: absolute; top: 0; width: 84px;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  pointer-events: none;
+}
+[dir="rtl"] .rp-stop { transform: translateX(50%); }
+[dir="rtl"] .rp-car { transform: translateX(50%); }
+.rp-dot {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  margin-top: 24px;
+  font-size: 11px; font-weight: 800;
+  background: var(--surface); color: var(--text-muted);
+  border: 2px solid var(--border);
+  transition: all .3s ease .5s;
+  z-index: 1;
+}
+.rp-stop.is-done .rp-dot {
+  background: var(--primary); border-color: var(--primary); color: #fff;
+}
+.rp-reward { margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--text); line-height: 1.2; }
+.rp-pts { font-size: 10px; font-weight: 600; color: var(--text-muted); }
+.rp-stop.is-done .rp-reward { color: var(--primary); }
+.rp-stop.is-start .rp-dot { width: 14px; height: 14px; margin-top: 30px; border-color: var(--primary); background: var(--primary); }
+.rp-stop.is-prize .rp-dot { width: 32px; height: 32px; margin-top: 21px; font-size: 15px; border-color: var(--primary); }
+
+/* ==================== ALWAYS-VISIBLE TOP 10 LEADERBOARD CARD ==================== */
+.leaderboard-card-embedded {
+  width: 100%; max-width: 480px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 16px;
+  margin: 12px 0 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+  box-sizing: border-box;
+  text-align: start;
+}
+.lb-embed-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; font-weight: 800; font-size: 14px; color: var(--primary);
+  border-bottom: 1px dashed var(--border); padding-bottom: 8px;
+}
+.lb-embed-badge {
+  background: rgba(212, 166, 42, 0.15); color: var(--primary);
+  padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 800;
+}
+.lb-embed-list { display: flex; flex-direction: column; gap: 6px; }
+.lb-embed-item {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(0,0,0,0.02); border-radius: 10px;
+  padding: 6px 10px; font-size: 12px; font-weight: 700;
+}
+.lb-embed-item.my-rank {
+  background: rgba(212, 166, 42, 0.18); border: 1px solid var(--primary);
+}
+.lb-embed-item .lb-rank { width: 26px; font-weight: 900; }
+.lb-embed-item .lb-name { flex: 1; margin: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-embed-item .lb-score { color: var(--primary); font-weight: 900; font-family: monospace; font-size: 13px; }
+.lb-empty { text-align: center; color: var(--text-muted); font-size: 12px; padding: 14px 6px; }
+
+/* ==================== PROMINENT MOTIVATIONAL BANNER ==================== */
+#resMsg {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  line-height: 1.45 !important;
+  color: var(--primary) !important;
+  background: linear-gradient(135deg, rgba(212, 166, 42, 0.12), rgba(184, 115, 51, 0.08)) !important;
+  border: 1.5px solid rgba(212, 166, 42, 0.35) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 14px 18px !important;
+  margin: 10px 0 14px !important;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06) !important;
+  text-align: center !important;
+  width: 100% !important;
+  max-width: 480px !important;
+  box-sizing: border-box !important;
+}
+
+/* ==================== ESPRESSO NOTES TRACK NAVIGATION ==================== */
+.rh-tracks-nav {
+  display: flex; gap: 8px; justify-content: center;
+  margin-bottom: 10px; width: 100%;
+}
+.rh-track-pill {
+  background: var(--surface); border: 1.5px solid var(--border);
+  color: var(--text-muted); font-size: 11px; font-weight: 800;
+  padding: 6px 12px; border-radius: 20px; cursor: pointer;
+  transition: all 0.2s ease;
+}
+.rh-track-pill.active {
+  background: var(--primary); border-color: var(--primary);
+  color: #fff; box-shadow: 0 2px 8px rgba(212, 166, 42, 0.35);
+}
+
 </style>
 </head>
 <body>
@@ -1851,9 +1983,14 @@ h2 {
     <h2 id="preName"></h2>
     <p class="how" id="preHow"></p>
 
-    <div style="margin-bottom:14px">
-      <button type="button" id="btnPreLeaderboard" class="btn-leaderboard-open">🏆 أفضل 10 لاعبين في هذه اللعبة</button>
+    <div class="leaderboard-card-embedded" id="preLeaderboardCard">
+      <div class="lb-embed-head">
+        <span>🏆 أفضل 10 لاعبين في اللعبة</span>
+        <small class="lb-embed-badge">مباشر</small>
+      </div>
+      <div class="lb-embed-list" id="preLeaderboardList"></div>
     </div>
+    <button type="button" id="btnPreLeaderboard" class="btn-leaderboard-open" style="display:none">🏆 أفضل 10 لاعبين في هذه اللعبة</button>
 
     <p class="fine" style="color:var(--primary);margin-bottom:12px">
       🎯 الصعوبة تتصاعد تلقائياً مع أدائك. لديك ٣ قلوب ❤️!
@@ -1902,9 +2039,14 @@ h2 {
       <button type="button" id="btnClaimExtraHeartGameOver" class="btn-extra-heart">استلام +1 ❤️ ومتابعة</button>
     </div>
 
-    <div style="margin:10px 0;width:100%">
-      <button type="button" id="btnViewLeaderboardResult" class="btn-leaderboard-open" style="width:100%">🏆 لوحة أفضل 10 لاعبين في هذه اللعبة</button>
+    <div class="leaderboard-card-embedded" id="resLeaderboardCard">
+      <div class="lb-embed-head">
+        <span>🏆 تصنيف المتصدرين لهذه اللعبة</span>
+        <small class="lb-embed-badge">مباشر</small>
+      </div>
+      <div class="lb-embed-list" id="resLeaderboardList"></div>
     </div>
+    <button type="button" id="btnViewLeaderboardResult" class="btn-leaderboard-open" style="display:none">🏆 لوحة أفضل 10 لاعبين في هذه اللعبة</button>
 
     <div id="ladderRes"></div>
     <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك 🔥</button>
@@ -2031,44 +2173,7 @@ h2 {
   </div>
 </div>
 
-<!-- الشاشة الثامنة: بوابة التحقق للكاشير (#staff) -->
-<section id="staff" class="screen">
-  <div class="wrap">
-    <h2>بوابة موظفي the A&A (التحقق من المكافآت)</h2>
-    <div class="card">
-      <div class="field">
-        <label for="stPin">الرمز السري للكاشير</label>
-        <input id="stPin" type="password" inputmode="numeric" autocomplete="off" placeholder="الرمز السري">
-      </div>
-      <div class="field">
-        <label for="stCode">كود العميل المشفر</label>
-        <input id="stCode" type="text" autocomplete="off" placeholder="مثال: DAA-9X4F-7K">
-      </div>
-      <button id="stGo" class="btn" style="margin-top:0">فحص وصرف الكود</button>
-      <div id="stOut" class="err" role="status" style="margin-top:10px"></div>
-      <button id="stRedeem" class="btn alt" hidden>تأكيد صرف المكافأة للعميل ✓</button>
-      <div id="stHistory" style="display:none;margin-top:16px"></div>
-      <button id="stExit" class="btn ghost" style="margin-top:16px">الرجوع للألعاب</button>
-    </div>
-
-    <div class="card" style="margin-top:16px">
-      <h3 style="font-size:16px;color:var(--primary);margin-bottom:8px">📊 ربط بيانات العملاء بـ Google Sheets</h3>
-      <p class="fine" style="margin-bottom:12px">حفظ ومزامنة فورية لأرقام جوالات العملاء، نتائج الألعاب، وتذاكر الخصم في جدول Google Sheets سحابي خاص بالكافيه.</p>
-      <div class="field">
-        <label for="stSheetUrl">رابط تطبيق الويب (Google Apps Script Web App URL)</label>
-        <input id="stSheetUrl" type="url" placeholder="https://script.google.com/macros/s/.../exec">
-      </div>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="stSaveSheet" class="btn" style="flex:1;margin-top:0">حفظ الرابط ✓</button>
-        <button id="stTestSheet" class="btn alt" style="flex:1;margin-top:0">فحص الاتصال 🔄</button>
-      </div>
-      <div id="stSheetStatus" class="field-hint" style="margin-top:8px"></div>
-      <div style="margin-top:14px;border-top:1px dashed var(--border);padding-top:12px">
-        <button id="stExportCsv" class="btn ghost" style="width:100%;margin-top:0">📥 تصدير فوري لبيانات العملاء (ملف CSV)</button>
-      </div>
-    </div>
-  </div>
-</section>
+<!-- Staff management platform separated into staff.html -->
 
 <script>
 (function(){
@@ -2591,6 +2696,62 @@ let S = {
 let run = null, curGame = null;
 let lastTapTime = 0, tapCountInSec = 0, tapSecTimer = 0;
 
+
+/* ============ مزامنة تعاملات وبيانات العميل مع قاعدة بيانات الموظفين ============ */
+function syncCustomerTransactionToStaffDB(type, data){
+  try {
+    const raw = localStorage.getItem('the_aa_cafe_db_v4');
+    let db = raw ? JSON.parse(raw) : { version: '4.0', customers: [], history: [], sheetLog: [], auditLogs: [], leaderboards: {} };
+    if(!db.history) db.history = [];
+    if(!db.customers) db.customers = [];
+    if(!db.leaderboards) db.leaderboards = {};
+
+    const now = Date.now();
+    const phone = (data && data.phone) || (typeof S !== 'undefined' && S.phone) || '';
+    const nickname = (data && data.nickname) || (typeof S !== 'undefined' && S.nickname) || 'باريستا the A&A';
+
+    if(type === 'GAME_SESSION'){
+      db.history.unshift({
+        gameId: data.gameId,
+        score: data.score,
+        time: now,
+        dateTimeArabic: new Date().toLocaleString('ar-SA'),
+        phone: phone ? phone.slice(0, 6) + '***' + phone.slice(-2) : '',
+        nickname: nickname,
+        mistakeCount: data.mistakeCount || 0
+      });
+    } else if(type === 'MINT_COUPON'){
+      db.history.unshift({
+        code: data.code,
+        rewardType: data.rewardName || 'مكافأة the A&A',
+        time: now,
+        dateTimeArabic: new Date().toLocaleString('ar-SA'),
+        status: 'مُصدر (بانتظار الصرف في الفرع)',
+        phone: phone,
+        order: data.order || 'درايف ثرو',
+        nickname: nickname
+      });
+      // Register or update customer
+      if(phone){
+        let cust = db.customers.find(c => c.phone === phone);
+        if(!cust){
+          cust = { phone: phone, nickname: nickname, visits: 1, totalScore: data.score || 0, firstVisit: now, lastVisit: now };
+          db.customers.push(cust);
+        } else {
+          cust.visits = (cust.visits || 1) + 1;
+          cust.totalScore = Math.max(cust.totalScore || 0, data.score || 0);
+          cust.lastVisit = now;
+          if(nickname && !cust.nickname) cust.nickname = nickname;
+        }
+      }
+    }
+    if(db.history.length > 500) db.history = db.history.slice(0, 500);
+    localStorage.setItem('the_aa_cafe_db_v4', JSON.stringify(db));
+  } catch(e){
+    console.warn('Staff DB sync skipped:', e);
+  }
+}
+
 function save(){
   S.extraHeartClaimed = S.extraHeartFollowClaimed;
   S.sig = signSession(S);
@@ -2609,68 +2770,64 @@ function show(id){
 
 /* ============ مسار جوائز الدرايف ثرو المتطور (يبدأ بعد المنتصف) ============ */
 function ladder(score){
-  const max = CFG.cycleTarget || 10000;
-  const p = Math.min(score / max, 1) * 100;
-  const carPos = Math.max(4, Math.min(94, 4 + (p * 0.90)));
-  const fillWidth = Math.min(100, Math.max(0, p));
-  const hit1 = score >= CFG.tiers[0] ? ' hit' : '';
-  const hit2 = score >= CFG.tiers[1] ? ' hit' : '';
-  const hit3 = score >= CFG.tiers[2] ? ' hit' : '';
+  score = Number(score) || 0;
+  const STOPS = [
+    { pts: 0,     label: (currentLang === 'en' ? 'Start' : 'البداية'), start: true },
+    { pts: 5000,  label: (currentLang === 'en' ? '7% OFF' : 'خصم 7%') },
+    { pts: 7500,  label: (currentLang === 'en' ? '7% OFF' : 'خصم 7%') },
+    { pts: 10000, label: (currentLang === 'en' ? 'Drink Upgrade 🏆' : 'ترقية مشروب 🏆'), icon: '★', prize: true }
+  ];
+  const n = STOPS.length - 1;
+  const max = STOPS[n].pts;
+  const clampedScore = Math.max(0, Math.min(score, max));
 
-  const t1Txt = (currentLang === 'en') ? '5% OFF' : 'خصم 5%';
-  const t2Txt = (currentLang === 'en') ? '7% OFF' : 'خصم 7%';
-  const t3Txt = (currentLang === 'en') ? 'Drink Upgrade 🏆' : 'ترقية مشروب 🏆';
+  // Map score to percentage piecewise (matching reward-progress.html)
+  let pct = 0;
+  for(let i = 0; i < n; i++){
+    const a = STOPS[i].pts, b = STOPS[i + 1].pts;
+    if(clampedScore <= b){
+      const posA = (i / n) * 100;
+      const posB = ((i + 1) / n) * 100;
+      pct = posA + ((clampedScore - a) / (b - a)) * (posB - posA);
+      break;
+    }
+  }
+  if(clampedScore >= max) pct = 100;
 
-  return '<div class="drive-bar">' +
-    '<div class="drive-tiers">' +
-      '<div class="drive-tier t-1' + hit1 + '" style="inset-inline-start:50%">' +
-        '<div class="tier-pill">' + t1Txt + '</div>' +
-      '</div>' +
-      '<div class="drive-tier t-2' + hit2 + '" style="inset-inline-start:75%">' +
-        '<div class="tier-pill">' + t2Txt + '</div>' +
-      '</div>' +
-      '<div class="drive-tier t-3' + hit3 + '" style="inset-inline-start:98%">' +
-        '<div class="tier-pill">' + t3Txt + '</div>' +
-      '</div>' +
+  const nextStop = STOPS.find(s => s.pts > score);
+  const nextTxt = nextStop
+    ? (currentLang === 'en' ? ('Remaining <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> pts to ' + nextStop.label) : ('باقي <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> نقطة على ' + nextStop.label))
+    : (currentLang === 'en' ? 'Unlocked all rewards 🎉' : 'فتحت كل الجوائز 🎉');
+
+  let stopsHTML = '';
+  STOPS.forEach((s, i) => {
+    const pos = (i / n) * 100;
+    const isDone = (!s.start && score >= s.pts) ? ' is-done' : '';
+    const isStart = s.start ? ' is-start' : '';
+    const isPrize = s.prize ? ' is-prize' : '';
+    const dotContent = s.start ? '' : (s.icon || '%');
+    stopsHTML += '<div class="rp-stop' + isStart + isPrize + isDone + '" style="inset-inline-start:' + pos + '%">' +
+      '<div class="rp-dot">' + dotContent + '</div>' +
+      '<div class="rp-reward">' + s.label + '</div>' +
+      '<div class="rp-pts">' + s.pts.toLocaleString('en') + '</div>' +
+    '</div>';
+  });
+
+  return '<div class="rp" aria-label="Reward Progress">' +
+    '<div class="rp-head">' +
+      '<div class="rp-score"><span>' + score.toLocaleString('en') + '</span><small>' + (currentLang === 'en' ? 'pts' : 'نقطة') + '</small></div>' +
+      '<div class="rp-next">' + nextTxt + '</div>' +
     '</div>' +
-    '<div class="drive-road">' +
-      '<div class="road-track">' +
-        '<div class="road-dashes"></div>' +
-        '<div class="road-fill" style="width:' + fillWidth + '%"></div>' +
-        '<div class="road-marker-dot marker-1' + hit1 + '" style="inset-inline-start:50%"></div>' +
-        '<div class="road-marker-dot marker-2' + hit2 + '" style="inset-inline-start:75%"></div>' +
-        '<div class="road-marker-dot marker-3' + hit3 + '" style="inset-inline-start:98%"></div>' +
-      '</div>' +
-      '<div class="car-runner" style="inset-inline-start:' + carPos + '%">' +
-        '<div class="car-sprite" aria-label="the A&A Car">' +
-          '<svg class="car-svg" viewBox="0 0 48 24" width="38" height="19" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-            '<defs>' +
-              '<linearGradient id="goldCarGrad" x1="4" y1="6" x2="44" y2="21" gradientUnits="userSpaceOnUse">' +
-                '<stop stop-color="#F9E8BA"/>' +
-                '<stop offset="0.5" stop-color="#D4A62A"/>' +
-                '<stop offset="1" stop-color="#B88E1F"/>' +
-              '</linearGradient>' +
-            '</defs>' +
-            '<path d="M44 14C44 14 42 8 36 7C30 6 22 6 15 8C10 9.5 6 13 4 15C2 17 2 19 3 20C4 21 6 21 6 21H42C43.5 21 44.5 20 44.5 18.5C44.5 17 44 14 44 14Z" fill="url(#goldCarGrad)"/>' +
-            '<path d="M33 7.5L34.5 12H16L20 8C23 7 28 6.8 33 7.5Z" fill="#241F16"/>' +
-            '<path d="M22 8.5L18 12H26V8C24.5 8.1 23.2 8.3 22 8.5Z" fill="#8BB2D9" opacity="0.9"/>' +
-            '<path d="M28 8V12H33.5L32.2 8.2C30.8 8 29.3 8 28 8Z" fill="#8BB2D9" opacity="0.9"/>' +
-            '<circle cx="12" cy="19" r="4.5" fill="#1A1610" stroke="#F9E8BA" stroke-width="1.5"/>' +
-            '<circle cx="12" cy="19" r="2" fill="#D4A62A"/>' +
-            '<circle cx="36" cy="19" r="4.5" fill="#1A1610" stroke="#F9E8BA" stroke-width="1.5"/>' +
-            '<circle cx="36" cy="19" r="2" fill="#D4A62A"/>' +
-            '<path d="M4 16L1 17L4 18V16Z" fill="#FFF7D6"/>' +
-            '<circle cx="4" cy="17" r="1.5" fill="#FFE175"/>' +
-            '<rect x="42" y="14" width="2.5" height="3" rx="1" fill="#FF4444"/>' +
-          '</svg>' +
-        '</div>' +
-      '</div>' +
-    '</div>' +
-    '<div class="drive-points">' +
-      '<span class="pt-val" style="inset-inline-start:4%">0</span>' +
-      '<span class="pt-val" style="inset-inline-start:50%">' + CFG.tiers[0] + '</span>' +
-      '<span class="pt-val" style="inset-inline-start:75%">' + CFG.tiers[1] + '</span>' +
-      '<span class="pt-val" style="inset-inline-start:96%">' + CFG.tiers[2] + '</span>' +
+    '<div class="rp-track-wrap">' +
+      '<div class="rp-track"><div class="rp-fill" style="width:' + pct + '%"></div></div>' +
+      '<svg class="rp-car" viewBox="0 0 46 28" style="inset-inline-start:' + pct + '%">' +
+        '<path d="M3 19c0-3 1-5 4-6l6-1 5-6c1-1 2-1.500 4-1.500h6c2 0 3 .6 4 1.800l4 5.700 5 1.500c2 .5 3 2 3 4v3c0 1-1 2-2 2H5c-1.200 0-2-1-2-2z" fill="#4a3222"/>' +
+        '<path d="M17 7.500l-4 4.500h10V7h-4c-1 0-1.600.2-2 .5zm8-.5v5h10l-3-4.200c-.4-.5-1-.8-2-.8z" fill="#f8f0df" opacity=".9"/>' +
+        '<circle cx="13" cy="23" r="4.500" fill="#2b1d14"/><circle cx="13" cy="23" r="1.800" fill="#d4a24c"/>' +
+        '<circle cx="34" cy="23" r="4.500" fill="#2b1d14"/><circle cx="34" cy="23" r="1.800" fill="#d4a24c"/>' +
+        '<rect x="1" y="16" width="3" height="3" rx="1" fill="#d4a24c"/>' +
+      '</svg>' +
+      '<div class="rp-stops">' + stopsHTML + '</div>' +
     '</div>' +
   '</div>';
 }
@@ -2803,6 +2960,8 @@ function endRun(reason){
   }
   $('#resMsg').textContent = reason ? (reason + ' • ' + encMsg) : encMsg;
   $('#ladderRes').innerHTML = ladder(S.best);
+  renderEmbeddedLeaderboard($('#resLeaderboardList'), gm.id);
+  syncCustomerTransactionToStaffDB('GAME_SESSION', { gameId: gm.id, score: run.score, mistakeCount: run.mistakeCount });
 
   const t = tierOf(S.best);
   $('#resClaim').style.display = (t > 0 && !S.claim) ? 'block' : 'none';
@@ -2841,6 +3000,23 @@ function endRun(reason){
   }
 
   SFX.reward();
+  
+  // Save checkpoint state when run ends with zero hearts
+  if(run.hearts <= 0){
+    const remTime = Math.max(15, CFG.roundSeconds - ((run.clock || 0) / 1000));
+    window.lastRunCheckpoint = {
+      gameId: gm.id,
+      score: run.score,
+      timeLeft: remTime,
+      totalTime: CFG.roundSeconds,
+      mistakeCount: run.mistakeCount || 0,
+      difficultyState: run.difficultyState || 0.5,
+      timestamp: Date.now()
+    };
+  } else {
+    window.lastRunCheckpoint = null;
+  }
+
   show('result');
 }
 
@@ -2867,8 +3043,9 @@ const GAMES = [
 
     c.on(st, 'pointerdown', e => {
       if(e.target === st || e.target === stageEl){
-        const p = c.pos(e);
-        c.miss(p.x, p.y, 0.35, currentLang === 'en' ? 'Empty Tap' : 'نقرة فارغة');
+        // Empty stage tap: break combo without deducting points or hearts
+        run.combo = 0;
+        hud();
       }
     });
 
@@ -2939,13 +3116,9 @@ const GAMES = [
         activeTargets.delete(tId);
         if(elTarget.parentNode) elTarget.remove();
         if(type === 'gold'){
-          missedGoldCount++;
-          if(missedGoldCount % 2 === 0){
-            c.loseHeart();
-            c.miss(x, y, 0.8, currentLang === 'en' ? 'Missed Targets! (-1 ❤️)' : 'فاتتك الأهداف! (-1 ❤️)');
-          } else {
-            c.miss(x, y, 0.4, currentLang === 'en' ? 'Target Expired!' : 'فاتك الهدف!');
-          }
+          // Natural target expiration: fades naturally, ZERO heart deduction & ZERO point deduction!
+          run.combo = 0;
+          hud();
         }
       });
     }
@@ -3210,12 +3383,12 @@ const GAMES = [
     const msg = el('div', 't-msg', currentLang === 'en' ? 'Tap screen or button to drop cup' : 'المس الشاشة أو زر الإنزال في التوقيت المناسب');
     st.append(msg);
 
-    const btnWrap = el('div', 'stack-btn-wrap');
-    btnWrap.style.cssText = 'position:absolute;bottom:12px;left:0;right:0;text-align:center;z-index:20;pointer-events:auto;';
-    const dropBtn = el('button', 'btn alt', currentLang === 'en' ? 'Drop Cup ☕ (or Space)' : 'أنزل الكوب ☕ (أو مسافة)');
-    dropBtn.style.cssText = 'padding:12px 28px;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-    btnWrap.append(dropBtn);
+    // Unobtrusive drop guide banner at top, no button blocking the cups!
+    const btnWrap = el('div', 'stack-guide-banner');
+    btnWrap.style.cssText = 'position:absolute;top:8px;left:0;right:0;text-align:center;z-index:20;pointer-events:none;font-weight:800;font-size:13px;color:var(--primary);';
+    btnWrap.textContent = currentLang === 'en' ? '☕ Tap anywhere or press Space to drop' : '☕ المس الشاشة في أي مكان أو اضغط مسافة للإنزال';
     st.append(btnWrap);
+    const dropBtn = { style: {} };
 
     function createCupHTML(theme, width){
       return '<div class="cup-top-rim" style="background:' + theme.rim + '"></div>' +
@@ -3296,13 +3469,7 @@ const GAMES = [
       setTimeout(() => { isDropping = false; }, 120);
     }
 
-    c.on(st, 'pointerdown', ev => {
-      if(ev.target === dropBtn) return;
-      doDrop();
-    });
-    dropBtn.addEventListener('pointerdown', ev => {
-      ev.stopPropagation();
-      ev.preventDefault();
+    c.on(st, 'pointerdown', () => {
       doDrop();
     });
     c.on(window, 'keydown', ev => {
@@ -3342,12 +3509,19 @@ const GAMES = [
     };
 
     let dragging = false;
+    let playerMoved = false;
     c.on(st, 'pointerdown', e => {
       try { st.setPointerCapture(e.pointerId); } catch(err){}
       dragging = true;
+      playerMoved = true;
       setPos(c.pos(e).x);
     });
-    c.on(st, 'pointermove', e => { if(dragging) setPos(c.pos(e).x); });
+    c.on(st, 'pointermove', e => {
+      if(dragging){
+        playerMoved = true;
+        setPos(c.pos(e).x);
+      }
+    });
     c.on(st, 'pointerup', e => {
       try { st.releasePointerCapture(e.pointerId); } catch(err){}
       dragging = false;
@@ -3356,8 +3530,8 @@ const GAMES = [
     c.on(window, 'pointerup', () => { dragging = false; });
 
     c.on(window, 'keydown', e => {
-      if(e.key === 'ArrowLeft'){ setPos(cx - 28); }
-      else if(e.key === 'ArrowRight'){ setPos(cx + 28); }
+      if(e.key === 'ArrowLeft'){ playerMoved = true; setPos(cx - 28); }
+      else if(e.key === 'ArrowRight'){ playerMoved = true; setPos(cx + 28); }
     });
 
     let items = [], timer = 0;
@@ -3374,7 +3548,11 @@ const GAMES = [
         const icon = burnt ? '✕' : (bonus ? '✨' : '☕');
         const itCls = burnt ? 'burnt' : (bonus ? 'bonus' : 'gold');
         const e = el('div', 'b-bean ' + itCls, icon);
-        const ix = rnd(24, W - 24);
+        let ix = rnd(24, W - 24);
+        if(burnt && !playerMoved && Math.abs(ix - cx) < 65){
+          ix = (cx > W / 2) ? ix - 75 : ix + 75;
+          ix = Math.max(24, Math.min(W - 24, ix));
+        }
         e.style.left = (ix - 17) + 'px';
         st.append(e);
         items.push({ e: e, x: ix, y: -20, burnt: burnt, bonus: bonus, resolved: false });
@@ -3416,8 +3594,9 @@ const GAMES = [
             // Successfully avoided burnt bean! Evasion feedback, ZERO heart deduction
             c.ok(0.25, it.x, H - 40, currentLang === 'en' ? 'Evaded Burnt Bean! ✓' : 'تجنبت المحروقة! ✓');
           } else {
-            // Missed good bean: penalty points and break combo, but NEVER deduct a heart!
-            c.miss(it.x, H - 40, 0.5, currentLang === 'en' ? 'Missed Bean' : 'فاتتك حبة بن');
+            // Missed good bean: reset combo without any score penalty or heart deduction!
+            run.combo = 0;
+            hud();
           }
           return false;
         }
@@ -3737,19 +3916,13 @@ const GAMES = [
       if(targetHeaderEl) targetHeaderEl.textContent = targetCenter + '%';
       badgeEl.textContent = (currentLang === 'en' ? 'Target: ' : 'الهدف: ') + targetCenter + '%';
 
-      if(diff <= 2.5){
+      if(diff <= 2.0){
         artEl.classList.add('bloom');
         c.ok(2.8, W / 2, H * 0.45, currentLang === 'en' ? 'Bullseye! Perfect Line! ☕✨' : 'قناص! صبّة مثالية على الخط تماماً ☕✨');
         msgEl.textContent = (currentLang === 'en') ?
           ('☕✨ Bullseye! Poured to ' + roundedLevel + '% (Target: ' + targetCenter + '%)') :
           ('☕✨ صبّة باريستا خارقة! وصلت إلى ' + roundedLevel + '% (الهدف: ' + targetCenter + '%) على الخط تماماً!');
-      } else if(diff <= 5.0){
-        artEl.classList.add('bloom');
-        c.ok(1.6, W / 2, H * 0.45, currentLang === 'en' ? 'Great Accuracy! 👍' : 'صبّة متقنة قريبة جداً! 👍');
-        msgEl.textContent = (currentLang === 'en') ?
-          ('👍 Very close! Poured to ' + roundedLevel + '% (Target: ' + targetCenter + '%)') :
-          ('👍 صبّة متقنة قريبة جداً! وصلت إلى ' + roundedLevel + '% (الهدف: ' + targetCenter + '%)');
-      } else if(roundedLevel < targetCenter - 5.0){
+      } else if(roundedLevel < targetCenter){
         c.loseHeart();
         c.miss(W / 2, H * 0.45, 1.0, currentLang === 'en' ? 'Underfilled! (-1 ❤️)' : 'صبّة ناقصة! (-1 ❤️)');
         msgEl.textContent = (currentLang === 'en') ?
@@ -3790,7 +3963,17 @@ const GAMES = [
     c.cleanup(SFX.stopRhythmBgm);
 
     const st = c.stage;
+    const RHYTHM_TRACKS = [
+      { name: 'إسبريسو كلاسيك', nameEn: 'Classic Espresso', bpm: 100, travelMul: 1.0, noteInterval: 920 },
+      { name: 'درايف ثرو جاز', nameEn: 'Drive-Thru Jazz', bpm: 124, travelMul: 0.85, noteInterval: 750 },
+      { name: 'سبيد إكسبريس', nameEn: 'Speed Express', bpm: 148, travelMul: 0.72, noteInterval: 600 }
+    ];
+    let activeTrackIdx = 0;
+
     st.innerHTML = '<div class="rh-wrap">' +
+      '<div class="rh-tracks-nav" id="rhTracksNav">' +
+        RHYTHM_TRACKS.map((t, i) => '<button type="button" class="rh-track-pill' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '">' + (currentLang === 'en' ? t.nameEn : t.name) + '</button>').join('') +
+      '</div>' +
       '<div class="rh-grouphead"><img src="assets/logo_gold.png" alt="the A&A" style="height:20px;vertical-align:middle;margin-inline-end:6px"><span>' + (currentLang === 'en' ? 'Extraction Grouphead' : 'رأس استخلاص the A&A') + '</span> ☕</div>' +
       '<div class="rh-track" id="rhTrack">' +
         '<div class="rh-rails"></div>' +
@@ -3803,6 +3986,19 @@ const GAMES = [
         '<button type="button" id="rhBtn" class="btn" style="padding:15px;font-size:16px">' + (currentLang === 'en' ? 'Tap On Beat 🎵 (or Space)' : 'اضغط على النغمة 🎵 (أو مسافة)') + '</button>' +
       '</div>' +
     '</div>';
+
+    $$('.rh-track-pill', st).forEach(pill => {
+      pill.addEventListener('click', ev => {
+        ev.stopPropagation();
+        $$('.rh-track-pill', st).forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeTrackIdx = parseInt(pill.dataset.idx, 10) || 0;
+        notes.forEach(n => { if(n.el.parentNode) n.el.remove(); });
+        notes = [];
+        noteTimer = 0;
+        SFX.tap();
+      });
+    });
 
     const trackEl = $('#rhTrack', st);
     const btnEl = $('#rhBtn', st);
@@ -3822,11 +4018,12 @@ const GAMES = [
     function spawnNote(){
       const d = c.d();
       const diffMul = c.diffMultiplier ? c.diffMultiplier() : 1.0;
+      const curTrack = RHYTHM_TRACKS[activeTrackIdx] || RHYTHM_TRACKS[0];
       const icon = ICONS[Math.floor(Math.random() * ICONS.length)];
       const nEl = el('div', 'rh-note', icon);
       trackEl.append(nEl);
 
-      const travelMs = Math.round(lerp(1450, 950, d) / diffMul);
+      const travelMs = Math.round(lerp(1450, 950, d) * curTrack.travelMul / diffMul);
       const now = performance.now();
 
       notes.push({
@@ -3841,12 +4038,13 @@ const GAMES = [
     c.loop(() => {
       const d = c.d();
       const diffMul = c.diffMultiplier ? c.diffMultiplier() : 1.0;
+      const curTrack = RHYTHM_TRACKS[activeTrackIdx] || RHYTHM_TRACKS[0];
       const now = performance.now();
       const targetY = getTargetY();
 
       noteTimer -= 16;
       if(noteTimer <= 0){
-        noteTimer = Math.round(lerp(920, 480, d) / diffMul * rnd(0.9, 1.1));
+        noteTimer = Math.round(curTrack.noteInterval * lerp(1.0, 0.65, d) / diffMul * rnd(0.9, 1.1));
         spawnNote();
       }
 
@@ -4078,7 +4276,7 @@ const GAMES = [
     function resetBall(){
       const W = c.W(), H = c.H();
       hoopX = W / 2;
-      hoopY = 72;
+      hoopY = 118;
       ballX = W / 2 - 22;
       ballY = H - 65;
       vx = 0;
@@ -4098,13 +4296,13 @@ const GAMES = [
       dotsEl.innerHTML = '';
       const startX = ballX + 22;
       const startY = ballY + 22;
-      const testVx = -pullX * 3.8;
-      const testVy = -pullY * 3.8;
-      for(let i = 1; i <= 7; i++){
+      const testVx = (pullY > 10 ? -pullX : pullX) * 7.5;
+      const testVy = (pullY > 10 ? -Math.abs(pullY) : pullY) * 11.5;
+      for(let i = 1; i <= 8; i++){
         const t = i * 0.08;
         const px = startX + testVx * t;
         const py = startY + testVy * t + 0.5 * gravity * t * t;
-        if(py < 30 || px < 10 || px > c.W() - 10) break;
+        if(py < 25 || px < 10 || px > c.W() - 10) break;
         const dot = el('div', 'bb-aim-dot');
         dot.style.left = px + 'px';
         dot.style.top = py + 'px';
@@ -4117,19 +4315,29 @@ const GAMES = [
       const p = c.pos(ev);
       const bCenter = { x: ballX + 22, y: ballY + 22 };
       const dist = Math.hypot(p.x - bCenter.x, p.y - bCenter.y);
-      if(dist <= 52){
+      if(dist <= 55){
+        try { ballEl.setPointerCapture(ev.pointerId); } catch(e){}
         dragging = true;
         dragStartX = p.x;
         dragStartY = p.y;
       }
     }
 
+    ballEl.addEventListener('pointerdown', ev => {
+      if(state !== STATES.READY) return;
+      try { ballEl.setPointerCapture(ev.pointerId); } catch(e){}
+      dragging = true;
+      const p = c.pos(ev);
+      dragStartX = p.x;
+      dragStartY = p.y;
+    });
+
     function onPointerMove(ev){
       if(!dragging || state !== STATES.READY) return;
       const p = c.pos(ev);
       const dx = p.x - dragStartX;
       const dy = p.y - dragStartY;
-      const maxDrag = 80;
+      const maxDrag = 90;
       const dist = Math.hypot(dx, dy);
       const clampedDist = Math.min(dist, maxDrag);
       const angle = Math.atan2(dy, dx);
@@ -4141,17 +4349,26 @@ const GAMES = [
 
     function onPointerUp(ev){
       if(!dragging || state !== STATES.READY) return;
+      try { ballEl.releasePointerCapture(ev.pointerId); } catch(e){}
       dragging = false;
       dotsEl.innerHTML = '';
       const p = c.pos(ev);
       const pullX = p.x - dragStartX;
       const pullY = p.y - dragStartY;
 
-      if(pullY > 15 || Math.abs(pullX) > 15){
-        vx = -pullX * 4.2;
-        vy = -Math.abs(pullY) * 4.6;
-        vx = Math.max(-320, Math.min(320, vx));
-        vy = Math.max(-560, Math.min(-260, vy));
+      const totalPull = Math.hypot(pullX, pullY);
+      if(totalPull > 12){
+        if(pullY > 10){
+          // Slingshot pull-down release
+          vx = -pullX * 7.5;
+          vy = -Math.abs(pullY) * 11.5;
+        } else {
+          // Direct upward flick release
+          vx = pullX * 7.5;
+          vy = pullY * 11.5;
+        }
+        vx = Math.max(-360, Math.min(360, vx));
+        vy = Math.max(-880, Math.min(-460, vy));
 
         state = STATES.SHOT_IN_PROGRESS;
         SFX.tap();
@@ -4175,11 +4392,9 @@ const GAMES = [
       if(ballX < 4){ ballX = 4; vx = -vx * 0.6; }
       if(ballX > W - 48){ ballX = W - 48; vx = -vx * 0.6; }
 
-      // ارتداد البورد الخلفي
-      if(ballY < 118 && ballY > 32 && Math.abs(ballX + 22 - hoopX) < 65){
-        if(vy < 0){
-          vy = -vy * 0.4;
-        }
+      // ارتداد البورد الخلفي (فقط عند الارتطام باللوح خارج فتحة السلة)
+      if(ballY < 95 && ballY > 32 && Math.abs(ballX + 22 - hoopX) < 65 && Math.abs(ballX + 22 - hoopX) > 22 && vy < 0){
+        vy = -vy * 0.45;
       }
 
       ballEl.style.transform = 'translate(' + ballX + 'px, ' + ballY + 'px)';
@@ -4189,11 +4404,11 @@ const GAMES = [
       const distToHoop = Math.hypot(bCenterX - hoopX, bCenterY - hoopY);
 
       // فحص إصابة السلة
-      if(!shotResolved && distToHoop <= 28 && vy > 0){
+      if(!shotResolved && distToHoop <= 32 && vy > 0){
         state = STATES.VALIDATING_SHOT;
         shotResolved = true;
 
-        if(Math.abs(bCenterX - hoopX) <= 18){
+        if(Math.abs(bCenterX - hoopX) <= 22){
           // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
           state = STATES.SHOT_MADE;
           netEl.classList.add('swish');
@@ -4284,40 +4499,39 @@ function updateExtraHeartBanner(){
 function claimInstagramExtraHeart(){
   if(S.extraHeartClaimed){
     if(S.extraHeartLikeClaimed){
-      alert('تم استخدام كافة المحاولات الإضافية المتاحة لهذه الجلسة بنجاح.');
+      banner(currentLang === 'en' ? 'All extra hearts used!' : 'تم استخدام كافة المحاولات الإضافية المتاحة');
       return;
     }
-    window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer');
+    try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
     S.extraHeartLikeClaimed = true;
     save();
     if(run && !run.over){
       run.hearts = Math.min(run.maxHearts, run.hearts + 1);
       hud();
-      banner('+1 ❤️ قلب اللايك!');
+      banner('+1 ❤️ ' + (currentLang === 'en' ? 'Instagram Like Heart!' : 'قلب اللايك!'));
       SFX.reward();
     }
     updateExtraHeartBanner();
-    alert('رائع! شكراً لتفاعلك باللايك على إنستغرام the A&A! تم تفعيل قلب إضافي ثانٍ بنجاح ❤️');
     return;
   }
-  window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer');
+  try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
   S.extraHeartFollowClaimed = true;
   S.extraHeartClaimed = true;
   save();
   if(run && !run.over){
     run.hearts = Math.min(run.maxHearts, run.hearts + 1);
     hud();
-    banner('+1 ❤️ قلب المتابعة!');
+    banner('+1 ❤️ ' + (currentLang === 'en' ? 'Instagram Follow Heart!' : 'قلب المتابعة!'));
     SFX.reward();
   }
   updateExtraHeartBanner();
-  alert('شكراً لمتابعتك the A&A على إنستغرام! تم تفعيل قلب إضافي بنجاح ❤️');
 }
 
 function openPre(g){
   $('#preEm').textContent = g.emoji;
   $('#preName').textContent = (currentLang === 'en' && g.nameEn) ? g.nameEn : g.name;
   $('#preHow').textContent = (currentLang === 'en' && g.howEn) ? g.howEn : g.how;
+  renderEmbeddedLeaderboard($('#preLeaderboardList'), g.id);
 
   updateExtraHeartBanner();
 
@@ -4403,12 +4617,7 @@ function renderReward(claim){
 /* ============ نافذة الموظفين (#staff) ============ */
 function checkStaffHash(){
   if(location.hash === '#staff'){
-    show('staff');
-    $('#stOut').textContent = '';
-    $('#stRedeem').hidden = true;
-    const sInput = $('#stSheetUrl');
-    if(sInput) sInput.value = CFG.googleSheetUrl || '';
-    renderStaffHistory();
+    window.location.href = 'staff.html';
   }
 }
 window.addEventListener('hashchange', checkStaffHash);
@@ -4665,6 +4874,56 @@ function makeCtx(game){
   return ctx;
 }
 
+
+/* ============ استئناف اللعبة من نقطة الحفظ بعد استعادة القلب الإضافي ============ */
+function resumeCheckpointRun(cp){
+  if(!cp) return;
+  const gm = GAMES.find(g => g.id === cp.gameId) || curGame;
+  if(!gm) return;
+
+  curGame = gm;
+  const restoredTimeLeft = Math.max(10, cp.timeLeft || 30);
+  run = {
+    game: gm,
+    score: cp.score || 0,
+    combo: 0,
+    level: Math.min(5, 1 + Math.floor((cp.score || 0) / 600)),
+    clock: Math.max(0, (CFG.roundSeconds - restoredTimeLeft)) * 1000,
+    hearts: 1, // Restored extra heart!
+    maxHearts: 3,
+    timeLeft: restoredTimeLeft,
+    totalTime: cp.totalTime || 60,
+    mistakeCount: cp.mistakeCount || 0,
+    difficultyState: cp.difficultyState || 0.5,
+    startTime: performance.now(),
+    cleanups: [],
+    over: false
+  };
+
+  show('game');
+  $('#gName').textContent = (currentLang === 'en' && gm.nameEn) ? gm.nameEn : gm.name;
+  $('#gScore').textContent = run.score;
+  $('#gTime').textContent = Math.ceil(restoredTimeLeft);
+  $('#tbar').style.transform = 'scaleX(' + (restoredTimeLeft / CFG.roundSeconds) + ')';
+  hud();
+
+  const ctx = makeCtx(gm);
+
+  // Countdown timer loop resumes seamlessly
+  ctx.loop(dt => {
+    if(!run || run.over) return;
+    run.clock += dt * 1000;
+    hud();
+    if(run.clock >= CFG.roundSeconds * 1000){
+      endRun(currentLang === 'en' ? 'Time is up! Great performance' : 'انتهى الوقت (٦٠ ثانية)! نتيجتك رائعة');
+    }
+  });
+
+  gm.start(ctx);
+
+  window.lastRunCheckpoint = null; // Clear once resumed
+}
+
 function launch(g){
   curGame = g;
   run = {
@@ -4812,6 +5071,30 @@ function closeTop10CelebrationPopup(){
   if(modal) modal.classList.remove('active');
 }
 
+
+/* ============ رسم لوحة المتصدرين الدائمة والمباشرة في شاشات الاستقبال والنتيجة ============ */
+function renderEmbeddedLeaderboard(container, gameId){
+  if(!container) return;
+  const gId = gameId || (curGame ? curGame.id : 'reflex');
+  const top10 = LeaderboardEngine.getTop10(gId);
+  if(!top10 || !top10.length){
+    container.innerHTML = '<div class="lb-empty">' +
+      (currentLang === 'en' ? 'No scores recorded yet. Be the first to rank! ☕✨' : 'لا توجد نتائج مسجلة بعد. كن أول بطل يتصدر اللوحة! ☕✨') +
+    '</div>';
+    return;
+  }
+  container.innerHTML = top10.map((entry, idx) => {
+    const rank = idx + 1;
+    const badge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank));
+    const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
+    return '<div class="lb-embed-item' + (isMe ? ' my-rank' : '') + '">' +
+      '<span class="lb-rank">' + badge + '</span>' +
+      '<span class="lb-name">' + escapeHtml(entry.nickname || (currentLang === 'en' ? 'the A&A Barista' : 'باريستا the A&A')) + '</span>' +
+      '<span class="lb-score">' + entry.score + ' <small>' + (currentLang === 'en' ? 'pts' : 'نقطة') + '</small></span>' +
+    '</div>';
+  }).join('');
+}
+
 function openLeaderboard(gameId){
   const gId = gameId || (curGame ? curGame.id : 'reflex');
   const gm = GAMES.find(g => g.id === gId) || GAMES[0];
@@ -4899,11 +5182,14 @@ if(btnViewLeaderboardResult) btnViewLeaderboardResult.addEventListener('click', 
 const btnClaimExtraHeartGameOver = $('#btnClaimExtraHeartGameOver');
 if(btnClaimExtraHeartGameOver){
   btnClaimExtraHeartGameOver.addEventListener('click', () => {
+    const cp = window.lastRunCheckpoint;
     claimInstagramExtraHeart();
     SFX.tap();
     const bannerBox = $('#gameOverExtraHeart');
     if(bannerBox) bannerBox.style.display = 'none';
-    if(run && run.hearts > 0){
+    if(cp){
+      resumeCheckpointRun(cp);
+    } else if(run && run.hearts > 0){
       launch(curGame);
     }
   });
@@ -5047,6 +5333,16 @@ if(saved.S && saved.S.phone){
 
 if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
 checkStaffHash();
+
+// Expose testing and runtime diagnostic hooks for browser automation
+window.__getRun = () => (typeof run !== 'undefined' ? run : null);
+window.__getCurGame = () => (typeof curGame !== 'undefined' ? curGame : null);
+window.__endRun = (msg) => (typeof endRun === 'function' ? endRun(msg) : null);
+window.__resumeCheckpointRun = (cp) => (typeof resumeCheckpointRun === 'function' ? resumeCheckpointRun(cp) : null);
+window.__GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
+window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
+window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
+window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
 
 })();
 </script>

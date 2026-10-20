@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reward Progress</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --espresso: #2b1d14;
+    --roast: #4a3222;
+    --caramel: #d4a24c;
+    --caramel-deep: #b07d2a;
+    --cream: #f8f0df;
+    --foam: #fffaf0;
+    --line: #e6d8bd;
+    --muted: #8a7358;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px 16px; min-height: 100vh;
+    background: var(--cream);
+    font-family: "Cairo", system-ui, sans-serif;
+    color: var(--espresso);
+    display: flex; flex-direction: column; align-items: center; gap: 24px;
+  }
+
+  /* ---------- Card ---------- */
+  .rp {
+    width: 100%; max-width: 460px;
+    background: var(--foam);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 18px 20px 20px;
+    box-shadow: 0 6px 20px rgba(74, 50, 34, .08);
+  }
+  .rp-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .rp-score { font-size: 30px; font-weight: 800; line-height: 1; }
+  .rp-score small { font-size: 13px; font-weight: 600; color: var(--muted); margin-inline-start: 6px; }
+  .rp-next { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .rp-next b { color: var(--caramel-deep); }
+
+  /* ---------- Track ---------- */
+  .rp-track-wrap { position: relative; height: 96px; margin: 8px 18px 0; }
+  .rp-track {
+    position: absolute; inset-inline: 0; top: 30px; height: 14px;
+    background: var(--line); border-radius: 99px;
+    box-shadow: inset 0 1px 3px rgba(74, 50, 34, .25);
+  }
+  .rp-fill {
+    position: absolute; top: 0; bottom: 0; right: 0; width: 0;
+    border-radius: 99px;
+    background:
+      repeating-linear-gradient(to left, rgba(255,255,255,.55) 0 8px, transparent 8px 18px) center / 100% 2px no-repeat,
+      linear-gradient(to left, var(--caramel-deep), var(--caramel));
+    transition: width .9s cubic-bezier(.22, .8, .3, 1);
+  }
+
+  /* car sits on the head of the fill */
+  .rp-car {
+    position: absolute; top: 10px; width: 46px; height: 28px;
+    transform: translateX(50%);
+    transition: right .9s cubic-bezier(.22, .8, .3, 1);
+    filter: drop-shadow(0 3px 2px rgba(43, 29, 20, .3));
+  }
+
+  /* ---------- Milestones ---------- */
+  .rp-stop {
+    position: absolute; top: 0; width: 84px;
+    transform: translateX(50%);
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .rp-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: grid; place-items: center;
+    margin-top: 23px;                       /* centers on the track */
+    font-size: 11px; font-weight: 800;
+    background: var(--foam); color: var(--muted);
+    border: 2px solid var(--line);
+    transition: all .3s ease .5s;
+    z-index: 1;
+  }
+  .rp-stop.is-done .rp-dot {
+    background: var(--espresso); border-color: var(--espresso); color: var(--caramel);
+  }
+  .rp-reward { margin-top: 8px; font-size: 12px; font-weight: 700; color: var(--roast); line-height: 1.2; }
+  .rp-pts { font-size: 11px; font-weight: 600; color: var(--muted); }
+  .rp-stop.is-done .rp-reward { color: var(--caramel-deep); }
+  .rp-stop.is-start .rp-dot { width: 14px; height: 14px; margin-top: 30px; border-color: var(--caramel); background: var(--caramel); }
+
+  /* last stop: bigger, it's the main prize */
+  .rp-stop.is-prize .rp-dot { width: 34px; height: 34px; margin-top: 20px; font-size: 16px; border-color: var(--caramel); }
+
+  /* ---------- Celebration ---------- */
+  #confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+  .rp-side { display: flex; align-items: center; gap: 8px; }
+  .rp-mute {
+    width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--cream); font-size: 14px; line-height: 1; cursor: pointer;
+  }
+  .rp-mute:focus-visible { outline: 2px solid var(--caramel-deep); outline-offset: 2px; }
+  .rp-toast {
+    position: fixed; top: 18px; left: 50%; z-index: 60;
+    transform: translate(-50%, -140%);
+    background: var(--espresso); color: var(--foam);
+    padding: 10px 20px; border-radius: 99px;
+    font-weight: 800; font-size: 15px;
+    box-shadow: 0 8px 24px rgba(43, 29, 20, .35);
+    transition: transform .45s cubic-bezier(.2, 1.2, .4, 1);
+  }
+  .rp-toast b { color: var(--caramel); }
+  .rp-toast.show { transform: translate(-50%, 0); }
+  .rp-stop.pop .rp-dot { animation: pop .7s ease; }
+  @keyframes pop {
+    0%   { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 162, 76, .7); }
+    40%  { transform: scale(1.35); }
+    100% { transform: scale(1); box-shadow: 0 0 0 16px rgba(212, 162, 76, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rp-fill, .rp-car, .rp-toast { transition: none; }
+    .rp-stop.pop .rp-dot { animation: none; }
+  }
+
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="rp-toast" id="rp-toast" role="status" aria-live="polite"></div>
+
+<div class="rp" id="rp">
+  <div class="rp-head">
+    <div class="rp-score"><span id="rp-score">0</span><small>نقطة</small></div>
+    <div class="rp-side">
+      <div class="rp-next" id="rp-next"></div>
+      <button class="rp-mute" id="rp-mute" type="button" aria-label="كتم الصوت">🔊</button>
+    </div>
+  </div>
+
+  <div class="rp-track-wrap">
+    <div class="rp-track"><div class="rp-fill" id="rp-fill"></div></div>
+
+    <!-- car (simple inline SVG, replace with your own image if you prefer) -->
+    <svg class="rp-car" id="rp-car" viewBox="0 0 46 28" style="right:0">
+      <path d="M3 19c0-3 1-5 4-6l6-1 5-6c1-1 2-1.500 4-1.500h6c2 0 3 .6 4 1.800l4 5.700 5 1.500c2 .5 3 2 3 4v3c0 1-1 2-2 2H5c-1.200 0-2-1-2-2z" fill="#4a3222"/>
+      <path d="M17 7.500l-4 4.500h10V7h-4c-1 0-1.600.2-2 .5zm8-.5v5h10l-3-4.200c-.4-.5-1-.8-2-.8z" fill="#f8f0df" opacity=".9"/>
+      <circle cx="13" cy="23" r="4.500" fill="#2b1d14"/><circle cx="13" cy="23" r="1.800" fill="#d4a24c"/>
+      <circle cx="34" cy="23" r="4.500" fill="#2b1d14"/><circle cx="34" cy="23" r="1.800" fill="#d4a24c"/>
+      <rect x="1" y="16" width="3" height="3" rx="1" fill="#d4a24c"/>
+    </svg>
+
+    <div id="rp-stops"></div>
+  </div>
+</div>
+
+<script>
+  // ===== config: edit rewards here =====
+  const STOPS = [
+    { pts: 0,     label: "",              start: true },
+    { pts: 5000,  label: "خصم 5%" },
+    { pts: 7500,  label: "خصم 7%" },
+    { pts: 10000, label: "ترقية مشروب",   icon: "★", prize: true },
+  ];
+
+  const stopsEl = document.getElementById("rp-stops");
+  const n = STOPS.length - 1;
+  // equal spacing between stops (RTL: position measured from the right)
+  const posOf = i => (i / n) * 100;
+
+  STOPS.forEach((s, i) => {
+    const el = document.createElement("div");
+    el.className = "rp-stop" + (s.start ? " is-start" : "") + (s.prize ? " is-prize" : "");
+    el.style.right = posOf(i) + "%";
+    el.dataset.pts = s.pts;
+    el.innerHTML = `
+      <div class="rp-dot">${s.start ? "" : (s.icon || "%")}</div>
+      <div class="rp-reward">${s.label}</div>
+      <div class="rp-pts">${s.pts.toLocaleString("en")}</div>`;
+    stopsEl.appendChild(el);
+  });
+
+  // map points -> % along the bar (piecewise, so uneven point gaps still look even)
+  function pctFor(score) {
+    score = Math.max(0, Math.min(score, STOPS[n].pts));
+    for (let i = 0; i < n; i++) {
+      const a = STOPS[i].pts, b = STOPS[i + 1].pts;
+      if (score <= b) return posOf(i) + ((score - a) / (b - a)) * (posOf(i + 1) - posOf(i));
+    }
+    return 100;
+  }
+
+  // ===== celebration: confetti =====
+  const cv = document.getElementById("confetti"), ctx = cv.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const COLORS = ["#d4a24c", "#f1c96b", "#b07d2a", "#2b1d14", "#fffaf0", "#e8744f", "#7bb36a"];
+  let parts = [], raf = null;
+
+  function resize() { cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; }
+  addEventListener("resize", resize); resize();
+
+  function burst(x, y, count) {
+    for (let i = 0; i < count; i++) {
+      const a = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.15;
+      const v = (6 + Math.random() * 9) * dpr;
+      parts.push({
+        x: x * dpr, y: y * dpr, vx: Math.cos(a) * v, vy: Math.sin(a) * v, g: .28 * dpr,
+        rot: Math.random() * 6.28, vr: (Math.random() - .5) * .4,
+        w: (6 + Math.random() * 6) * dpr, h: (3 + Math.random() * 4) * dpr,
+        c: COLORS[(Math.random() * COLORS.length) | 0], life: 0, max: 110 + Math.random() * 60
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    parts = parts.filter(p => p.life < p.max);
+    for (const p of parts) {
+      p.vx *= .99; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life++;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, (p.max - p.life) / 30);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    }
+    raf = parts.length ? requestAnimationFrame(tick) : null;
+    if (!parts.length) ctx.clearRect(0, 0, cv.width, cv.height);
+  }
+
+  // ===== celebration: sound (synthesized, no audio file needed) =====
+  let audio = null, muted = false;
+  const muteBtn = document.getElementById("rp-mute");
+  muteBtn.addEventListener("click", () => {
+    muted = !muted;
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+    muteBtn.setAttribute("aria-label", muted ? "تشغيل الصوت" : "كتم الصوت");
+  });
+  function getAudio() {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === "suspended") audio.resume();
+    return audio;
+  }
+  // browsers only allow sound after a tap; unlock on the first one
+  addEventListener("pointerdown", () => { try { getAudio(); } catch (e) {} }, { once: true });
+
+  function note(freq, t, dur, type = "triangle", vol = .16) {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.type = type; o.frequency.value = freq;
+    o.connect(g); g.connect(audio.destination);
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + .02);
+    g.gain.exponentialRampToValueAtTime(.001, t + dur);
+    o.start(t); o.stop(t + dur + .05);
+  }
+  function fanfare(big) {
+    if (muted) return;
+    try {
+      getAudio();
+      const t = audio.currentTime + .02;
+      const seq = big ? [523.25, 659.25, 783.99, 1046.5, 783.99, 1046.5, 1318.5]
+                      : [523.25, 659.25, 783.99, 1046.5];
+      seq.forEach((f, i) => { note(f, t + i * .11, .35); note(f * 2, t + i * .11, .25, "sine", .05); });
+      const end = t + seq.length * .11;
+      [523.25, 659.25, 783.99, 1046.5].forEach(f => note(f, end, .9, "triangle", .09));
+    } catch (e) {}
+  }
+
+  // ===== celebration: trigger =====
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const celebrated = new Set();   // milestones already celebrated
+  const toast = document.getElementById("rp-toast");
+  let timer = null, toastTimer = null;
+
+  function celebrate(stop) {
+    const dotEl = document.querySelector(`.rp-stop[data-pts="${stop.pts}"]`);
+    const r = dotEl.querySelector(".rp-dot").getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+
+    dotEl.classList.remove("pop"); void dotEl.offsetWidth; dotEl.classList.add("pop");
+    if (!reduceMotion) {
+      burst(x, y, stop.prize ? 160 : 90);
+      if (stop.prize) {
+        setTimeout(() => burst(innerWidth * .2, innerHeight * .6, 70), 250);
+        setTimeout(() => burst(innerWidth * .8, innerHeight * .6, 70), 450);
+      }
+    }
+    fanfare(!!stop.prize);
+
+    toast.innerHTML = `🎉 كسبت <b>${stop.label}</b>`;
+    toast.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 3200);
+  }
+
+  // wait until the car has arrived, then celebrate the highest newly reached reward
+  function checkRewards(score, silent) {
+    clearTimeout(timer);
+    const run = () => {
+      const crossed = STOPS.filter(s => !s.start && score >= s.pts && !celebrated.has(s.pts));
+      crossed.forEach(s => celebrated.add(s.pts));
+      STOPS.forEach(s => { if (score < s.pts) celebrated.delete(s.pts); });  // re-arms the reward if the score drops
+      if (!silent && crossed.length) celebrate(crossed[crossed.length - 1]);
+    };
+    silent ? run() : (timer = setTimeout(run, 950));
+  }
+
+  function setScore(score, silent = false) {
+    checkRewards(score, silent);
+    const pct = pctFor(score);
+    document.getElementById("rp-fill").style.width = pct + "%";
+    document.getElementById("rp-car").style.right = pct + "%";
+    document.getElementById("rp-score").textContent = score.toLocaleString("en");
+
+    document.querySelectorAll(".rp-stop").forEach(el => {
+      el.classList.toggle("is-done", !el.classList.contains("is-start") && score >= +el.dataset.pts);
+    });
+
+    const next = STOPS.find(s => s.pts > score);
+    document.getElementById("rp-next").innerHTML = next
+      ? `باقي <b>${(next.pts - score).toLocaleString("en")}</b> نقطة على ${next.label}`
+      : "فتحت كل الجوائز 🎉";
+  }
+
+  // start score (replace with the real score from your game, then call setScore(newScore) whenever it changes)
+  setTimeout(() => setScore(0, true), 200);
+</script>
+</body>
+</html>
