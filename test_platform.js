@@ -100,7 +100,7 @@ if (gamesDefMatch) {
   const games = mockSandbox.__gamesList;
   const gameIds = games.map(g => g.id);
 
-  assert(gameIds.length === 9, `Expected exactly 9 games, found ${gameIds.length}: [${gameIds.join(', ')}]`);
+  assert(gameIds.length === 10, `Expected exactly 10 games, found ${gameIds.length}: [${gameIds.join(', ')}]`);
   assert(gameIds.includes('reflex'), '1. Reflex Rush (reflex) is active');
   assert(gameIds.includes('pattern'), '2. Pattern Lock (pattern) is active');
   assert(gameIds.includes('shuffle'), '3. Where Is the Ball (shuffle) is active');
@@ -110,6 +110,7 @@ if (gamesDefMatch) {
   assert(gameIds.includes('pour'), '7. Precision Pour (pour) is active');
   assert(gameIds.includes('rhythm'), '8. Rhythm Relay (rhythm) is active');
   assert(gameIds.includes('pairhunt'), '9. Pair Hunt (pairhunt) is active');
+  assert(gameIds.includes('basketball'), '10. Basketball (basketball) is active');
 
   assert(!gameIds.includes('sort'), 'Hot or Cold (sort) is retired');
   assert(!gameIds.includes('quiz'), 'Coffee Quiz (quiz) is retired');
@@ -266,7 +267,89 @@ const instaLinkCount = (html.match(/href="https:\/\/www\.instagram\.com\/theaa\.
 assert(instaLinkCount >= 2, `Social links have safe noopener noreferrer tags (count: ${instaLinkCount})`);
 
 assert(scriptCode.includes('if(S.extraHeartClaimed)'), 'Extra heart checks if already claimed');
-assert(scriptCode.includes('S.extraHeartClaimed = true'), 'Marks extra heart as claimed to prevent re-claiming');
+// 9. Reward Economy & 7% Discount Policy (Midpoint Rule)
+console.log('\n--- Suite 9: Reward Economy & 7% Discount Policy ---');
+assert(CFG.cycleTarget === 10000, `Reward cycle target is 10,000 points: got ${CFG.cycleTarget}`);
+assert(Array.isArray(CFG.tiers) && CFG.tiers.length === 3, 'CFG.tiers defines exactly 3 milestone tiers');
+assert(CFG.tiers[0] >= 5000, `First milestone is at or after 50% midpoint (>= 5000): got ${CFG.tiers[0]}`);
+assert(CFG.tiers[0] === 5000 && CFG.tiers[1] === 7500 && CFG.tiers[2] === 10000, `Milestone tiers correctly calibrated [5000, 7500, 10000]: got [${CFG.tiers.join(', ')}]`);
+
+// Verify 7% discount replacement everywhere
+const scriptRewMatch = scriptCode.match(/const REW\s*=\s*\{([\s\S]*?)\};/);
+assert(scriptRewMatch && scriptRewMatch[1].includes('discount: 7'), 'REW.S defines 7% discount (discount: 7)');
+assert(scriptRewMatch && scriptRewMatch[1].includes('خصم 7%'), 'REW.S display name specifies 7% discount');
+assert(scriptCode.includes("'7% OFF Receipt'") || scriptCode.includes("'7% OFF'"), '7% OFF receipt option defined');
+assert(!scriptCode.includes("'10% OFF Receipt'"), 'Zero occurrences of 10% OFF Receipt in claim options');
+assert(!scriptCode.includes("'خصم 10% على الفاتورة'"), 'Zero occurrences of 10% discount in Arabic claim options');
+
+// 10. Start Screen (#intro) & Post-Game Phone Collection Flow
+console.log('\n--- Suite 10: Start Screen (#intro) & Post-Game Phone Collection Flow ---');
+const introSectionMatch = html.match(/<section id="intro"[^>]*>([\s\S]*?)<\/section>/);
+assert(introSectionMatch, '#intro section exists in DOM');
+const introHtml = introSectionMatch ? introSectionMatch[1] : '';
+assert(!introHtml.includes('id="phone"'), '#intro does NOT contain phone input field');
+assert(!introHtml.includes('id="order"'), '#intro does NOT contain order input field');
+assert(introHtml.includes('id="goBtn"'), '#intro contains direct start button (#goBtn)');
+
+const choiceSectionMatch = html.match(/<section id="choice"[^>]*>([\s\S]*?)<\/section>/);
+assert(choiceSectionMatch, '#choice section exists in DOM');
+const choiceHtml = choiceSectionMatch ? choiceSectionMatch[1] : '';
+assert(choiceHtml.includes('id="choicePhoneCard"'), '#choice contains post-game phone collection card (#choicePhoneCard)');
+assert(choiceHtml.includes('id="chPhone"'), '#choice contains Saudi phone input (#chPhone) before voucher minting');
+
+// 11. Top 10 Leaderboard & 3-Month Qualification
+console.log('\n--- Suite 11: Top 10 Leaderboards & 3-Month Qualification ---');
+assert(scriptCode.includes('const LeaderboardEngine ='), 'LeaderboardEngine module defined in codebase');
+assert(html.includes('id="modalNickname"'), 'Nickname registration modal (#modalNickname) present in DOM');
+assert(html.includes('id="modalTop10Popup"'), 'Top 10 celebration popup (#modalTop10Popup) present in DOM');
+assert(html.includes('id="modalLeaderboard"'), 'Leaderboard view modal (#modalLeaderboard) present in DOM');
+
+const exactTop10ArabicMsg = '«إذا حافظت على مكانك ضمن أفضل 10 لاعبين لمدة ثلاثة أشهر، فستحصل على هدية إضافية»';
+assert(html.includes(exactTop10ArabicMsg), 'Top 10 popup contains exact required Arabic message');
+assert(scriptCode.includes('getQualificationDays'), 'Continuous 90-day qualification tracking implemented');
+
+// 12. Bean Catching & Basketball Defect Verifications
+console.log('\n--- Suite 12: Bean Catching & Basketball Defect Verifications ---');
+// Bean Catching swept continuous collision check
+assert(scriptCode.includes('inCatchY = (it.y + 24 >= cupTop)'), 'Bean Catching swept collision detection implemented (inCatchY)');
+assert(scriptCode.includes('inCatchX = Math.abs(it.x - cx) <= (half + 12)'), 'Bean Catching swept X-axis tolerance implemented');
+assert(scriptCode.includes('c.ok(0.25') && scriptCode.includes('Evaded Burnt Bean'), 'Evading burnt beans awards evasion points without deducting hearts');
+
+const beansExitBlock = scriptCode.match(/if\(it\.y > H\)\{[\s\S]*?return false;\s*\}/);
+assert(beansExitBlock && !beansExitBlock[0].includes('loseHeart'), 'Missed falling good beans do not call c.loseHeart()');
+
+// Basketball Shot Lifecycle State Machine
+assert(scriptCode.includes('STATES = {'), 'Basketball explicit shot lifecycle states defined');
+assert(scriptCode.includes("READY: 'READY'") && scriptCode.includes("VALIDATING_SHOT: 'VALIDATING_SHOT'"), 'Basketball includes READY and VALIDATING_SHOT states');
+assert(scriptCode.includes("SHOT_MADE: 'SHOT_MADE'") && scriptCode.includes("SHOT_MISSED: 'SHOT_MISSED'"), 'Basketball includes SHOT_MADE and SHOT_MISSED states');
+assert(scriptCode.includes('netEl.classList.add(\'swish\')'), 'Basketball triggers net swish animation on made shot');
+
+const bbMadeBlock = scriptCode.match(/state\s*=\s*STATES\.SHOT_MADE;[\s\S]*?return;/);
+assert(bbMadeBlock && !bbMadeBlock[0].includes('loseHeart'), 'Basketball made shot NEVER deducts a heart');
+
+// 13. Precision Pour & Flavor Harmony Overhaul
+console.log('\n--- Suite 13: Precision Pour & Flavor Harmony Overhaul ---');
+// Pour live numeric % is hidden during active pour
+assert(scriptCode.includes("levelTxt.textContent = (currentLang === 'en' ? '☕ Pouring...' : '☕ جارٍ الصب...')"), 'Precision Pour hides live numeric percentage during pouring');
+assert(scriptCode.includes('speed = lerp(16, 28, d)'), 'Precision Pour early speed calibrated (lerp 16 -> 28)');
+assert(html.includes('cup-takeaway-sleeve') && html.includes('assets/logo_transparent.png'), 'Takeaway cup sleeve uses transparent logo (assets/logo_transparent.png)');
+assert(html.includes('.cup-grad-markers {\n  display: none !important;'), 'Graduation markers hidden to avoid trivial stopping point cues');
+
+// Flavor Harmony question bank & icon decoupling
+assert(scriptCode.includes('CUPPING_BANK = ['), 'Specialty coffee cupping question bank defined (CUPPING_BANK)');
+assert(scriptCode.includes('allChoices[i], allChoices[j]'), 'Flavor Harmony shuffles option positions across rounds');
+assert(scriptCode.includes('Sensory Harmony! 🎯'), 'Flavor Harmony rewarding feedback implemented');
+
+// 14. Google Maps & Confetti Celebration
+console.log('\n--- Suite 14: Google Maps, Social Links & Celebration ---');
+const officialMapsUrl = 'https://maps.google.com/?q=the+A%26A+specialty+cafe+%26+sweets+Al-Madinah';
+assert(CFG.social && CFG.social.maps === officialMapsUrl, 'Official Google Maps URL configured in CFG.social.maps');
+const mapsLinkCount = (html.match(/href="https:\/\/maps\.google\.com\/\?q=the\+A%26A\+specialty\+cafe\+%26\+sweets\+Al-Madinah"/g) || []).length;
+assert(mapsLinkCount >= 2, `Google Maps button present in footers with verified URL (count: ${mapsLinkCount})`);
+
+assert(scriptCode.includes('function launchCelebrationConfetti()'), 'Side confetti burst celebration implemented (launchCelebrationConfetti)');
+assert(scriptCode.includes('celebrate()'), 'Web Audio celebration victory chime implemented (SFX.celebrate)');
+assert(html.includes('reward-terms-note'), 'Terms and conditions reward vs loyalty points note present in DOM');
 
 console.log('\n========================================================');
 console.log(`Test Execution Complete: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);

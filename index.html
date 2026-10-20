@@ -1174,12 +1174,12 @@ h2 {
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.12));
 }
 .cup-takeaway-lid-top {
-  width: 126px;
-  height: 14px;
+  width: 136px;
+  height: 15px;
   background: #FAF7F2;
-  border: 2.5px solid var(--border-strong);
+  border: 2.5px solid #2C3527;
   border-bottom: none;
-  border-radius: 8px 8px 0 0;
+  border-radius: 9px 9px 0 0;
   position: relative;
   z-index: 12;
 }
@@ -1187,70 +1187,58 @@ h2 {
   position: absolute;
   top: 2px;
   inset-inline-start: 18px;
-  width: 16px;
+  width: 18px;
   height: 4px;
-  background: var(--border-strong);
+  background: #2C3527;
   border-radius: 2px;
 }
 .cup-takeaway-lid-rim {
-  width: 152px;
-  height: 12px;
+  width: 164px;
+  height: 13px;
   background: #FFFFFF;
-  border: 2.5px solid var(--border-strong);
+  border: 2.5px solid #2C3527;
   border-radius: 4px;
   z-index: 11;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 4px rgba(44, 53, 39, 0.12);
 }
 .cup-takeaway-body {
   position: relative;
-  width: 140px;
-  height: 184px;
+  width: 150px;
+  height: 196px;
   background: #FCFAF6;
-  border: 2.5px solid var(--border-strong);
+  border: 2.5px solid #2C3527;
   border-top: none;
-  border-radius: 0 0 18px 18px;
+  border-radius: 0 0 20px 20px;
   box-shadow: inset 0 2px 10px rgba(0,0,0,0.06);
   transform-origin: top center;
-  transform: perspective(350px) rotateX(15deg);
+  transform: perspective(350px) rotateX(12deg);
   overflow: hidden;
   z-index: 5;
 }
 .cup-takeaway-sleeve {
   position: absolute;
-  top: 54px;
+  top: 56px;
   left: 0;
   right: 0;
-  height: 52px;
-  background: linear-gradient(135deg, #2D2319 0%, #1A140E 100%);
-  border-top: 1.5px solid #C49A45;
-  border-bottom: 1.5px solid #C49A45;
+  height: 60px;
+  background: rgba(253, 250, 244, 0.94);
+  border-top: 2px solid #C49A45;
+  border-bottom: 2px solid #C49A45;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 8;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.22);
+  box-shadow: 0 3px 8px rgba(44, 53, 39, 0.14);
   pointer-events: none;
 }
 .cup-takeaway-sleeve img {
-  max-height: 40px;
-  max-width: 96px;
+  max-height: 42px;
+  max-width: 104px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.25));
 }
 .cup-grad-markers {
-  position: absolute;
-  top: 14px;
-  bottom: 14px;
-  inset-inline-start: 10px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  font-size: 9px;
-  font-weight: 800;
-  color: #8C7A6B;
-  z-index: 9;
-  pointer-events: none;
-  opacity: 0.85;
+  display: none !important;
 }
 .latte-liquid {
   position: absolute;
@@ -1530,6 +1518,211 @@ h2 {
   padding: 3px 14px;
   border-radius: var(--radius-full);
 }
+/* Social destination button: Google Maps */
+.social-icon-btn.maps:hover {
+  border-color: #EA4335;
+  color: #EA4335;
+  box-shadow: 0 4px 12px rgba(234, 67, 53, 0.25);
+}
+
+/* 10. Basketball / لعبة السلة */
+.bb-stage {
+  position: relative; width: 100%; height: 100%;
+  background: radial-gradient(circle at 50% 25%, #2D2218 0%, #15100B 100%);
+  border-radius: var(--radius); overflow: hidden;
+  touch-action: none; user-select: none;
+}
+.bb-court-floor {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 110px;
+  background: linear-gradient(180deg, #382819 0%, #1E150D 100%);
+  border-top: 2px solid #D4A62A;
+}
+.bb-backboard {
+  position: absolute; top: 32px; left: 50%; transform: translateX(-50%);
+  width: 130px; height: 86px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 3.5px solid #2B2117; border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 5;
+}
+.bb-backboard-inner {
+  width: 52px; height: 38px;
+  border: 3px solid #D4A62A; border-bottom: none;
+  margin-bottom: 8px;
+}
+.bb-rim {
+  position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+  width: 56px; height: 12px;
+  border: 3.5px solid #FF5722; border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+  z-index: 10;
+}
+.bb-net {
+  position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+  width: 46px; height: 42px;
+  background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.75) 4px, rgba(255,255,255,0.75) 6px),
+              repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.75) 4px, rgba(255,255,255,0.75) 6px);
+  clip-path: polygon(0 0, 100% 0, 80% 100%, 20% 100%);
+  z-index: 8;
+  transform-origin: top center;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.bb-net.swish {
+  animation: bbNetSwish 0.35s ease-out;
+}
+@keyframes bbNetSwish {
+  0% { transform: translateX(-50%) scale(1, 1); }
+  40% { transform: translateX(-50%) scale(1.25, 0.85); }
+  75% { transform: translateX(-50%) scale(0.9, 1.15); }
+  100% { transform: translateX(-50%) scale(1, 1); }
+}
+.bb-ball {
+  position: absolute; width: 44px; height: 44px;
+  background: radial-gradient(circle at 35% 35%, #FF8A50 0%, #D84315 70%, #BF360C 100%);
+  border-radius: 50%;
+  border: 1.5px solid #7F2200;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.45);
+  cursor: grab; z-index: 15;
+  touch-action: none;
+}
+.bb-ball-seam-h {
+  position: absolute; top: 50%; left: 0; right: 0; height: 1.5px;
+  background: rgba(40, 10, 0, 0.65); transform: translateY(-50%);
+}
+.bb-ball-seam-v {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 1.5px;
+  background: rgba(40, 10, 0, 0.65); transform: translateX(-50%);
+}
+.bb-aim-dots {
+  position: absolute; pointer-events: none; z-index: 12;
+}
+.bb-aim-dot {
+  position: absolute; width: 6px; height: 6px;
+  background: #D4A62A; border-radius: 50%;
+  transform: translate(-50%, -50%); opacity: 0.75;
+}
+.bb-hud-msg {
+  position: absolute; top: 10px; left: 0; right: 0; text-align: center;
+  font-size: 13px; font-weight: 800; color: var(--primary);
+  z-index: 20; pointer-events: none;
+}
+
+/* Celebration Confetti */
+.celebration-confetti-wrap {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+  overflow: hidden;
+}
+.confetti-particle {
+  position: absolute; width: 9px; height: 14px;
+  border-radius: 2px;
+  animation: confettiBurst 2.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+.confetti-particle.left-burst {
+  left: 0; bottom: 35%;
+}
+.confetti-particle.right-burst {
+  right: 0; bottom: 35%;
+}
+@keyframes confettiBurst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.6);
+  }
+  60% {
+    opacity: 1;
+    transform: translate(var(--vx), var(--vy)) rotate(var(--rot)) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--vx), calc(var(--vy) + 260px)) rotate(calc(var(--rot) * 1.5)) scale(0.8);
+  }
+}
+
+/* Leaderboard Modal & 3-Month Celebration Popup */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(18, 16, 14, 0.85);
+  backdrop-filter: blur(6px); z-index: 8000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px; opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.modal-overlay.active {
+  opacity: 1; pointer-events: auto;
+}
+.modal-dialog {
+  background: var(--surface); border: 2px solid var(--border-strong);
+  border-radius: 18px; width: 100%; max-width: 380px;
+  padding: 20px 18px; box-shadow: 0 16px 36px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; gap: 12px;
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.modal-overlay.active .modal-dialog {
+  transform: translateY(0) scale(1);
+}
+.modal-dialog h3 {
+  font-size: 18px; font-weight: 900; color: var(--primary);
+  margin: 0; text-align: center;
+}
+.top10-celebration-box {
+  background: linear-gradient(135deg, rgba(212, 166, 42, 0.15) 0%, rgba(184, 142, 31, 0.05) 100%);
+  border: 1.5px solid var(--primary); border-radius: 14px;
+  padding: 16px 14px; text-align: center;
+}
+.top10-celebration-txt {
+  font-size: 15px; font-weight: 800; color: var(--text);
+  line-height: 1.6; margin: 8px 0;
+}
+.leaderboard-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 280px; overflow-y: auto; padding-inline-end: 4px;
+}
+.leaderboard-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: var(--surface-alt);
+  border-radius: 10px; border: 1px solid var(--border);
+  font-size: 13px; font-weight: 700;
+}
+.leaderboard-row.top-1 {
+  background: linear-gradient(90deg, rgba(212, 166, 42, 0.25) 0%, var(--surface-alt) 100%);
+  border-color: var(--primary);
+}
+.leaderboard-row.top-2 {
+  background: linear-gradient(90deg, rgba(200, 200, 200, 0.20) 0%, var(--surface-alt) 100%);
+  border-color: #B0B0B0;
+}
+.leaderboard-row.top-3 {
+  background: linear-gradient(90deg, rgba(205, 127, 50, 0.20) 0%, var(--surface-alt) 100%);
+  border-color: #CD7F32;
+}
+.leaderboard-rank {
+  width: 26px; height: 26px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 900;
+  background: var(--surface); color: var(--text-muted);
+}
+.top-1 .leaderboard-rank { background: #D4A62A; color: #1A140E; }
+.top-2 .leaderboard-rank { background: #C0C0C0; color: #1A140E; }
+.top-3 .leaderboard-rank { background: #CD7F32; color: #FFFFFF; }
+.leaderboard-score {
+  font-size: 14px; font-weight: 900; color: var(--primary);
+}
+.btn-leaderboard-open {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
+  background: var(--surface-alt); border: 1px solid var(--border);
+  color: var(--text); cursor: pointer; transition: all 0.2s ease;
+}
+.btn-leaderboard-open:hover {
+  background: var(--surface); border-color: var(--primary);
+  color: var(--primary);
+}
+.reward-terms-note {
+  font-size: 12px; line-height: 1.5; color: var(--text-muted);
+  background: rgba(212, 166, 42, 0.08); border: 1px solid rgba(212, 166, 42, 0.3);
+  border-radius: 10px; padding: 10px 12px; margin: 10px 0; text-align: start;
+}
 
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1577,23 +1770,12 @@ h2 {
 
     <div id="ladderIntro"></div>
 
-    <div class="card">
-      <div class="field">
-        <label for="phone">رقم الجوال السعودي</label>
-        <input id="phone" type="tel" inputmode="tel" autocomplete="off" placeholder="مثال: 05XXXXXXXX أو 5XXXXXXXX" maxlength="17" value="">
-        <div id="phoneHint" class="field-hint">الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX</div>
-      </div>
-      <div class="field">
-        <label for="order">رقم الطلب (من الفاتورة أو شاشة المسار)</label>
-        <input id="order" type="text" inputmode="text" autocomplete="off" placeholder="مثال: 128 أو AA-482" value="">
-      </div>
-      <label class="chk" for="consent" style="opacity:.9">
-        <input type="checkbox" id="consent">
-        <span id="agreeTxt">أوافق على استلام عروض the A&A ومفاجآت المدينة المنورة على رقمي (اختياري).</span>
-      </label>
-      <p id="err" class="err" role="alert"></p>
-      <button id="goBtn" class="btn" type="button">دخول والبدء في اللعب</button>
-      <p class="fine" id="disclaimerTxt">الكود المشفر فريد، مرتبط برقمك وفاتورتك، وصالح للاستخدام لمرة واحدة لدى الكاشير.</p>
+    <div class="card intro-action-card" style="text-align:center;padding:22px 18px">
+      <div style="font-size:36px;margin-bottom:8px">☕✨</div>
+      <h3 style="font-size:18px;font-weight:900;color:var(--primary);margin-bottom:6px">جاهز للتحدي؟</h3>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px">اختر من ألعاب the A&A الحصرية، سجّل أعلى سكور، واكسب خصومات فورية حتى 7% وترقية مشروب مجانية!</p>
+      <button id="goBtn" class="btn" type="button" style="font-size:16px;padding:14px 24px">ابدأ اللعب الآن ☕✨</button>
+      <button id="btnStaffAccess" class="btn ghost btn-sm" type="button" style="margin-top:10px;font-size:12px">بوابة موظفي the A&A 🔐</button>
     </div>
 
     <div class="social-footer">
@@ -1603,6 +1785,9 @@ h2 {
         </a>
         <a href="https://www.tiktok.com/@theaa.cafe" target="_blank" rel="noopener noreferrer" class="social-icon-btn tiktok" aria-label="حساب the A&A على تيك توك" title="تيك توك">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
+        </a>
+        <a href="https://maps.google.com/?q=the+A%26A+specialty+cafe+%26+sweets+Al-Madinah" target="_blank" rel="noopener noreferrer" class="social-icon-btn maps" aria-label="موقع the A&A على خرائط Google" title="خرائط Google">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
         </a>
       </div>
       <div class="social-note">the A&A specialty cafe & sweets</div>
@@ -1650,6 +1835,9 @@ h2 {
         <a href="https://www.tiktok.com/@theaa.cafe" target="_blank" rel="noopener noreferrer" class="social-icon-btn tiktok" title="تيك توك">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
         </a>
+        <a href="https://maps.google.com/?q=the+A%26A+specialty+cafe+%26+sweets+Al-Madinah" target="_blank" rel="noopener noreferrer" class="social-icon-btn maps" aria-label="موقع the A&A على خرائط Google" title="خرائط Google">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </a>
       </div>
       <div class="social-note">the A&A specialty cafe & sweets</div>
     </div>
@@ -1663,14 +1851,12 @@ h2 {
     <h2 id="preName"></h2>
     <p class="how" id="preHow"></p>
 
-    <!-- خيار المحاولات الإضافية عبر إنستغرام (متابعة ثم لايك) -->
-    <div id="preExtraHeartBox" class="extra-heart-banner" style="display:none">
-      <span id="extraHeartMsg">❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!</span>
-      <button type="button" id="btnClaimExtraHeartPre" class="btn-extra-heart">استلام +1 ❤️</button>
+    <div style="margin-bottom:14px">
+      <button type="button" id="btnPreLeaderboard" class="btn-leaderboard-open">🏆 أفضل 10 لاعبين في هذه اللعبة</button>
     </div>
 
     <p class="fine" style="color:var(--primary);margin-bottom:12px">
-      🎯 الصعوبة تتصاعد تلقائياً مع أدائك بدون اختيار مسبق. لديك ٣ قلوب ❤️!
+      🎯 الصعوبة تتصاعد تلقائياً مع أدائك. لديك ٣ قلوب ❤️!
     </p>
     <button id="preGo" class="btn">ابدأ الجولة (٦٠ ثانية)</button>
     <button id="preBack" class="btn ghost">رجوع لقائمة الألعاب</button>
@@ -1708,7 +1894,18 @@ h2 {
       <div class="res-score" id="resScore">0</div>
       <span class="res-score-pts" id="resScorePts">نقطة ☕✨</span>
     </div>
-    <p class="lead" id="resMsg" style="margin-bottom:12px"></p>
+    <p class="lead" id="resMsg" style="margin-bottom:8px"></p>
+
+    <!-- خيار استعادة قلب إضافي عند نفاد القلوب فقط -->
+    <div id="gameOverExtraHeart" class="extra-heart-banner" style="display:none;margin:10px 0;width:100%">
+      <span id="extraHeartMsg">❤️ نفدت قلوبك؟ تابع the A&A على إنستغرام لتحصل على +1 ❤️ إضافي وتواصل التحدي!</span>
+      <button type="button" id="btnClaimExtraHeartGameOver" class="btn-extra-heart">استلام +1 ❤️ ومتابعة</button>
+    </div>
+
+    <div style="margin:10px 0;width:100%">
+      <button type="button" id="btnViewLeaderboardResult" class="btn-leaderboard-open" style="width:100%">🏆 لوحة أفضل 10 لاعبين في هذه اللعبة</button>
+    </div>
+
     <div id="ladderRes"></div>
     <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك 🔥</button>
     <button id="resClaim" class="btn alt">استلم مكافأتك الآن 🎁</button>
@@ -1722,6 +1919,9 @@ h2 {
         <a href="https://www.tiktok.com/@theaa.cafe" target="_blank" rel="noopener noreferrer" class="social-icon-btn tiktok" title="تيك توك">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
         </a>
+        <a href="https://maps.google.com/?q=the+A%26A+specialty+cafe+%26+sweets+Al-Madinah" target="_blank" rel="noopener noreferrer" class="social-icon-btn maps" aria-label="موقع the A&A على خرائط Google" title="خرائط Google">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+        </a>
       </div>
       <div class="social-note">the A&A specialty cafe & sweets</div>
     </div>
@@ -1734,7 +1934,30 @@ h2 {
     <div class="res-em">🎁</div>
     <h2 id="chTitle">اختر مكافأة the A&A</h2>
     <p class="lead" id="chMsg"></p>
+
+    <!-- بطاقة إدخال رقم الجوال السعودي قبل إصدار الكود المشفر -->
+    <div id="choicePhoneCard" class="card" style="text-align:start;margin-bottom:14px;display:none;width:100%">
+      <h3 style="font-size:16px;font-weight:900;color:var(--primary);margin-bottom:6px">📱 تأكيد رقم الجوال لإصدار الكود</h3>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">يرجى إدخال رقم الجوال السعودي لربط الكود المشفر بطلبك:</p>
+      <div class="field">
+        <label for="chPhone">رقم الجوال السعودي</label>
+        <input id="chPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="مثال: 05XXXXXXXX أو 5XXXXXXXX" maxlength="17">
+        <div id="chPhoneHint" class="field-hint">الصيغ المعتمدة: 05XXXXXXXX أو +9665XXXXXXXX</div>
+      </div>
+      <div class="field">
+        <label for="chOrder">رقم الطلب (اختياري - من الفاتورة)</label>
+        <input id="chOrder" type="text" autocomplete="off" placeholder="مثال: 128 أو AA-482">
+      </div>
+      <p id="chErr" class="err" role="alert"></p>
+      <button type="button" id="btnConfirmChoicePhone" class="btn" style="margin-top:8px">تأكيد الجوال وإصدار الكود 🎁</button>
+    </div>
+
     <div id="chOpts" style="width:100%;margin-bottom:14px"></div>
+
+    <div class="reward-terms-note">
+      ℹ️ <b>ملاحظة الشروط والأحكام:</b> يمكنك الاختيار بين استلام المكافأة (كود الخصم الفوري) أو تحويل قيمتها كرصيد نقاط ولاء مضاف لحسابك لدى the A&A وفق سياسة المكافآت المعتمدة.
+    </div>
+
     <p class="fine">بعد الاختيار يصدر لك كود مشفر صالح لمرة واحدة لدى الكاشير.</p>
     <button id="chBack" class="btn ghost">رجوع للألعاب</button>
   </div>
@@ -1752,10 +1975,61 @@ h2 {
       <p class="t-exp" id="rwExp"></p>
       <p class="t-note">كود مشفر لمرة واحدة. اعرضه على كاشير the A&A بالمدينة المنورة.</p>
     </div>
+
+    <div class="reward-terms-note">
+      ℹ️ يمكنك الاستفادة من الخصم فورياً أو طلب استبداله برصيد نقاط ولاء لدى الكاشير.
+    </div>
+
     <button id="rwCopy" class="btn">نسخ الكود المشفر</button>
     <button id="rwBack" class="btn ghost">رجوع للرئيسية</button>
   </div>
 </section>
+
+<!-- مودالات لوحة المتصدرين والاسم المستعار والتهنئة -->
+<div id="modalNickname" class="modal-overlay">
+  <div class="modal-dialog">
+    <div style="font-size:36px;text-align:center">🏆✨</div>
+    <h3>تهانينا! تأهلت لقائمة أفضل 10 لاعبين</h3>
+    <p style="font-size:14px;color:var(--text-muted);text-align:center;margin:0">
+      سجّل اسمك المستعار (Nickname) ليظهر في لوحة الشرف لرواد the A&A:
+    </p>
+    <div class="field" style="margin-top:6px">
+      <input id="nickInput" type="text" maxlength="15" placeholder="اسمك المستعار (مثال: باريستا المدينة)" style="text-align:center">
+      <div id="nickErr" class="err"></div>
+    </div>
+    <button id="btnSaveNickname" class="btn">حفظ ومتابعة 🏆</button>
+  </div>
+</div>
+
+<div id="modalTop10Popup" class="modal-overlay">
+  <div class="modal-dialog" style="text-align:center">
+    <div style="font-size:48px;animation:floatBounce 1.5s infinite alternate">🏆🎉</div>
+    <h3 style="color:var(--primary);font-size:20px">إنجاز استثنائي في the A&A!</h3>
+    <div class="top10-celebration-box">
+      <p class="top10-celebration-txt">
+        «إذا حافظت على مكانك ضمن أفضل 10 لاعبين لمدة ثلاثة أشهر، فستحصل على هدية إضافية»
+      </p>
+    </div>
+    <p style="font-size:13px;color:var(--text-muted);margin:0">
+      يتم احتساب المدة بدءاً من اليوم طالما استمر اسمك ضمن أفضل 10 نتائج في اللعبة.
+    </p>
+    <button id="btnCloseTop10Popup" class="btn" style="margin-top:8px">فهمت، سأحافظ على موقعي! 🔥</button>
+  </div>
+</div>
+
+<div id="modalLeaderboard" class="modal-overlay">
+  <div class="modal-dialog">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <h3 id="lbModalTitle" style="margin:0">🏆 أفضل 10 لاعبين</h3>
+      <button id="btnCloseLeaderboard" class="x" style="position:static">✕</button>
+    </div>
+    <p id="lbModalSubtitle" style="font-size:13px;color:var(--text-muted);margin:0">أعلى النتائج المسجلة في the A&A</p>
+    <div id="lbList" class="leaderboard-list"></div>
+    <div style="font-size:11px;color:var(--text-muted);text-align:center">
+      يتم تحديث الترتيب فورياً وفق أفضل النتائج المؤكدة.
+    </div>
+  </div>
+</div>
 
 <!-- الشاشة الثامنة: بوابة التحقق للكاشير (#staff) -->
 <section id="staff" class="screen">
@@ -1805,7 +2079,8 @@ window.addEventListener('unhandledrejection', e => { try { console.warn('[cafe]'
 
 /* ============ إعدادات كافيه the A&A المختص - المدينة المنورة ============ */
 var CFG = {
-  tiers: [1200, 2400, 3400],
+  cycleTarget: 10000,
+  tiers: [5000, 7500, 10000],
   roundSeconds: 60,
   staffPin: '2024',
   requireOrder: false,
@@ -1813,7 +2088,8 @@ var CFG = {
   googleSheetUrl: (function(){ try { return localStorage.getItem('aa_cafe_gsheet_url') || ''; } catch(e){ return ''; } })(),
   social: {
     instagram: 'https://www.instagram.com/theaa.cafe',
-    tiktok: 'https://www.tiktok.com/@theaa.cafe'
+    tiktok: 'https://www.tiktok.com/@theaa.cafe',
+    maps: 'https://maps.google.com/?q=the+A%26A+specialty+cafe+%26+sweets+Al-Madinah'
   }
 };
 
@@ -2039,9 +2315,112 @@ const SFX = (function(){
       playTone(587, 'sine', 0.12, 0.2);
       setTimeout(() => playTone(740, 'sine', 0.14, 0.22), 110);
       setTimeout(() => playTone(880, 'sine', 0.24, 0.24, 1320), 220);
+    },
+    celebrate(){
+      if(muted) return;
+      playTone(523.25, 'triangle', 0.14, 0.22);
+      setTimeout(() => playTone(659.25, 'triangle', 0.14, 0.22), 90);
+      setTimeout(() => playTone(783.99, 'triangle', 0.16, 0.24), 180);
+      setTimeout(() => playTone(1046.50, 'sine', 0.35, 0.26, 1318), 290);
     }
   };
 })();
+
+/* ============ احتفالية الفوز بالكوبون مع مؤثرات كونفيتي جانبية ============ */
+function launchCelebrationConfetti(){
+  const container = el('div', 'celebration-confetti-wrap');
+  document.body.append(container);
+  const colors = ['#D4A62A', '#F9E8BA', '#2A7A4C', '#FF7597', '#FFFFFF', '#B88E1F'];
+  const count = 35;
+  for(let i = 0; i < count; i++){
+    const p1 = el('div', 'confetti-particle left-burst');
+    p1.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p1.style.setProperty('--vx', rnd(60, 240) + 'px');
+    p1.style.setProperty('--vy', rnd(-220, 90) + 'px');
+    p1.style.setProperty('--rot', rnd(0, 720) + 'deg');
+    container.append(p1);
+
+    const p2 = el('div', 'confetti-particle right-burst');
+    p2.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    p2.style.setProperty('--vx', rnd(-240, -60) + 'px');
+    p2.style.setProperty('--vy', rnd(-220, 90) + 'px');
+    p2.style.setProperty('--rot', rnd(0, -720) + 'deg');
+    container.append(p2);
+  }
+  SFX.celebrate();
+  setTimeout(() => container.remove(), 2600);
+}
+
+/* ============ محرك لوحة أفضل 10 لاعبين لكل لعبة ومتابعة الشهور الثلاثة ============ */
+const LeaderboardEngine = {
+  storeKey: 'the_aa_cafe_leaderboards_v2',
+  getBoards(){
+    try {
+      const raw = localStorage.getItem(this.storeKey);
+      return raw ? JSON.parse(raw) : {};
+    } catch(e){ return {}; }
+  },
+  saveBoards(b){
+    try { localStorage.setItem(this.storeKey, JSON.stringify(b)); } catch(e){}
+  },
+  getTop10(gameId){
+    const boards = this.getBoards();
+    const list = boards[gameId] || [];
+    return list.slice(0, 10);
+  },
+  qualifies(gameId, score){
+    if(score <= 0) return false;
+    const top = this.getTop10(gameId);
+    if(top.length < 10) return true;
+    return score > top[top.length - 1].score;
+  },
+  recordScore(gameId, score, nickname, phone){
+    if(!this.qualifies(gameId, score)) return { qualified: false, isNewTop10: false };
+    const boards = this.getBoards();
+    if(!boards[gameId]) boards[gameId] = [];
+    const now = Date.now();
+    const effectiveNick = nickname || (typeof S !== 'undefined' && S && S.nickname) || 'باريستا the A&A';
+    
+    // Check if player already registered
+    const existingIdx = boards[gameId].findIndex(e => (phone && e.phone === phone) || (effectiveNick && e.nickname === effectiveNick));
+    let entry;
+    let isNewTop10 = false;
+    if(existingIdx >= 0){
+      entry = boards[gameId][existingIdx];
+      if(score > entry.score){
+        entry.score = score;
+        entry.updatedAt = now;
+      }
+    } else {
+      isNewTop10 = true;
+      entry = {
+        nickname: effectiveNick,
+        phone: phone ? phone.slice(0, 6) + '***' + phone.slice(-2) : '',
+        score: score,
+        qualifiedAt: now,
+        updatedAt: now,
+        cycleId: 1
+      };
+      boards[gameId].push(entry);
+    }
+    
+    // Sort: highest score, tie-break by earliest qualifiedAt
+    boards[gameId].sort((a, b) => b.score - a.score || a.qualifiedAt - b.qualifiedAt);
+    
+    const rank = boards[gameId].indexOf(entry) + 1;
+    const qualified = rank <= 10;
+    
+    // Maintain top 10 continuous eligibility
+    boards[gameId] = boards[gameId].slice(0, 10);
+    this.saveBoards(boards);
+    
+    return { qualified: qualified, rank: rank, isNewTop10: isNewTop10 && qualified, entry: entry };
+  },
+  getQualificationDays(entry){
+    if(!entry || !entry.qualifiedAt) return 0;
+    return Math.floor((Date.now() - entry.qualifiedAt) / (1000 * 60 * 60 * 24));
+  }
+};
 
 function updateSoundIcons(){
   const isMuted = SFX.isMuted();
@@ -2088,11 +2467,11 @@ const store = {
 /* ============ تشفير أكواد المكافآت ============ */
 const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const REW = {
-  T: { name: 'خصم 5% على الفاتورة', tier: 1 },
-  S: { name: 'خصم 10% على الفاتورة', tier: 2 },
-  G: { name: 'ترقية مشروب مجانية من the A&A 🏆', tier: 3 }
+  T: { name: 'خصم 5% على الفاتورة', tier: 1, discount: 5 },
+  S: { name: 'خصم 7% على الفاتورة', tier: 2, discount: 7 },
+  G: { name: 'ترقية مشروب مجانية من the A&A 🏆', tier: 3, upgrade: true }
 };
-const TIER_TXT = { 1: 'خصم 5%', 2: 'خصم 10%', 3: 'ترقية مشروب' };
+const TIER_TXT = { 1: 'خصم 5%', 2: 'خصم 7%', 3: 'ترقية مشروب' };
 
 function enc(num, len){
   let s = '';
@@ -2136,6 +2515,7 @@ function parseCode(raw){
 let S = {
   phone: '',
   order: '',
+  nickname: '',
   consent: false,
   day: dayNow(),
   startedAt: 0,
@@ -2166,29 +2546,29 @@ function show(id){
   if(h){ h.setAttribute('tabindex','-1'); try { h.focus({preventScroll:true}); } catch(e){} }
 }
 
-/* ============ مسار جوائز الدرايف ثرو المتطور ============ */
+/* ============ مسار جوائز الدرايف ثرو المتطور (يبدأ بعد المنتصف) ============ */
 function ladder(score){
-  const max = 3800;
+  const max = CFG.cycleTarget || 10000;
   const p = Math.min(score / max, 1) * 100;
-  const carPos = Math.max(4, Math.min(92, 4 + (p * 0.88)));
+  const carPos = Math.max(4, Math.min(94, 4 + (p * 0.90)));
   const fillWidth = Math.min(100, Math.max(0, p));
   const hit1 = score >= CFG.tiers[0] ? ' hit' : '';
   const hit2 = score >= CFG.tiers[1] ? ' hit' : '';
   const hit3 = score >= CFG.tiers[2] ? ' hit' : '';
 
   const t1Txt = (currentLang === 'en') ? '5% OFF' : 'خصم 5%';
-  const t2Txt = (currentLang === 'en') ? '10% OFF' : 'خصم 10%';
+  const t2Txt = (currentLang === 'en') ? '7% OFF' : 'خصم 7%';
   const t3Txt = (currentLang === 'en') ? 'Drink Upgrade 🏆' : 'ترقية مشروب 🏆';
 
   return '<div class="drive-bar">' +
     '<div class="drive-tiers">' +
-      '<div class="drive-tier t-1' + hit1 + '" style="inset-inline-start:31%">' +
+      '<div class="drive-tier t-1' + hit1 + '" style="inset-inline-start:50%">' +
         '<div class="tier-pill">' + t1Txt + '</div>' +
       '</div>' +
-      '<div class="drive-tier t-2' + hit2 + '" style="inset-inline-start:63%">' +
+      '<div class="drive-tier t-2' + hit2 + '" style="inset-inline-start:75%">' +
         '<div class="tier-pill">' + t2Txt + '</div>' +
       '</div>' +
-      '<div class="drive-tier t-3' + hit3 + '" style="inset-inline-start:89%">' +
+      '<div class="drive-tier t-3' + hit3 + '" style="inset-inline-start:98%">' +
         '<div class="tier-pill">' + t3Txt + '</div>' +
       '</div>' +
     '</div>' +
@@ -2196,9 +2576,9 @@ function ladder(score){
       '<div class="road-track">' +
         '<div class="road-dashes"></div>' +
         '<div class="road-fill" style="width:' + fillWidth + '%"></div>' +
-        '<div class="road-marker-dot marker-1' + hit1 + '" style="inset-inline-start:31%"></div>' +
-        '<div class="road-marker-dot marker-2' + hit2 + '" style="inset-inline-start:63%"></div>' +
-        '<div class="road-marker-dot marker-3' + hit3 + '" style="inset-inline-start:89%"></div>' +
+        '<div class="road-marker-dot marker-1' + hit1 + '" style="inset-inline-start:50%"></div>' +
+        '<div class="road-marker-dot marker-2' + hit2 + '" style="inset-inline-start:75%"></div>' +
+        '<div class="road-marker-dot marker-3' + hit3 + '" style="inset-inline-start:98%"></div>' +
       '</div>' +
       '<div class="car-runner" style="inset-inline-start:' + carPos + '%">' +
         '<div class="car-sprite" aria-label="the A&A Car">' +
@@ -2227,9 +2607,9 @@ function ladder(score){
     '</div>' +
     '<div class="drive-points">' +
       '<span class="pt-val" style="inset-inline-start:4%">0</span>' +
-      '<span class="pt-val" style="inset-inline-start:31%">' + CFG.tiers[0] + '</span>' +
-      '<span class="pt-val" style="inset-inline-start:63%">' + CFG.tiers[1] + '</span>' +
-      '<span class="pt-val" style="inset-inline-start:89%">' + CFG.tiers[2] + '</span>' +
+      '<span class="pt-val" style="inset-inline-start:50%">' + CFG.tiers[0] + '</span>' +
+      '<span class="pt-val" style="inset-inline-start:75%">' + CFG.tiers[1] + '</span>' +
+      '<span class="pt-val" style="inset-inline-start:96%">' + CFG.tiers[2] + '</span>' +
     '</div>' +
   '</div>';
 }
@@ -2243,7 +2623,7 @@ function syncToGoogleSheet(action, payload){
   const currentOrder = (payload && payload.order) || ((typeof S !== 'undefined' && S) ? S.order : '');
 
   const tierText = currentBest >= CFG.tiers[2] ? 'ترقية مشروب مجانية 🏆' :
-                   currentBest >= CFG.tiers[1] ? 'خصم 10%' :
+                   currentBest >= CFG.tiers[1] ? 'خصم 7%' :
                    currentBest >= CFG.tiers[0] ? 'خصم 5%' : 'لم يتأهل بعد';
 
   const rewardName = currentClaim ? (REW[currentClaim.type] ? REW[currentClaim.type].name : currentClaim.type) : '';
@@ -2343,13 +2723,61 @@ function endRun(reason){
   syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: run.score });
 
   $('#resEm').textContent = gm.emoji;
-  $('#resTitle').textContent = 'انتهت جولة ' + gm.name;
+  $('#resTitle').textContent = (currentLang === 'en') ? ('Round Over: ' + (gm.nameEn || gm.name)) : ('انتهت جولة ' + gm.name);
   $('#resScore').textContent = run.score;
-  $('#resMsg').textContent = reason || (run.score > prevBest ? 'رائع! حققت أفضل رقم لك في هذه اللعبة 🔥' : 'جولة ممتازة! العب مرة أخرى وتجاوز نتيجتك');
+
+  // Phase 7: رسائل تحفيزية طبيعية وموجزة تعكس النتيجة والتقدم الفعلي
+  const dScore = run.score;
+  let encMsg = '';
+  if(currentLang === 'en'){
+    if(dScore >= 2000) encMsg = 'Master barista performance! You are very close to top A&A rewards ✨';
+    else if(dScore >= 1000) encMsg = 'Great accuracy and rhythm! Keep going to unlock your next milestone ☕';
+    else if(dScore > prevBest && prevBest > 0) encMsg = 'Great effort! You beat your best score in this game 🔥';
+    else encMsg = 'Good attempt! Try again to improve your score and climb the leaderboard 🎯';
+  } else {
+    if(dScore >= 2000) encMsg = 'أداء باريستا استثنائي! اقتربت جداً من أرقى مكافآت the A&A ✨';
+    else if(dScore >= 1000) encMsg = 'دقة عالية وتركيز رائع! واصل لتصل إلى هدفك القادم ☕';
+    else if(dScore > prevBest && prevBest > 0) encMsg = 'رائع! حققت أفضل رقم لك في هذه اللعبة 🔥';
+    else encMsg = 'محاولة ممتازة! العب مرة أخرى وتجاوز نتيجتك السابقة 🎯';
+  }
+  $('#resMsg').textContent = reason ? (reason + ' • ' + encMsg) : encMsg;
   $('#ladderRes').innerHTML = ladder(S.best);
 
   const t = tierOf(S.best);
   $('#resClaim').style.display = (t > 0 && !S.claim) ? 'block' : 'none';
+
+  // Phase 1, Req 3: عرض خيار استعادة القلب الإضافي عند نفاد القلوب فقط
+  const extraHeartGameOver = $('#gameOverExtraHeart');
+  if(extraHeartGameOver){
+    if(run.hearts <= 0 && (!S.extraHeartFollowClaimed || !S.extraHeartLikeClaimed)){
+      extraHeartGameOver.style.display = 'flex';
+      const msg = extraHeartGameOver.querySelector('#extraHeartMsg');
+      const btn = extraHeartGameOver.querySelector('#btnClaimExtraHeartGameOver');
+      if(msg && btn){
+        if(!S.extraHeartFollowClaimed){
+          msg.textContent = (currentLang === 'en') ? '❤️ Out of hearts? Follow the A&A on Instagram to get +1 extra heart!' : '❤️ نفدت قلوبك؟ تابع the A&A على إنستغرام لتحصل على +1 ❤️ إضافي وتواصل التحدي!';
+          btn.textContent = (currentLang === 'en') ? 'Follow & Get +1 ❤️' : 'متابعة واستلام +1 ❤️';
+        } else {
+          msg.textContent = (currentLang === 'en') ? '👍 Like the latest Instagram post to get a second extra heart!' : '👍 ضع لايك على آخر منشور في إنستغرام the A&A لتحصل على قلب إضافي ثانٍ!';
+          btn.textContent = (currentLang === 'en') ? 'Like & Get ❤️' : 'لايك واستلام ❤️';
+        }
+      }
+    } else {
+      extraHeartGameOver.style.display = 'none';
+    }
+  }
+
+  // Phase 10: فحص قائمة أفضل 10 لاعبين وعرض التهنئة والاسم المستعار
+  if(run.score > 0){
+    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone);
+    if(lb && lb.newlyQualified){
+      if(!S.nickname){
+        openNicknameModal(gm.id);
+      } else {
+        openTop10CelebrationPopup();
+      }
+    }
+  }
 
   SFX.reward();
   show('result');
@@ -2840,10 +3268,10 @@ const GAMES = [
     const cup = el('div', 'b-sack',
       '<div class="b-sack-ears"><div class="b-sack-ear"></div><div class="b-sack-ear"></div></div>' +
       '<div class="b-sack-stitch"></div>' +
-      '<div class="b-sack-logo"><img src="assets/logo_gold.png" alt="the A&A"></div>'
+      '<div class="b-sack-logo"><img src="assets/logo_transparent.png" alt="the A&A"></div>'
     );
     st.append(cup);
-    let cx = c.W() / 2, cupW = 90;
+    let cx = c.W() / 2, cupW = 92;
     cup.style.width = cupW + 'px';
     cup.style.left = (cx - cupW / 2) + 'px';
 
@@ -2878,7 +3306,7 @@ const GAMES = [
       timer -= dt * 1000;
 
       if(timer <= 0){
-        timer = lerp(680, 290, d) / diffMul * rnd(0.85, 1.15);
+        timer = lerp(700, 320, d) / diffMul * rnd(0.85, 1.15);
         const roll = Math.random();
         const burnt = roll < lerp(0.18, 0.35, d);
         const bonus = !burnt && roll > 0.82;
@@ -2888,33 +3316,47 @@ const GAMES = [
         const ix = rnd(24, W - 24);
         e.style.left = (ix - 17) + 'px';
         st.append(e);
-        items.push({ e: e, x: ix, y: -20, burnt: burnt, bonus: bonus });
+        items.push({ e: e, x: ix, y: -20, burnt: burnt, bonus: bonus, resolved: false });
       }
 
-      const vy = lerp(160, 360, d) * diffMul;
-      const cupTop = H - 60;
+      const vy = lerp(160, 340, d) * diffMul;
+      const cupTop = H - 65;
       const half = cupW / 2;
 
       items = items.filter(it => {
+        if(it.resolved) return false;
         it.y += vy * dt;
         it.e.style.transform = 'translateY(' + it.y + 'px)';
-        if(it.y + 32 >= cupTop && it.y < H - 8 && Math.abs(it.x - cx) < half){
+
+        // Continuous swept catchment:
+        // Bean caught if within the vertical collision band and horizontally above basket
+        const inCatchY = (it.y + 24 >= cupTop) && (it.y - (vy * dt) <= cupTop + 45);
+        const inCatchX = Math.abs(it.x - cx) <= (half + 12);
+
+        if(inCatchY && inCatchX){
+          it.resolved = true;
           it.e.remove();
           if(it.burnt){
             c.loseHeart();
-            c.miss(it.x, H - 90, 1.3, currentLang === 'en' ? 'Burnt Bean! (-1 ❤️)' : 'حبة محروقة! (-1 ❤️)');
+            c.miss(it.x, H - 90, 1.2, currentLang === 'en' ? 'Burnt Bean! (-1 ❤️)' : 'حبة محروقة! (-1 ❤️)');
           } else if(it.bonus){
-            c.ok(2.0, it.x, H - 90, currentLang === 'en' ? 'Special Bean! ✨' : 'حبة مميزة! ✨');
+            c.ok(2.0, it.x, H - 90, currentLang === 'en' ? 'Golden Reserve! ✨' : 'حبة استثنائية! ✨');
           } else {
             c.ok(1.0, it.x, H - 90);
           }
           return false;
         }
+
+        // Exited bottom of screen
         if(it.y > H){
+          it.resolved = true;
           it.e.remove();
-          if(!it.burnt){
-            c.loseHeart();
-            c.miss(it.x, H - 30, 0.8, currentLang === 'en' ? 'Missed Bean! (-1 ❤️)' : 'فاتتك حبة بن! (-1 ❤️)');
+          if(it.burnt){
+            // Successfully avoided burnt bean! Evasion feedback, ZERO heart deduction
+            c.ok(0.25, it.x, H - 40, currentLang === 'en' ? 'Evaded Burnt Bean! ✓' : 'تجنبت المحروقة! ✓');
+          } else {
+            // Missed good bean: penalty points and break combo, but NEVER deduct a heart!
+            c.miss(it.x, H - 40, 0.5, currentLang === 'en' ? 'Missed Bean' : 'فاتتك حبة بن');
           }
           return false;
         }
@@ -2932,12 +3374,12 @@ const GAMES = [
   altName: 'تحوّل الألوان',
   emoji: '🎨',
   weight: 1.8,
-  how: 'طابق بطاقة النكهة وفق القاعدة النشطة (نوتة النكهة، أو درجة التحميص، أو النكهة المختلفة). تتغير القاعدة دورياً مع تنبيه واضح!',
-  howEn: 'Match the specialty coffee tasting card with the card below according to the active sensory rule!',
+  how: 'اقرأ بطاقة التذوق الحسية للقهوة المختصة، وطابق الإيحاء الحقيقي أو استبعد النكهة الدخيلة دون تكرار أي إشارة مضللة!',
+  howEn: 'Read the specialty coffee cupping card, match the genuine tasting note or spot the intruder!',
   start(c){
     const st = c.stage;
     st.innerHTML = '<div class="cs-wrap">' +
-      '<div class="cs-rule-banner" id="csRuleBanner">🎯 القاعدة: طابق نوتة النكهة ☕</div>' +
+      '<div class="cs-rule-banner" id="csRuleBanner">🎯 بطاقة التذوق الحسي the A&A ☕</div>' +
       '<div id="csTarget" class="cs-target-card"></div>' +
       '<div class="cs-options-grid" id="csGrid"></div>' +
     '</div>';
@@ -2946,74 +3388,148 @@ const GAMES = [
     const targetEl = $('#csTarget', st);
     const gridEl = $('#csGrid', st);
 
-    const FLAVORS = [
-      { id: 'caramel', name: 'كراميل ذهبي', nameEn: 'Golden Caramel', color: '#B88E1F', bg: 'linear-gradient(135deg, #F3C042 0%, #B88E1F 100%)', text: '#241F16', icon: '🍯' },
-      { id: 'cocoa', name: 'شوكولاتة داكنة', nameEn: 'Dark Cocoa', color: '#E0B73F', bg: 'linear-gradient(135deg, #3A1F10 0%, #1A0D07 100%)', text: '#FFF', icon: '🍫' },
-      { id: 'berry', name: 'توت وكرز بري', nameEn: 'Wild Berries', color: '#FF7597', bg: 'linear-gradient(135deg, #D6336C 0%, #8A1532 100%)', text: '#FFF', icon: '🍒' },
-      { id: 'cardamom', name: 'هيل ومستكة', nameEn: 'Cardamom & Herbs', color: '#88D6A0', bg: 'linear-gradient(135deg, #3E7B54 0%, #1B452A 100%)', text: '#FFF', icon: '🌿' },
-      { id: 'hazelnut', name: 'بندق محمص', nameEn: 'Roasted Hazelnut', color: '#F2A663', bg: 'linear-gradient(135deg, #B86B28 0%, #6E380E 100%)', text: '#FFF', icon: '🌰' }
+    // بنك أسئلة التذوق الحسي للقهوة المختصة (Specialty Coffee Cupping Bank)
+    // تم تصميم الأسئلة بحيث لا تتطابق الأيقونات أو الألوان بين السؤال والجواب لمنع كشف الإجابة بالصدفة
+    const CUPPING_BANK = [
+      {
+        category: 'عائلة الإيحاءات: الحمضيات والزهور 🍋',
+        categoryEn: 'Sensory Family: Citrus & Floral 🍋',
+        prompt: 'ما الإيحاء الحقيقي المنتمي لهذه العائلة الفاخرة؟',
+        promptEn: 'Which tasting note belongs to this sensory family?',
+        correct: { text: 'ياسمين وبرغموت وزهر البرتقال', textEn: 'Jasmine, Bergamot & Citrus Blossom', icon: '🌸' },
+        distractors: [
+          { text: 'شوكولاتة داكنة ثقيلة', textEn: 'Heavy Dark Chocolate', icon: '🍫' },
+          { text: 'بندق محمص بالزبدة', textEn: 'Roasted Butter Hazelnut', icon: '🌰' },
+          { text: 'تبغ مدخن وتوابل حارة', textEn: 'Smoked Tobacco & Spice', icon: '🍂' }
+        ]
+      },
+      {
+        category: 'معالجة البن: المعالجة المجففة الطبيعية ☀️',
+        categoryEn: 'Coffee Process: Natural / Dry Process ☀️',
+        prompt: 'ما الطابع الحسي الأبرز للمحصول المجفف في الشمس؟',
+        promptEn: 'What is the prominent cupping profile of sun-dried naturals?',
+        correct: { text: 'فاكهية وتوتية واضحة وقوام عسلي ممتلئ', textEn: 'Rich Berries, Fruit Jam & Honey Body', icon: '🫐' },
+        distractors: [
+          { text: 'حمضية ليمونية حادة وقوام شايوي خفيف', textEn: 'Sharp Lemon Acidity & Tea Body', icon: '🍵' },
+          { text: 'مرارة كربونية بدون أي حلاوة', textEn: 'Carbon Bitterness & No Sweetness', icon: '☕' },
+          { text: 'نكهة عشبية ترابية باهتة', textEn: 'Dull Earthy Herbaceous Note', icon: '🌱' }
+        ]
+      },
+      {
+        category: 'عائلة الإيحاءات: المكسرات والكراميل 🍯',
+        categoryEn: 'Sensory Family: Nutty & Confectionery 🍯',
+        prompt: 'أي من هذه النوتات تمثل هذه العائلة الكلاسيكية؟',
+        promptEn: 'Which note represents this classic sweet profile?',
+        correct: { text: 'لوز محمص وتوفي كراميل وسكر بني', textEn: 'Roasted Almond, Toffee & Brown Sugar', icon: '🥜' },
+        distractors: [
+          { text: 'حمضية خل العنب اللاذعة', textEn: 'Pungent Grape Vinegar Sourness', icon: '⚡' },
+          { text: 'نعناع أخضر وريحان بري', textEn: 'Wild Mint & Basil Leaves', icon: '🌿' },
+          { text: 'يوسفي وليمون أخضر حامض', textEn: 'Sour Green Lime & Tangerine', icon: '🍋' }
+        ]
+      },
+      {
+        category: 'معالجة البن: المعالجة المغسولة بالماء 💧',
+        categoryEn: 'Coffee Process: Fully Washed Process 💧',
+        prompt: 'بماذا يشتهر الكوب المغسول لدى خبراء the A&A؟',
+        promptEn: 'What defines a washed coffee for the A&A baristas?',
+        correct: { text: 'نقاء عالي جداً وحمضية مشرقة متوازنة', textEn: 'High Cup Clarity & Bright Clean Acidity', icon: '💎' },
+        distractors: [
+          { text: 'قوام غليظ لزج ونكهات متخمرة فاقعة', textEn: 'Over-fermented Heavy Sludgy Body', icon: '🍷' },
+          { text: 'طعم الرماد والمطاط المحروق', textEn: 'Burnt Ash & Rubber Off-flavor', icon: '🚫' },
+          { text: 'حلاوة سكرية بدون أي حمضية', textEn: 'Pure Sugar with Zero Acidity', icon: '🍭' }
+        ]
+      },
+      {
+        category: 'درجة التحميص: تحميص فاتح مختص (Light Roast) 🔥',
+        categoryEn: 'Roast Profile: Specialty Light Roast 🔥',
+        prompt: 'ما الهدف الأساسي للباريستا من التحميص الفاتح؟',
+        promptEn: 'What is the barista goal with a light roast?',
+        correct: { text: 'إبراز النوتات الأصلية للحبوب وبلد المنشأ', textEn: 'Highlight Origin Terroir & Fruit Acids', icon: '🌱' },
+        distractors: [
+          { text: 'تغطية عيوب البن بطعم الحرق والتفحيم', textEn: 'Mask Defects with Charcoal Roasting', icon: '💨' },
+          { text: 'إنتاج زيوت سوداء ثقيلة على سطح الحبة', textEn: 'Force Heavy Black Oils to Surface', icon: '🛢️' },
+          { text: 'إزالة الكافيين بالكامل من الحبة', textEn: 'Completely Strip Caffeine from Beans', icon: '❌' }
+        ]
+      },
+      {
+        category: 'عائلة التوابل الدافئة ☕✨',
+        categoryEn: 'Sensory Family: Warm Baking Spices ☕✨',
+        prompt: 'ما الإيحاء الحسي المنسجم مع قهوتنا العربية والمختصة؟',
+        promptEn: 'Which warm spice harmonizes with our specialty blends?',
+        correct: { text: 'هيل ملكي وقرفة سيلانية وزنجبيل خفيف', textEn: 'Royal Cardamom, Cinnamon & Ginger', icon: '🫚' },
+        distractors: [
+          { text: 'حمضيات لاذعة جداً كالجريب فروت', textEn: 'Harsh Grapefruit Pith Acid', icon: '🍋' },
+          { text: 'نكهة زبدة الفول السوداني الاصطناعية', textEn: 'Artificial Peanut Paste Flavor', icon: '🥜' },
+          { text: 'طعم الأخشاب المتعفنة الرطبة', textEn: 'Damp Mildewed Wood Defect', icon: '🪵' }
+        ]
+      },
+      {
+        category: 'استبعاد النوتة الشاذة (الدخيلة) 🔍',
+        categoryEn: 'Odd One Out: Spot the Intruder 🔍',
+        prompt: 'ثلاث نوتات تنتمي لعائلة الشوكولاتة الداكنة، ما هي النوتة الدخيلة؟',
+        promptEn: 'Three notes fit Dark Chocolate; spot the intruder!',
+        correct: { text: 'حموضة الليمون الأخضر المنعشة (لا تنتمي)', textEn: 'Fresh Lime Acidity (Does Not Belong)', icon: '🍋' },
+        distractors: [
+          { text: 'كاكاو نيبس نقي 85%', textEn: 'Pure 85% Cacao Nibs', icon: '🍫' },
+          { text: 'شوكولاتة الحليب بالكراميل', textEn: 'Caramel Milk Chocolate', icon: '🍬' },
+          { text: 'ترافل شوكولاتة غنية', textEn: 'Rich Truffle Cocoa', icon: '☕' }
+        ]
+      },
+      {
+        category: 'بلد المنشأ: إثيوبيا ييرغاتشيفي 🌍',
+        categoryEn: 'Coffee Origin: Ethiopia Yirgacheffe 🌍',
+        prompt: 'ما الإيحاء الأيقوني العالمي لهذا المحصول الإثيوبي؟',
+        promptEn: 'What is the iconic signature of this Ethiopian coffee?',
+        correct: { text: 'الياسمين والخوخ وزهر الخزامى والبرتقال', textEn: 'Jasmine Floral, Peach & Sweet Orange', icon: '🌸' },
+        distractors: [
+          { text: 'طعم التبغ والجلد القديم المدخن', textEn: 'Smoked Leather & Tobacco Note', icon: '🍂' },
+          { text: 'مرارة كربونية وقوام زيتي كثيف جداً', textEn: 'Heavy Carbon Bitterness & Sludge', icon: '☕' },
+          { text: 'مكسرات مالحة وفشار بالزبدة', textEn: 'Salted Nuts & Buttered Popcorn', icon: '🍿' }
+        ]
+      }
     ];
 
-    let currentRule = 'flavor';
-    let roundCount = 0;
-    let targetCard = null;
+    let lastQuestionIdx = -1;
     let options = [];
     let lock = false;
 
     function nextChallenge(){
       lock = false;
-      roundCount++;
 
-      if(roundCount % 4 === 1 && roundCount > 1){
-        const rules = ['flavor', 'roast', 'odd'];
-        currentRule = rules[(Math.floor(roundCount / 4)) % rules.length];
-        bannerEl.textContent = currentRule === 'flavor' ? '🎯 القاعدة: طابق نوتة النكهة ☕' :
-                               currentRule === 'roast' ? '🎨 القاعدة: طابق درجة التحميص 🎨' :
-                               '🔍 القاعدة: اختر النكهة المختلفة 🔍';
-        SFX.levelUp();
+      // اختيار سؤال عشوائي دون تكرار المباشر
+      let qIdx;
+      do {
+        qIdx = Math.floor(Math.random() * CUPPING_BANK.length);
+      } while(qIdx === lastQuestionIdx && CUPPING_BANK.length > 1);
+      lastQuestionIdx = qIdx;
+
+      const q = CUPPING_BANK[qIdx];
+      const catTxt = (currentLang === 'en' && q.categoryEn) ? q.categoryEn : q.category;
+      const promptTxt = (currentLang === 'en' && q.promptEn) ? q.promptEn : q.prompt;
+
+      bannerEl.textContent = '🎯 ' + catTxt;
+      targetEl.innerHTML = '<div class="cs-prompt-cat">' + catTxt + '</div>' +
+        '<div class="cs-prompt-title">' + promptTxt + '</div>' +
+        '<div class="cs-prompt-sub">' + (currentLang === 'en' ? 'Select the matching specialty cupping note below:' : 'اختر الإيحاء الحسي المطابق للقاعدة:') + '</div>';
+
+      // تجهيز الخيارات: إجابة صحيحة + 3 مشتتات
+      const allChoices = [
+        { item: q.correct, isCorrect: true },
+        ...q.distractors.map(d => ({ item: d, isCorrect: false }))
+      ];
+
+      // خلط عشوائي لمواقع الخيارات (Shuffle)
+      for(let i = allChoices.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
       }
-
-      const tFlavor = FLAVORS[Math.floor(Math.random() * FLAVORS.length)];
-      targetCard = tFlavor;
-
-      targetEl.style.background = tFlavor.bg;
-      targetEl.style.borderColor = tFlavor.color;
-      targetEl.style.color = tFlavor.text;
-      const tName = (currentLang === 'en' && tFlavor.nameEn) ? tFlavor.nameEn : tFlavor.name;
-      targetEl.innerHTML = '<span class="cs-icon">' + tFlavor.icon + '</span><span class="cs-name">' + tName + '</span>';
-
-      options = [];
-      let correctIdx = Math.floor(Math.random() * 4);
-
-      if(currentRule === 'flavor' || currentRule === 'roast'){
-        for(let i = 0; i < 4; i++){
-          if(i === correctIdx){
-            options.push({ flavor: tFlavor, isCorrect: true });
-          } else {
-            let fl;
-            do { fl = FLAVORS[Math.floor(Math.random() * FLAVORS.length)]; } while(fl.id === tFlavor.id);
-            options.push({ flavor: fl, isCorrect: false });
-          }
-        }
-      } else {
-        const otherFlavor = FLAVORS.find(f => f.id !== tFlavor.id) || FLAVORS[0];
-        for(let i = 0; i < 4; i++){
-          if(i === correctIdx){
-            options.push({ flavor: otherFlavor, isCorrect: true });
-          } else {
-            options.push({ flavor: tFlavor, isCorrect: false });
-          }
-        }
-      }
+      options = allChoices;
 
       gridEl.innerHTML = '';
       options.forEach((opt, idx) => {
         const btn = el('button', 'cs-card');
-        btn.style.background = opt.flavor.bg;
-        btn.style.borderColor = opt.flavor.color;
-        btn.style.color = opt.flavor.text;
-        const flName = (currentLang === 'en' && opt.flavor.nameEn) ? opt.flavor.nameEn : opt.flavor.name;
-        btn.innerHTML = '<span class="cs-icon">' + opt.flavor.icon + '</span><span class="cs-name">' + flName + '</span>';
+        const optTxt = (currentLang === 'en' && opt.item.textEn) ? opt.item.textEn : opt.item.text;
+        btn.innerHTML = '<span class="cs-icon">' + opt.item.icon + '</span><span class="cs-name">' + optTxt + '</span>';
         btn.addEventListener('pointerdown', ev => {
           ev.preventDefault();
           chooseOption(idx, btn);
@@ -3030,13 +3546,13 @@ const GAMES = [
 
       if(opt && opt.isCorrect){
         btn.classList.add('correct');
-        c.ok(1.4, W / 2, H * 0.4, 'نكهة متطابقة! 🎯');
-        c.after(300, nextChallenge);
+        c.ok(1.5, W / 2, H * 0.45, currentLang === 'en' ? 'Sensory Harmony! 🎯' : 'تناغم نكهات متقن! 🎯');
+        c.after(400, nextChallenge);
       } else {
         btn.classList.add('wrong');
         c.loseHeart();
-        c.miss(W / 2, H * 0.4, 1.0, 'خالفت النكهة! (-1 ❤️)');
-        c.after(500, nextChallenge);
+        c.miss(W / 2, H * 0.45, 1.0, currentLang === 'en' ? 'Sensory Clash! (-1 ❤️)' : 'خالفت النكهة! (-1 ❤️)');
+        c.after(550, nextChallenge);
       }
     }
 
@@ -3052,12 +3568,12 @@ const GAMES = [
   altName: 'صبّة الدقة',
   emoji: '🥛',
   weight: 2.8,
-  how: 'اضغط مطولاً لصب القهوة في كوب the A&A. أفلِت إصبعك ليتوقف السائل على خط الهدف الأحمر بالضبط دون زيادة أو نقصان!',
-  howEn: 'Press and hold to pour coffee into the A&A cup. Release to stop exactly on the red target line without spilling!',
+  how: 'اضغط مطولاً لصب القهوة في كوب the A&A. راقب ارتفاع السائل وأفلت إصبعك ليتوقف السائل على خط الهدف الأحمر دون زيادة أو نقصان!',
+  howEn: 'Press and hold to pour coffee into the A&A takeaway cup. Release to stop exactly on the red target line without spilling!',
   start(c){
     const st = c.stage;
     st.innerHTML = '<div class="pour-wrap">' +
-      '<div id="pourMsg" class="pour-guide-txt">' + (currentLang === 'en' ? 'Press & hold to pour coffee... stop exactly on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!') + '</div>' +
+      '<div id="pourMsg" class="pour-guide-txt">' + (currentLang === 'en' ? 'Press & hold to pour coffee... release on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!') + '</div>' +
       '<div class="pour-station">' +
         '<div class="pitcher-spout" id="pourStream"></div>' +
         '<div class="latte-cup-assembly">' +
@@ -3068,18 +3584,18 @@ const GAMES = [
               '<span>80%</span><span>60%</span><span>40%</span><span>20%</span>' +
             '</div>' +
             '<div class="pour-target-line" id="pourLine">' +
-              '<span class="target-pointer-badge" id="pourTargetBadge">الهدف: 65%</span>' +
+              '<span class="target-pointer-badge" id="pourTargetBadge">' + (currentLang === 'en' ? '🎯 Target Line' : '🎯 خط الهدف') + '</span>' +
             '</div>' +
             '<div class="latte-liquid" id="pourFill">' +
               '<div class="liquid-art" id="pourArt">☕✨</div>' +
             '</div>' +
-            '<div class="cup-takeaway-sleeve"><img src="assets/logo_gold.png" alt="the A&A"></div>' +
+            '<div class="cup-takeaway-sleeve"><img src="assets/logo_transparent.png" alt="the A&A"></div>' +
           '</div>' +
         '</div>' +
       '</div>' +
       '<div class="pour-stats-row">' +
-        '<div class="pour-stat-pill"><small id="pourCurLbl">' + (currentLang === 'en' ? 'Current Level' : 'المستوى الحالي') + '</small><b id="pourLevelTxt">0%</b></div>' +
-        '<div class="pour-stat-pill target-pill"><small id="pourTgtLbl">' + (currentLang === 'en' ? 'Target Line' : 'الهدف المطلوب') + '</small><b id="pourTargetHeader">65%</b></div>' +
+        '<div class="pour-stat-pill"><small id="pourCurLbl">' + (currentLang === 'en' ? 'Cup Level' : 'المستوى الفعلي') + '</small><b id="pourLevelTxt">---</b></div>' +
+        '<div class="pour-stat-pill target-pill"><small id="pourTgtLbl">' + (currentLang === 'en' ? 'Target Line' : 'الهدف المطلوب') + '</small><b id="pourTargetHeader">🎯</b></div>' +
       '</div>' +
       '<div style="width:100%;max-width:320px">' +
         '<button type="button" id="pourBtn" class="btn alt pour-action-btn">' +
@@ -3110,24 +3626,27 @@ const GAMES = [
       fillEl.style.height = '0%';
       streamEl.classList.remove('active');
       artEl.classList.remove('bloom');
-      msgEl.textContent = (currentLang === 'en' ? 'Press & hold to pour coffee... stop exactly on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!');
-      levelTxt.textContent = '0%';
+      msgEl.textContent = (currentLang === 'en' ? 'Press & hold to pour coffee... release on the line!' : 'اضغط واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!');
+
+      // إخفاء النسبة الرقمية المباشرة أثناء اللعب النشط
+      levelTxt.textContent = '---';
+      if(targetHeaderEl) targetHeaderEl.textContent = '🎯';
 
       targetCenter = Math.round(rnd(45, 80));
       lineEl.style.bottom = targetCenter + '%';
-
-      const tgtTxt = (currentLang === 'en' ? 'Target: ' : 'الهدف: ') + targetCenter + '%';
-      badgeEl.textContent = tgtTxt;
-      if(targetHeaderEl) targetHeaderEl.textContent = targetCenter + '%';
+      badgeEl.textContent = (currentLang === 'en' ? '🎯 Target Line' : '🎯 خط الهدف');
     }
 
     c.loop(dt => {
       if(!roundActive || !pouring) return;
       const d = c.d();
-      const speed = lerp(26, 38, d);
+      // سرعة متدرجة وهادئة في البداية (Phase 3: Slow down early stages: 16% -> 28%)
+      const speed = lerp(16, 28, d);
       fillLevel += speed * dt;
       fillEl.style.height = Math.min(100, fillLevel) + '%';
-      levelTxt.textContent = Math.round(fillLevel) + '%';
+
+      // حجب النسبة الرقمية أثناء الصب المستمر لمنع الحل التلقائي البسيط
+      levelTxt.textContent = (currentLang === 'en' ? '☕ Pouring...' : '☕ جارٍ الصب...');
 
       if(fillLevel >= 100){
         stopPour();
@@ -3138,7 +3657,7 @@ const GAMES = [
       if(!roundActive || pouring) return;
       pouring = true;
       streamEl.classList.add('active');
-      msgEl.textContent = (currentLang === 'en' ? 'Pouring specialty coffee... release on the line!' : 'جارٍ صب القهوة المختصة... استعد للإفلات على الخط بالظبط!');
+      msgEl.textContent = (currentLang === 'en' ? 'Specialty coffee pouring... release on the red line!' : 'جارٍ صب القهوة المختصة... راقب الخط الأحمر وأفلت بدقة!');
       SFX.playTone(280, 'sine', 0.8, 0.15, 420);
     }
 
@@ -3149,27 +3668,41 @@ const GAMES = [
       streamEl.classList.remove('active');
 
       const W = c.W(), H = c.H();
-      const diff = Math.abs(fillLevel - targetCenter);
+      const roundedLevel = Math.round(fillLevel);
+      const diff = Math.abs(roundedLevel - targetCenter);
+
+      // كشف النسبة المحققة ونسبة الهدف بعد انتهاء الجولة فقط
+      levelTxt.textContent = roundedLevel + '%';
+      if(targetHeaderEl) targetHeaderEl.textContent = targetCenter + '%';
+      badgeEl.textContent = (currentLang === 'en' ? 'Target: ' : 'الهدف: ') + targetCenter + '%';
 
       if(diff <= 2.5){
         artEl.classList.add('bloom');
         c.ok(2.8, W / 2, H * 0.45, currentLang === 'en' ? 'Bullseye! Perfect Line! ☕✨' : 'قناص! صبّة مثالية على الخط تماماً ☕✨');
-        msgEl.textContent = currentLang === 'en' ? '☕✨ Bullseye! Exactly on the target line!' : '☕✨ صبّة باريستا خارقة على الخط بالظبط!';
+        msgEl.textContent = (currentLang === 'en') ?
+          ('☕✨ Bullseye! Poured to ' + roundedLevel + '% (Target: ' + targetCenter + '%)') :
+          ('☕✨ صبّة باريستا خارقة! وصلت إلى ' + roundedLevel + '% (الهدف: ' + targetCenter + '%) على الخط تماماً!');
       } else if(diff <= 5.0){
         artEl.classList.add('bloom');
         c.ok(1.6, W / 2, H * 0.45, currentLang === 'en' ? 'Great Accuracy! 👍' : 'صبّة متقنة قريبة جداً! 👍');
-        msgEl.textContent = currentLang === 'en' ? '👍 Very close to the target line!' : '👍 صبّة متقنة قريبة جداً من الخط!';
-      } else if(fillLevel < targetCenter - 5.0){
+        msgEl.textContent = (currentLang === 'en') ?
+          ('👍 Very close! Poured to ' + roundedLevel + '% (Target: ' + targetCenter + '%)') :
+          ('👍 صبّة متقنة قريبة جداً! وصلت إلى ' + roundedLevel + '% (الهدف: ' + targetCenter + '%)');
+      } else if(roundedLevel < targetCenter - 5.0){
         c.loseHeart();
         c.miss(W / 2, H * 0.45, 1.0, currentLang === 'en' ? 'Underfilled! (-1 ❤️)' : 'صبّة ناقصة! (-1 ❤️)');
-        msgEl.textContent = currentLang === 'en' ? 'Underfilled! Released before reaching the line. (-1 ❤️)' : 'صبّة ناقصة! أفلتت قبل الوصول للخط المطلوب. (-1 ❤️)';
+        msgEl.textContent = (currentLang === 'en') ?
+          ('Underfilled! Released at ' + roundedLevel + '% before target ' + targetCenter + '% (-1 ❤️)') :
+          ('صبّة ناقصة! أفلتت عند ' + roundedLevel + '% قبل خط الهدف المطلوب ' + targetCenter + '% (-1 ❤️)');
       } else {
         c.loseHeart();
         c.miss(W / 2, H * 0.45, 1.2, currentLang === 'en' ? 'Over the line! (-1 ❤️)' : 'تجاوزت الخط! (-1 ❤️)');
-        msgEl.textContent = currentLang === 'en' ? 'Poured past the target line! (-1 ❤️)' : 'تجاوزت الخط المطلوب بزيادة! (-1 ❤️)';
+        msgEl.textContent = (currentLang === 'en') ?
+          ('Poured to ' + roundedLevel + '% past target ' + targetCenter + '% (-1 ❤️)') :
+          ('تجاوزت الخط بزيادة! وصلت إلى ' + roundedLevel + '% وتعديت خط الهدف ' + targetCenter + '% (-1 ❤️)');
       }
 
-      c.after(1400, resetPourRound);
+      c.after(1600, resetPourRound);
     }
 
     btnEl.addEventListener('pointerdown', ev => { ev.preventDefault(); startPour(); });
@@ -3426,6 +3959,209 @@ const GAMES = [
 
     buildBoard();
   }
+},
+
+// 10. Basketball / لعبة السلة — رميات السلة الاحترافية ودورة حياة التصويب الدقيقة
+{
+  id: 'basketball',
+  name: 'لعبة السلة',
+  nameEn: 'Basketball Shoot',
+  altName: 'رمية السلة',
+  emoji: '🏀',
+  weight: 2.2,
+  how: 'اسحب كرة السلة وحدد اتجاه القوس ثم أفلت للتصويب نحو الحلقة بدقة! السلة الناجحة تمنحك نقاطاً ممتازة، والرمية الضائعة تخصم قلباً.',
+  howEn: 'Drag and aim the basketball trajectory, then release to shoot! Baskets award points; misses cost a heart.',
+  start(c){
+    const st = c.stage;
+    st.innerHTML = '<div class="bb-stage" id="bbStage">' +
+      '<div class="bb-hud-msg" id="bbMsg">' + (currentLang === 'en' ? 'Drag and release ball to shoot! 🏀' : 'اسحب الكرة وصوّب نحو السلة 🏀') + '</div>' +
+      '<div class="bb-backboard" id="bbBoard">' +
+        '<div class="bb-backboard-inner"></div>' +
+        '<div class="bb-rim" id="bbRim"></div>' +
+        '<div class="bb-net" id="bbNet"></div>' +
+      '</div>' +
+      '<div class="bb-court-floor"></div>' +
+      '<div class="bb-aim-dots" id="bbDots"></div>' +
+      '<div class="bb-ball" id="bbBall">' +
+        '<div class="bb-ball-seam-h"></div>' +
+        '<div class="bb-ball-seam-v"></div>' +
+      '</div>' +
+    '</div>';
+
+    const stageEl = $('#bbStage', st);
+    const ballEl = $('#bbBall', st);
+    const netEl = $('#bbNet', st);
+    const dotsEl = $('#bbDots', st);
+    const msgEl = $('#bbMsg', st);
+
+    // دورة حياة الرمية الصريحة (Explicit Shot Lifecycle)
+    // READY -> SHOT_IN_PROGRESS -> VALIDATING_SHOT -> SHOT_MADE | SHOT_MISSED -> ROUND_COMPLETE
+    const STATES = {
+      READY: 'READY',
+      SHOT_IN_PROGRESS: 'SHOT_IN_PROGRESS',
+      VALIDATING_SHOT: 'VALIDATING_SHOT',
+      SHOT_MADE: 'SHOT_MADE',
+      SHOT_MISSED: 'SHOT_MISSED',
+      ROUND_COMPLETE: 'ROUND_COMPLETE'
+    };
+
+    let state = STATES.READY;
+    let ballX = 0, ballY = 0;
+    let vx = 0, vy = 0;
+    let dragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    const gravity = 880;
+    let hoopX = 0, hoopY = 0;
+    let shotResolved = false;
+
+    function resetBall(){
+      const W = c.W(), H = c.H();
+      hoopX = W / 2;
+      hoopY = 72;
+      ballX = W / 2 - 22;
+      ballY = H - 65;
+      vx = 0;
+      vy = 0;
+      shotResolved = false;
+      state = STATES.READY;
+      ballEl.style.transform = 'translate(' + ballX + 'px, ' + ballY + 'px)';
+      ballEl.style.opacity = '1';
+      netEl.classList.remove('swish');
+      dotsEl.innerHTML = '';
+      msgEl.textContent = (currentLang === 'en' ? 'Drag and release ball to shoot! 🏀' : 'اسحب الكرة وصوّب نحو السلة 🏀');
+    }
+
+    resetBall();
+
+    function updateAimDots(pullX, pullY){
+      dotsEl.innerHTML = '';
+      const startX = ballX + 22;
+      const startY = ballY + 22;
+      const testVx = -pullX * 3.8;
+      const testVy = -pullY * 3.8;
+      for(let i = 1; i <= 7; i++){
+        const t = i * 0.08;
+        const px = startX + testVx * t;
+        const py = startY + testVy * t + 0.5 * gravity * t * t;
+        if(py < 30 || px < 10 || px > c.W() - 10) break;
+        const dot = el('div', 'bb-aim-dot');
+        dot.style.left = px + 'px';
+        dot.style.top = py + 'px';
+        dotsEl.append(dot);
+      }
+    }
+
+    function onPointerDown(ev){
+      if(state !== STATES.READY) return;
+      const p = c.pos(ev);
+      const bCenter = { x: ballX + 22, y: ballY + 22 };
+      const dist = Math.hypot(p.x - bCenter.x, p.y - bCenter.y);
+      if(dist <= 52){
+        dragging = true;
+        dragStartX = p.x;
+        dragStartY = p.y;
+      }
+    }
+
+    function onPointerMove(ev){
+      if(!dragging || state !== STATES.READY) return;
+      const p = c.pos(ev);
+      const dx = p.x - dragStartX;
+      const dy = p.y - dragStartY;
+      const maxDrag = 80;
+      const dist = Math.hypot(dx, dy);
+      const clampedDist = Math.min(dist, maxDrag);
+      const angle = Math.atan2(dy, dx);
+      const pullX = Math.cos(angle) * clampedDist;
+      const pullY = Math.sin(angle) * clampedDist;
+
+      updateAimDots(pullX, pullY);
+    }
+
+    function onPointerUp(ev){
+      if(!dragging || state !== STATES.READY) return;
+      dragging = false;
+      dotsEl.innerHTML = '';
+      const p = c.pos(ev);
+      const pullX = p.x - dragStartX;
+      const pullY = p.y - dragStartY;
+
+      if(pullY > 15 || Math.abs(pullX) > 15){
+        vx = -pullX * 4.2;
+        vy = -Math.abs(pullY) * 4.6;
+        vx = Math.max(-320, Math.min(320, vx));
+        vy = Math.max(-560, Math.min(-260, vy));
+
+        state = STATES.SHOT_IN_PROGRESS;
+        SFX.tap();
+        msgEl.textContent = (currentLang === 'en' ? 'Shot in air... 🏀' : 'تصويبة في الهواء... 🏀');
+      }
+    }
+
+    c.on(st, 'pointerdown', onPointerDown);
+    c.on(window, 'pointermove', onPointerMove);
+    c.on(window, 'pointerup', onPointerUp);
+
+    c.loop(dt => {
+      if(state !== STATES.SHOT_IN_PROGRESS && state !== STATES.VALIDATING_SHOT) return;
+
+      const W = c.W(), H = c.H();
+      ballX += vx * dt;
+      ballY += vy * dt;
+      vy += gravity * dt;
+
+      // ارتداد خفيف وواقعي عن جدران الملعب
+      if(ballX < 4){ ballX = 4; vx = -vx * 0.6; }
+      if(ballX > W - 48){ ballX = W - 48; vx = -vx * 0.6; }
+
+      // ارتداد البورد الخلفي
+      if(ballY < 118 && ballY > 32 && Math.abs(ballX + 22 - hoopX) < 65){
+        if(vy < 0){
+          vy = -vy * 0.4;
+        }
+      }
+
+      ballEl.style.transform = 'translate(' + ballX + 'px, ' + ballY + 'px)';
+
+      const bCenterX = ballX + 22;
+      const bCenterY = ballY + 22;
+      const distToHoop = Math.hypot(bCenterX - hoopX, bCenterY - hoopY);
+
+      // فحص إصابة السلة
+      if(!shotResolved && distToHoop <= 28 && vy > 0){
+        state = STATES.VALIDATING_SHOT;
+        shotResolved = true;
+
+        if(Math.abs(bCenterX - hoopX) <= 18){
+          // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
+          state = STATES.SHOT_MADE;
+          netEl.classList.add('swish');
+          c.ok(2.6, hoopX, hoopY - 10, currentLang === 'en' ? 'Swish! Clean Basket! 🏀✨' : 'سلة متقنة! 🏀✨');
+          msgEl.textContent = (currentLang === 'en' ? '🏀✨ Clean Basket!' : '🏀✨ سلة رائعة ومتقنة!');
+          SFX.playTone(520, 'triangle', 0.22, 0.15);
+          c.after(1000, () => {
+            state = STATES.ROUND_COMPLETE;
+            resetBall();
+          });
+          return;
+        }
+      }
+
+      // سقوط الكرة خارج السلة
+      if(!shotResolved && (ballY > H - 35 || (ballY > hoopY + 60 && vy > 300))){
+        shotResolved = true;
+        state = STATES.SHOT_MISSED;
+        // SHOT_MISSED: رمية ضائعة تخصم قلباً واحداً فقط
+        c.loseHeart();
+        c.miss(bCenterX, Math.min(H - 45, bCenterY), 0.8, currentLang === 'en' ? 'Shot Missed! (-1 ❤️)' : 'رمية ضائعة! (-1 ❤️)');
+        msgEl.textContent = (currentLang === 'en' ? 'Missed the hoop! (-1 ❤️)' : 'أخطأت الحلقة! (-1 ❤️)');
+        c.after(900, () => {
+          state = STATES.ROUND_COMPLETE;
+          resetBall();
+        });
+      }
+    });
+  }
 }
 ];
 
@@ -3538,7 +4274,7 @@ function claimFlow(){
 
   const opts = [];
   if(t >= 1) opts.push({ type: 'T', name: (currentLang === 'en') ? '5% OFF Receipt' : 'خصم 5% على الفاتورة' });
-  if(t >= 2) opts.push({ type: 'S', name: (currentLang === 'en') ? '10% OFF Receipt' : 'خصم 10% على الفاتورة' });
+  if(t >= 2) opts.push({ type: 'S', name: (currentLang === 'en') ? '7% OFF Receipt' : 'خصم 7% على الفاتورة' });
   if(t >= 3) opts.push({ type: 'G', name: (currentLang === 'en') ? 'Free Drink Upgrade 🏆' : 'ترقية مشروب مجانية من the A&A 🏆' });
 
   const chOpts = $('#chOpts');
@@ -3554,6 +4290,24 @@ function claimFlow(){
 }
 
 function commitReward(type){
+  // Phase 1, Req 2: طلب رقم الجوال السعودي قبل إصدار الكود المشفر
+  if(!S.phone){
+    const phoneCard = $('#choicePhoneCard');
+    if(phoneCard){
+      phoneCard.style.display = 'block';
+      phoneCard.dataset.pendingType = type;
+      const chPhone = $('#chPhone');
+      if(chPhone) chPhone.focus();
+      const chErr = $('#chErr');
+      if(chErr) chErr.textContent = (currentLang === 'en') ? 'Please enter a Saudi mobile number to issue your voucher.' : 'يرجى إدخال رقم الجوال السعودي لتأكيد وربط كود الخصم بطلبك.';
+      return;
+    }
+  }
+
+  finalizeRewardClaim(type);
+}
+
+function finalizeRewardClaim(type){
   const day = dayNow();
   const c = mintCode(type);
   S.claim = { type: type, code: c, day: day, redeemed: false };
@@ -3563,12 +4317,16 @@ function commitReward(type){
 
   const o = store.get();
   o.used = o.used || {};
-  o.used['p:' + S.phone + '|' + day] = S.claim;
+  if(S.phone) o.used['p:' + S.phone + '|' + day] = S.claim;
   if(S.order) o.used['o:' + S.order.toUpperCase() + '|' + day] = S.claim;
 
   o.dev = o.dev || {};
   o.dev['d:' + day] = (o.dev['d:' + day] || 0) + 1;
   store.set(o);
+
+  // Phase 12: احتفال الفوز بالكوبون مع قصاصات الكونفيتي والموسيقى
+  launchCelebrationConfetti();
+  SFX.celebrate();
 
   renderReward(S.claim);
 }
@@ -3877,80 +4635,206 @@ function abortRun(){
 }
 
 /* ============ مستمعات الأحداث والتحقق من الجوال ============ */
-const phoneInput = $('#phone');
-const phoneHint = $('#phoneHint');
+// شاشة البداية: الدخول المباشر واستكشاف الألعاب دون اشتراط إدخال الجوال أولاً
+const goBtn = $('#goBtn');
+if(goBtn){
+  goBtn.addEventListener('click', () => {
+    SFX.tap();
+    goHome();
+  });
+}
 
-phoneInput.addEventListener('input', () => {
-  const val = phoneInput.value;
-  if(!val){
-    phoneInput.classList.remove('is-valid', 'is-invalid');
-    phoneHint.className = 'field-hint';
-    phoneHint.textContent = 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX';
-    return;
+const btnStaffAccess = $('#btnStaffAccess');
+if(btnStaffAccess){
+  btnStaffAccess.addEventListener('click', () => {
+    location.hash = '#staff';
+    checkStaffHash();
+  });
+}
+
+// التحقق من رقم الجوال السعودي عند طلب المكافأة والكود المشفر (#choicePhoneCard)
+const chPhoneInput = $('#chPhone');
+const chPhoneHint = $('#chPhoneHint');
+if(chPhoneInput){
+  chPhoneInput.addEventListener('input', () => {
+    const val = chPhoneInput.value;
+    if(!val){
+      chPhoneInput.classList.remove('is-valid', 'is-invalid');
+      chPhoneHint.className = 'field-hint';
+      chPhoneHint.textContent = (currentLang === 'en') ? 'Accepted formats: 05XXXXXXXX, 5XXXXXXXX or +9665XXXXXXXX' : 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX';
+      return;
+    }
+    const res = SaudiPhone.validate(val);
+    if(res.valid){
+      chPhoneInput.classList.remove('is-invalid');
+      chPhoneInput.classList.add('is-valid');
+      chPhoneHint.className = 'field-hint';
+      chPhoneHint.textContent = (currentLang === 'en' ? 'Valid Saudi Mobile: ' : 'رقم جوال سعودي صالح: ') + res.canonical;
+    } else {
+      chPhoneInput.classList.remove('is-valid');
+      chPhoneHint.className = 'field-hint error';
+      chPhoneHint.textContent = res.error;
+    }
+  });
+}
+
+const btnConfirmChoicePhone = $('#btnConfirmChoicePhone');
+if(btnConfirmChoicePhone){
+  btnConfirmChoicePhone.addEventListener('click', () => {
+    const rawVal = ($('#chPhone').value || '').trim();
+    const v = SaudiPhone.validate(rawVal);
+    const err = $('#chErr');
+    const orderVal = ($('#chOrder').value || '').trim();
+
+    if(!v.valid){
+      if(err) err.textContent = v.error;
+      if(chPhoneInput) { chPhoneInput.classList.add('is-invalid'); chPhoneInput.focus(); }
+      return;
+    }
+
+    if(err) err.textContent = '';
+    S.phone = v.canonical;
+    S.order = orderVal;
+    save();
+
+    syncToGoogleSheet('REGISTER', { phone: v.canonical, order: orderVal });
+
+    const phoneCard = $('#choicePhoneCard');
+    const pType = (phoneCard && phoneCard.dataset.pendingType) ? phoneCard.dataset.pendingType : 'T';
+    if(phoneCard) phoneCard.style.display = 'none';
+
+    finalizeRewardClaim(pType);
+  });
+}
+
+/* ============ مودالات لوحة المتصدرين والاسم المستعار والتهنئة ============ */
+function openNicknameModal(gameId){
+  const modal = $('#modalNickname');
+  if(!modal) return;
+  modal.classList.add('active');
+  modal.dataset.gameId = gameId || '';
+  const input = $('#nickInput');
+  const err = $('#nickErr');
+  if(err) err.textContent = '';
+  if(input){
+    input.value = S.nickname || '';
+    setTimeout(() => input.focus(), 150);
   }
-  const res = SaudiPhone.validate(val);
-  if(res.valid){
-    phoneInput.classList.remove('is-invalid');
-    phoneInput.classList.add('is-valid');
-    phoneHint.className = 'field-hint';
-    phoneHint.textContent = 'رقم جوال سعودي صالح: ' + res.canonical;
+}
+
+function closeNicknameModal(){
+  const modal = $('#modalNickname');
+  if(modal) modal.classList.remove('active');
+}
+
+function openTop10CelebrationPopup(){
+  const modal = $('#modalTop10Popup');
+  if(!modal) return;
+  modal.classList.add('active');
+  SFX.celebrate();
+}
+
+function closeTop10CelebrationPopup(){
+  const modal = $('#modalTop10Popup');
+  if(modal) modal.classList.remove('active');
+}
+
+function openLeaderboard(gameId){
+  const gId = gameId || (curGame ? curGame.id : 'reflex');
+  const gm = GAMES.find(g => g.id === gId) || GAMES[0];
+  const modal = $('#modalLeaderboard');
+  if(!modal) return;
+
+  const title = $('#lbModalTitle');
+  const subtitle = $('#lbModalSubtitle');
+  const list = $('#lbList');
+
+  const gTitle = (currentLang === 'en' && gm.nameEn) ? gm.nameEn : gm.name;
+  if(title) title.textContent = (currentLang === 'en' ? '🏆 Top 10 — ' : '🏆 أفضل 10 لاعبين — ') + gTitle;
+  if(subtitle) subtitle.textContent = (currentLang === 'en' ? 'Verified highest scores at the A&A' : 'أعلى النتائج المسجلة في the A&A');
+
+  const top10 = LeaderboardEngine.getTop10(gId);
+  if(!top10 || !top10.length){
+    list.innerHTML = '<div style="text-align:center;padding:24px 10px;color:var(--text-muted)">' +
+      (currentLang === 'en' ? 'No scores recorded yet for this challenge. Be the first to rank!' : 'لا توجد نتائج مسجلة بعد في هذه اللعبة. كن أول من يتصدر اللوحة! ☕✨') +
+    '</div>';
   } else {
-    phoneInput.classList.remove('is-valid');
-    phoneHint.className = 'field-hint error';
-    phoneHint.textContent = res.error;
-  }
-});
-
-$('#goBtn').addEventListener('click', () => {
-  const rawPhone = $('#phone').value;
-  const v = SaudiPhone.validate(rawPhone);
-  const err = $('#err');
-  const order = ($('#order').value || '').trim();
-
-  if(!v.valid){
-    err.textContent = v.error;
-    phoneInput.classList.add('is-invalid');
-    phoneInput.focus();
-    return;
+    list.innerHTML = top10.map((entry, idx) => {
+      const rank = idx + 1;
+      const rankBadge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank));
+      const days = LeaderboardEngine.getQualificationDays(entry);
+      const daysTxt = days > 0 ? ((currentLang === 'en' ? 'Qualified: ' : 'متصدر منذ ') + days + (currentLang === 'en' ? 'd' : ' يوم')) : (currentLang === 'en' ? 'Joined today' : 'انضم اليوم');
+      const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
+      return '<div class="leaderboard-item' + (isMe ? ' my-rank' : '') + '">' +
+        '<div class="lb-rank">' + rankBadge + '</div>' +
+        '<div class="lb-user">' +
+          '<div class="lb-name">' + escapeHtml(entry.nickname || (currentLang === 'en' ? 'the A&A Barista' : 'باريستا the A&A')) + '</div>' +
+          '<div class="lb-days">' + daysTxt + '</div>' +
+        '</div>' +
+        '<div class="lb-score">' + entry.score + ' <small>' + (currentLang === 'en' ? 'pts' : 'نقطة') + '</small></div>' +
+      '</div>';
+    }).join('');
   }
 
-  if(CFG.requireOrder && !order){
-    err.textContent = 'يرجى إدخال رقم الطلب من الفاتورة.';
-    $('#order').focus();
-    return;
-  }
+  modal.classList.add('active');
+}
 
-  err.textContent = '';
-  const day = dayNow();
-  const o = store.get();
-  const used = o.used || {};
-  const prior = used['p:' + v.canonical + '|' + day] || (order ? used['o:' + order.toUpperCase() + '|' + day] : null) || null;
-  const devCount = (o.dev || {})['d:' + day] || 0;
+function closeLeaderboard(){
+  const modal = $('#modalLeaderboard');
+  if(modal) modal.classList.remove('active');
+}
 
-  if(devCount >= 2){
-    err.textContent = 'تم بلوغ الحد اليومي لهذا الجهاز (٢ جولات مكافأة). نراك غداً في the A&A 🌴';
-    return;
-  }
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, m => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[m]));
+}
 
-  S = {
-    phone: v.canonical,
-    order: order,
-    consent: $('#consent').checked,
-    day: day,
-    startedAt: Date.now(),
-    best: 0,
-    bestBy: {},
-    claim: prior,
-    extraHeartFollowClaimed: false,
-    extraHeartLikeClaimed: false,
-    extraHeartClaimed: false,
-    sig: 0
-  };
+const btnSaveNickname = $('#btnSaveNickname');
+if(btnSaveNickname){
+  btnSaveNickname.addEventListener('click', () => {
+    const input = $('#nickInput');
+    const err = $('#nickErr');
+    const val = (input ? input.value : '').trim();
+    if(!val || val.length < 2 || val.length > 15){
+      if(err) err.textContent = (currentLang === 'en') ? 'Please enter a nickname between 2 and 15 characters.' : 'يرجى إدخال اسم مستعار بين ٢ و ١٥ حرفاً.';
+      return;
+    }
+    const clean = val.replace(/[<>&"']/g, '');
+    S.nickname = clean;
+    save();
+    closeNicknameModal();
 
-  save();
-  syncToGoogleSheet('REGISTER', { phone: v.canonical, order: order });
-  goHome();
-});
+    const gId = $('#modalNickname').dataset.gameId || (curGame ? curGame.id : 'reflex');
+    if(run && run.score > 0){
+      LeaderboardEngine.recordScore(gId, run.score, S.nickname, S.phone);
+    }
+
+    openTop10CelebrationPopup();
+  });
+}
+
+const btnCloseTop10Popup = $('#btnCloseTop10Popup');
+if(btnCloseTop10Popup) btnCloseTop10Popup.addEventListener('click', closeTop10CelebrationPopup);
+
+const btnCloseLeaderboard = $('#btnCloseLeaderboard');
+if(btnCloseLeaderboard) btnCloseLeaderboard.addEventListener('click', closeLeaderboard);
+
+const btnViewLeaderboardResult = $('#btnViewLeaderboardResult');
+if(btnViewLeaderboardResult) btnViewLeaderboardResult.addEventListener('click', () => openLeaderboard(curGame ? curGame.id : 'reflex'));
+
+const btnClaimExtraHeartGameOver = $('#btnClaimExtraHeartGameOver');
+if(btnClaimExtraHeartGameOver){
+  btnClaimExtraHeartGameOver.addEventListener('click', () => {
+    claimInstagramExtraHeart();
+    SFX.tap();
+    const bannerBox = $('#gameOverExtraHeart');
+    if(bannerBox) bannerBox.style.display = 'none';
+    if(run && run.hearts > 0){
+      launch(curGame);
+    }
+  });
+}
 
 $('#preBack').addEventListener('click', () => { goHome(); SFX.tap(); });
 $('#btnClaimExtraHeartPre').addEventListener('click', () => { claimInstagramExtraHeart(); SFX.tap(); });
@@ -3965,9 +4849,9 @@ $('#stExit').addEventListener('click', () => { location.hash = ''; goHome(); });
 $('#rwCopy').addEventListener('click', () => {
   if(!S.claim) return;
   navigator.clipboard.writeText(fmtCode(S.claim.code)).then(() => {
-    alert('تم نسخ الكود المشفر بنجاح!');
+    alert(currentLang === 'en' ? 'Voucher code copied successfully!' : 'تم نسخ الكود المشفر بنجاح!');
   }).catch(() => {
-    alert('الكود: ' + fmtCode(S.claim.code));
+    alert((currentLang === 'en' ? 'Code: ' : 'الكود: ') + fmtCode(S.claim.code));
   });
 });
 
@@ -4019,8 +4903,8 @@ $('#themeToggleHome').addEventListener('click', toggleTheme);
 initTheme();
 
 // حل مشكلة تعبئة البيانات تلقائياً: التأكد من تفريغ الحقول تماماً عند فتح الصفحة
-$('#phone').value = '';
-$('#order').value = '';
+const chP = $('#chPhone'); if(chP) chP.value = '';
+const chO = $('#chOrder'); if(chO) chO.value = '';
 
 
 /* ============ دعم اللغتين (العربية والإنجليزية) ============ */
