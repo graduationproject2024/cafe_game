@@ -2078,6 +2078,67 @@ window.addEventListener('error', e => { try { console.warn('[cafe]', e.message);
 window.addEventListener('unhandledrejection', e => { try { console.warn('[cafe]', e.reason); } catch(x){} });
 
 /* ============ إعدادات كافيه the A&A المختص - المدينة المنورة ============ */
+var currentLang = (function(){
+  try { return localStorage.getItem('the_aa_lang') || 'ar'; } catch(e){ return 'ar'; }
+})();
+
+var I18N = {
+  ar: {
+    brandSub: 'قهوة مختصة وحلويات • المدينة المنورة',
+    introTitle: 'تحديات <bdi class="brand-en">the A&A</bdi> درايف ثرو',
+    introLead: 'العب واكسب جوائز وخصومات فورية أثناء انتظار تحضير قهوتك المختصة وحلوياتك في مسار السيارات!',
+    phoneLabel: 'رقم الجوال السعودي',
+    phoneHint: 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX',
+    phonePh: 'مثال: 05XXXXXXXX أو 5XXXXXXXX',
+    orderLabel: 'رقم الطلب (من الفاتورة أو شاشة المسار)',
+    orderPh: 'مثال: 128 أو AA-482',
+    agree: 'أوافق على استلام عروض the A&A ومفاجآت المدينة المنورة على رقمي (اختياري).',
+    enterBtn: 'دخول والبدء في اللعب',
+    disclaimer: 'الكود المشفر فريد، مرتبط برقمك وفاتورتك، وصالح للاستخدام لمرة واحدة لدى الكاشير.',
+    homeTitle: 'ألعاب كافيه the A&A الحصرية',
+    homeNote: 'تم ضبط الصعوبة التكيفية بدقة لحفظ المنافسة. أعلى نتيجة في جولة واحدة هي التي تُعتمد.',
+    playBtn: 'العب الآن',
+    startBtn: 'ابدأ التحدي',
+    langBtn: 'EN',
+    followHeart: '❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!',
+    likeHeart: '👍 ضع لايك على آخر منشور في إنستغرام the A&A لتحصل على قلب إضافي ثانٍ!',
+    claimBtn: 'استلام +1 ❤️',
+    likeClaimBtn: 'لايك واستلام ❤️',
+    resAgain: 'العب مرة أخرى وحسّن نتيجتك 🔥',
+    resClaim: 'استلم مكافأتك الآن 🎁',
+    resHome: 'اختر لعبة ثانية',
+    resScoreLbl: 'مجموع نقاط الجولة',
+    resScorePts: 'نقطة ☕✨'
+  },
+  en: {
+    brandSub: 'Specialty Cafe & Sweets • Al-Madinah',
+    introTitle: '<bdi class="brand-en">the A&A</bdi> Drive-Thru Challenges',
+    introLead: 'Play and win instant prizes & discounts while waiting for your specialty coffee in the drive-thru!',
+    phoneLabel: 'Saudi Mobile Number',
+    phoneHint: 'Accepted formats: 05XXXXXXXX, 5XXXXXXXX or +9665XXXXXXXX',
+    phonePh: 'e.g. 05XXXXXXXX or 5XXXXXXXX',
+    orderLabel: 'Order Number (from receipt or screen)',
+    orderPh: 'e.g. 128 or AA-482',
+    agree: 'I agree to receive the A&A offers and Madinah perks (optional).',
+    enterBtn: 'Enter & Start Playing',
+    disclaimer: 'Unique encrypted token linked to your phone and order, redeemable once at cashier.',
+    homeTitle: 'Exclusive the A&A Cafe Games',
+    homeNote: 'Unified adaptive difficulty calibrated. Highest round score qualifies for rewards.',
+    playBtn: 'Play Now',
+    startBtn: 'Start Challenge',
+    langBtn: 'AR',
+    followHeart: '❤️ Follow the A&A Instagram for +1 Extra Heart!',
+    likeHeart: '👍 Like our latest Instagram post for a 2nd Extra Heart!',
+    claimBtn: 'Claim +1 ❤️',
+    likeClaimBtn: 'Like & Claim ❤️',
+    resAgain: 'Play Again & Beat Score 🔥',
+    resClaim: 'Claim Your Reward 🎁',
+    resHome: 'Choose Another Game',
+    resScoreLbl: 'Round Score',
+    resScorePts: 'Points ☕✨'
+  }
+};
+
 var CFG = {
   cycleTarget: 10000,
   tiers: [5000, 7500, 10000],
@@ -4352,7 +4413,9 @@ function checkStaffHash(){
 }
 window.addEventListener('hashchange', checkStaffHash);
 
-$('#stGo').addEventListener('click', () => {
+const btnStGo = $('#stGo');
+if(btnStGo){
+  btnStGo.addEventListener('click', () => {
   const pin = $('#stPin').value.trim();
   const rawCode = $('#stCode').value.trim();
   const out = $('#stOut');
@@ -4398,6 +4461,7 @@ $('#stGo').addEventListener('click', () => {
     SFX.reward();
   };
 });
+}
 
 function renderStaffHistory(){
   const o = store.get();
@@ -4412,7 +4476,9 @@ function renderStaffHistory(){
 }
 
 /* إدارة Google Sheets وتصدير CSV في بوابة الموظفين */
-$('#stSaveSheet').addEventListener('click', () => {
+const btnStSaveSheet = $('#stSaveSheet');
+if(btnStSaveSheet){
+  btnStSaveSheet.addEventListener('click', () => {
   const url = ($('#stSheetUrl').value || '').trim();
   CFG.googleSheetUrl = url;
   try { localStorage.setItem('aa_cafe_gsheet_url', url); } catch(e){}
@@ -4421,8 +4487,11 @@ $('#stSaveSheet').addEventListener('click', () => {
   stDiv.textContent = 'تم حفظ رابط Google Sheet بنجاح ✓';
   SFX.ok();
 });
+}
 
-$('#stTestSheet').addEventListener('click', () => {
+const btnStTestSheet = $('#stTestSheet');
+if(btnStTestSheet){
+  btnStTestSheet.addEventListener('click', () => {
   const stDiv = $('#stSheetStatus');
   stDiv.style.color = 'var(--primary)';
   stDiv.textContent = 'جارٍ فحص الاتصال بـ Google Sheet...';
@@ -4437,8 +4506,11 @@ $('#stTestSheet').addEventListener('click', () => {
     }
   });
 });
+}
 
-$('#stExportCsv').addEventListener('click', () => {
+const btnStExportCsv = $('#stExportCsv');
+if(btnStExportCsv){
+  btnStExportCsv.addEventListener('click', () => {
   const o = store.get();
   const log = o.sheetLog || [];
   if(!log.length){
@@ -4471,6 +4543,7 @@ $('#stExportCsv').addEventListener('click', () => {
   document.body.removeChild(a);
   SFX.ok();
 });
+}
 
 /* ============ بيئة اللعب الموحدة (Harness) ============ */
 function makeCtx(game){
@@ -4836,24 +4909,27 @@ if(btnClaimExtraHeartGameOver){
   });
 }
 
-$('#preBack').addEventListener('click', () => { goHome(); SFX.tap(); });
-$('#btnClaimExtraHeartPre').addEventListener('click', () => { claimInstagramExtraHeart(); SFX.tap(); });
-$('#gExit').addEventListener('click', () => { abortRun(); goHome(); SFX.tap(); });
-$('#resAgain').addEventListener('click', () => { launch(curGame); SFX.tap(); });
-$('#resHome').addEventListener('click', () => { goHome(); SFX.tap(); });
-$('#resClaim').addEventListener('click', () => { claimFlow(); SFX.tap(); });
-$('#chBack').addEventListener('click', () => { goHome(); SFX.tap(); });
-$('#rwBack').addEventListener('click', () => { goHome(); SFX.tap(); });
-$('#stExit').addEventListener('click', () => { location.hash = ''; goHome(); });
+if($('#preBack')) $('#preBack').addEventListener('click', () => { goHome(); SFX.tap(); });
+if($('#btnClaimExtraHeartPre')) $('#btnClaimExtraHeartPre').addEventListener('click', () => { claimInstagramExtraHeart(); SFX.tap(); });
+if($('#gExit')) $('#gExit').addEventListener('click', () => { abortRun(); goHome(); SFX.tap(); });
+if($('#resAgain')) $('#resAgain').addEventListener('click', () => { launch(curGame); SFX.tap(); });
+if($('#resHome')) $('#resHome').addEventListener('click', () => { goHome(); SFX.tap(); });
+if($('#resClaim')) $('#resClaim').addEventListener('click', () => { claimFlow(); SFX.tap(); });
+if($('#chBack')) $('#chBack').addEventListener('click', () => { goHome(); SFX.tap(); });
+if($('#rwBack')) $('#rwBack').addEventListener('click', () => { goHome(); SFX.tap(); });
+if($('#stExit')) $('#stExit').addEventListener('click', () => { location.hash = ''; goHome(); });
 
-$('#rwCopy').addEventListener('click', () => {
-  if(!S.claim) return;
-  navigator.clipboard.writeText(fmtCode(S.claim.code)).then(() => {
-    alert(currentLang === 'en' ? 'Voucher code copied successfully!' : 'تم نسخ الكود المشفر بنجاح!');
-  }).catch(() => {
-    alert((currentLang === 'en' ? 'Code: ' : 'الكود: ') + fmtCode(S.claim.code));
+const rwCopy = $('#rwCopy');
+if(rwCopy){
+  rwCopy.addEventListener('click', () => {
+    if(!S.claim) return;
+    navigator.clipboard.writeText(fmtCode(S.claim.code)).then(() => {
+      alert(currentLang === 'en' ? 'Voucher code copied successfully!' : 'تم نسخ الكود المشفر بنجاح!');
+    }).catch(() => {
+      alert((currentLang === 'en' ? 'Code: ' : 'الكود: ') + fmtCode(S.claim.code));
+    });
   });
-});
+}
 
 /* زر كتم الصوت المحدث */
 function setupSoundToggle(id){
@@ -4898,8 +4974,8 @@ function toggleTheme(){
   SFX.tap();
 }
 
-$('#themeToggle').addEventListener('click', toggleTheme);
-$('#themeToggleHome').addEventListener('click', toggleTheme);
+if($('#themeToggle')) $('#themeToggle').addEventListener('click', toggleTheme);
+if($('#themeToggleHome')) $('#themeToggleHome').addEventListener('click', toggleTheme);
 initTheme();
 
 // حل مشكلة تعبئة البيانات تلقائياً: التأكد من تفريغ الحقول تماماً عند فتح الصفحة
@@ -4907,65 +4983,7 @@ const chP = $('#chPhone'); if(chP) chP.value = '';
 const chO = $('#chOrder'); if(chO) chO.value = '';
 
 
-/* ============ دعم اللغتين (العربية والإنجليزية) ============ */
-let currentLang = 'ar';
-
-const I18N = {
-  ar: {
-    brandSub: 'قهوة مختصة وحلويات • المدينة المنورة',
-    introTitle: 'تحديات <bdi class="brand-en">the A&A</bdi> درايف ثرو',
-    introLead: 'العب واكسب جوائز وخصومات فورية أثناء انتظار تحضير قهوتك المختصة وحلوياتك في مسار السيارات!',
-    phoneLabel: 'رقم الجوال السعودي',
-    phoneHint: 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX',
-    phonePh: 'مثال: 05XXXXXXXX أو 5XXXXXXXX',
-    orderLabel: 'رقم الطلب (من الفاتورة أو شاشة المسار)',
-    orderPh: 'مثال: 128 أو AA-482',
-    agree: 'أوافق على استلام عروض the A&A ومفاجآت المدينة المنورة على رقمي (اختياري).',
-    enterBtn: 'دخول والبدء في اللعب',
-    disclaimer: 'الكود المشفر فريد، مرتبط برقمك وفاتورتك، وصالح للاستخدام لمرة واحدة لدى الكاشير.',
-    homeTitle: 'ألعاب كافيه the A&A الحصرية',
-    homeNote: 'تم ضبط الصعوبة التكيفية بدقة لحفظ المنافسة. أعلى نتيجة في جولة واحدة هي التي تُعتمد.',
-    playBtn: 'العب الآن',
-    startBtn: 'ابدأ التحدي',
-    langBtn: 'EN',
-    followHeart: '❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!',
-    likeHeart: '👍 ضع لايك على آخر منشور في إنستغرام the A&A لتحصل على قلب إضافي ثانٍ!',
-    claimBtn: 'استلام +1 ❤️',
-    likeClaimBtn: 'لايك واستلام ❤️',
-    resAgain: 'العب مرة أخرى وحسّن نتيجتك 🔥',
-    resClaim: 'استلم مكافأتك الآن 🎁',
-    resHome: 'اختر لعبة ثانية',
-    resScoreLbl: 'مجموع نقاط الجولة',
-    resScorePts: 'نقطة ☕✨'
-  },
-  en: {
-    brandSub: 'Specialty Cafe & Sweets • Al-Madinah',
-    introTitle: '<bdi class="brand-en">the A&A</bdi> Drive-Thru Challenges',
-    introLead: 'Play and win instant prizes & discounts while waiting for your specialty coffee in the drive-thru!',
-    phoneLabel: 'Saudi Mobile Number',
-    phoneHint: 'Accepted formats: 05XXXXXXXX, 5XXXXXXXX or +9665XXXXXXXX',
-    phonePh: 'e.g. 05XXXXXXXX or 5XXXXXXXX',
-    orderLabel: 'Order Number (from receipt or screen)',
-    orderPh: 'e.g. 128 or AA-482',
-    agree: 'I agree to receive the A&A offers and Madinah perks (optional).',
-    enterBtn: 'Enter & Start Playing',
-    disclaimer: 'Unique encrypted token linked to your phone and order, redeemable once at cashier.',
-    homeTitle: 'Exclusive the A&A Cafe Games',
-    homeNote: 'Unified adaptive difficulty calibrated. Highest round score qualifies for rewards.',
-    playBtn: 'Play Now',
-    startBtn: 'Start Challenge',
-    langBtn: 'AR',
-    followHeart: '❤️ Follow the A&A Instagram for +1 Extra Heart!',
-    likeHeart: '👍 Like our latest Instagram post for a 2nd Extra Heart!',
-    claimBtn: 'Claim +1 ❤️',
-    likeClaimBtn: 'Like & Claim ❤️',
-    resAgain: 'Play Again & Beat Score 🔥',
-    resClaim: 'Claim Your Reward 🎁',
-    resHome: 'Choose Another Game',
-    resScoreLbl: 'Round Score',
-    resScorePts: 'Points ☕✨'
-  }
-};
+/* ============ دوال إدارة اللغة وتبديلها ============ */
 
 function applyLang(lang){
   currentLang = lang;
@@ -5027,7 +5045,7 @@ if(saved.S && saved.S.phone){
   S = saved.S;
 }
 
-$('#ladderIntro').innerHTML = ladder(0);
+if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
 checkStaffHash();
 
 })();
