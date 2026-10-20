@@ -333,7 +333,7 @@ console.log('\n--- Suite 13: Precision Pour & Flavor Harmony Overhaul ---');
 assert(scriptCode.includes("levelTxt.textContent = (currentLang === 'en' ? '☕ Pouring...' : '☕ جارٍ الصب...')"), 'Precision Pour hides live numeric percentage during pouring');
 assert(scriptCode.includes('speed = lerp(16, 28, d)'), 'Precision Pour early speed calibrated (lerp 16 -> 28)');
 assert(html.includes('cup-takeaway-sleeve') && html.includes('assets/logo_transparent.png'), 'Takeaway cup sleeve uses transparent logo (assets/logo_transparent.png)');
-assert(html.includes('.cup-grad-markers {\n  display: none !important;'), 'Graduation markers hidden to avoid trivial stopping point cues');
+assert(/\.cup-grad-markers\s*\{[\s\S]*?display:\s*none\s*!important/.test(html), 'Graduation markers hidden to avoid trivial stopping point cues');
 
 // Flavor Harmony question bank & icon decoupling
 assert(scriptCode.includes('CUPPING_BANK = ['), 'Specialty coffee cupping question bank defined (CUPPING_BANK)');
