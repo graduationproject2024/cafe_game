@@ -268,6 +268,131 @@ async function runDiagnostics() {
   console.log(`   Resumed Score: ${resumedScore} (Preserved 600 points? ${resumedScore === 600 ? 'YES ✓' : 'NO (BUG!)'})`);
   console.log(`   Resumed Hearts: ${resumedHearts} (Restored +1 heart? ${hasRestoredHeart ? 'YES ✓' : 'NO (BUG!)'})`);
 
+  // Diagnostic I: Customer Homepage Employee Button Removal
+  console.log('\n--- Diagnostic I: Customer Homepage Employee Button Removal ---');
+  await page.goto('http://localhost:8085/index.html', { waitUntil: 'networkidle' });
+  const staffBtn = await page.$('#btnStaffAccess');
+  console.log('   #btnStaffAccess element exists on customer homepage:', staffBtn !== null ? 'YES (SECURITY BUG!)' : 'NO (PASSED ✓)');
+  const introHasStaff = await page.$eval('#intro', el => el.textContent.includes('منصة الموظفين') || el.textContent.includes('Staff Platform')).catch(() => false);
+  console.log('   Intro section mentions staff platform:', introHasStaff ? 'YES (BUG!)' : 'NO (PASSED ✓)');
+
+  // Diagnostic J: Language Switching & 5,000 Points / 5% Reward Bar
+  console.log('\n--- Diagnostic J: Language Switching & 5% Reward Threshold ---');
+  await page.click('#goBtn');
+  await page.waitForTimeout(400);
+
+  // Switch to English
+  console.log('   Switching to English...');
+  await page.click('#langToggleHome');
+  await page.waitForTimeout(400);
+  let docDir = await page.$eval('html', el => el.getAttribute('dir'));
+  let langAttr = await page.$eval('html', el => el.getAttribute('lang'));
+  console.log(`   English HTML attributes -> dir: "${docDir}", lang: "${langAttr}"`);
+  console.log('   English uses LTR layout?', docDir === 'ltr' ? 'YES (PASSED ✓)' : 'NO (BUG!)');
+
+  // Verify reward ladder text in English
+  const ladderEnText = await page.$eval('#ladderHome', el => el.textContent).catch(() => '');
+  console.log(`   Reward Ladder English text snippet: "${ladderEnText.slice(0, 100)}"`);
+  console.log('   Tier 1 displays 5% OFF in English?', ladderEnText.includes('5% OFF') ? 'YES (PASSED ✓)' : 'NO (BUG!)');
+
+  // Switch back to Arabic
+  console.log('   Switching back to Arabic...');
+  await page.click('#langToggleHome');
+  await page.waitForTimeout(400);
+  docDir = await page.$eval('html', el => el.getAttribute('dir'));
+  langAttr = await page.$eval('html', el => el.getAttribute('lang'));
+  console.log(`   Arabic HTML attributes -> dir: "${docDir}", lang: "${langAttr}"`);
+  console.log('   Arabic uses RTL layout?', docDir === 'rtl' ? 'YES (PASSED ✓)' : 'NO (BUG!)');
+  const ladderArText = await page.$eval('#ladderHome', el => el.textContent).catch(() => '');
+  console.log('   Tier 1 displays خصم 5% in Arabic?', ladderArText.includes('خصم 5%') ? 'YES (PASSED ✓)' : 'NO (BUG!)');
+
+  // Diagnostic K: Two-Minute Inactivity Session Expiry
+  console.log('\n--- Diagnostic K: Two-Minute Inactivity Session Expiry ---');
+  await openGame('سرعة الباريستا');
+  await page.click('#preGo');
+  await page.waitForTimeout(400);
+
+  // Simulate timeout passage
+  const expiredState = await page.evaluate(() => {
+    const r = window.__getRun();
+    if (!r) return { error: 'No active run' };
+    r.score = 350;
+    // Set lastActiveAt to 125 seconds in the past
+    const s = window.__S ? window.__S() : null;
+    if (s) s.lastActiveAt = Date.now() - 125000;
+    // Call watchdog
+    if (typeof window.__checkSessionInactivity === 'function') {
+      window.__checkSessionInactivity();
+    }
+    return { timedOut: true, expired: r.expired, over: r.over };
+  });
+  console.log('   Simulated 125s inactivity watchdog result:', expiredState);
+  await page.waitForTimeout(500);
+
+  // Diagnostic L: Staff Portal RBAC & Real Analytics
+  console.log('\n--- Diagnostic L: Staff Portal RBAC & Real Analytics ---');
+  await page.goto('http://localhost:8085/staff.html', { waitUntil: 'networkidle' });
+  const authVis = await page.$eval('#authSection', el => el.style.display !== 'none');
+  const dashVis = await page.$eval('#mainDashboard', el => el.style.display !== 'none');
+  console.log('   Unauthenticated state -> Auth section visible:', authVis, ', Dashboard hidden:', !dashVis);
+
+  // 1. Cashier Role Login
+  console.log('   Testing Cashier Login (CASHIER01 / 1001)...');
+  await page.fill('#empIdInput', 'CASHIER01');
+  await page.fill('#pinInput', '1001');
+  await page.click('#loginBtn');
+  await page.waitForTimeout(400);
+
+  const cashierBadge = await page.$eval('#userBadge', el => el.textContent);
+  const cashierTabVis = await page.$eval('[data-tab="tabCashier"]', el => el.style.display !== 'none');
+  const cashierAnalyticsTabVis = await page.$eval('[data-tab="tabAnalytics"]', el => el.style.display !== 'none').catch(() => false);
+  const cashierCustomersTabVis = await page.$eval('[data-tab="tabCustomers"]', el => el.style.display !== 'none').catch(() => false);
+
+  console.log(`   Cashier User Badge: "${cashierBadge}"`);
+  console.log('   Cashier Tab visible for cashier:', cashierTabVis);
+  console.log('   Analytics Tab FORBIDDEN (hidden) for cashier:', !cashierAnalyticsTabVis ? 'YES (PASSED ✓)' : 'NO (SECURITY BREACH!)');
+  console.log('   Customers Tab FORBIDDEN (hidden) for cashier:', !cashierCustomersTabVis ? 'YES (PASSED ✓)' : 'NO (SECURITY BREACH!)');
+
+  await page.click('#logoutBtn');
+  await page.waitForTimeout(400);
+
+  // 2. Administrator Role Login
+  console.log('   Testing Administrator Login (ADMIN01 / 2024)...');
+  await page.fill('#empIdInput', 'ADMIN01');
+  await page.fill('#pinInput', '2024');
+  await page.click('#loginBtn');
+  await page.waitForTimeout(400);
+
+  const adminBadge = await page.$eval('#userBadge', el => el.textContent);
+  const adminCashierTabVis = await page.$eval('[data-tab="tabCashier"]', el => el.style.display !== 'none').catch(() => false);
+  const adminAnalyticsTabVis = await page.$eval('[data-tab="tabAnalytics"]', el => el.style.display !== 'none');
+  const adminCustomersTabVis = await page.$eval('[data-tab="tabCustomers"]', el => el.style.display !== 'none');
+  const adminSessionsCount = await page.$eval('#stTotalSessions', el => el.textContent);
+
+  console.log(`   Admin User Badge: "${adminBadge}"`);
+  console.log('   Cashier Tab FORBIDDEN (hidden) for admin:', !adminCashierTabVis ? 'YES (PASSED ✓)' : 'NO (SECURITY BREACH!)');
+  console.log('   Analytics Tab visible for admin:', adminAnalyticsTabVis);
+  console.log('   Customers Tab visible for admin:', adminCustomersTabVis);
+  console.log(`   Real database-backed session count displayed: ${adminSessionsCount}`);
+
+  await page.click('#logoutBtn');
+  await page.waitForTimeout(400);
+
+  // 3. Cafe Owner Role Login
+  console.log('   Testing Cafe Owner Login (OWNER01 / 9999)...');
+  await page.fill('#empIdInput', 'OWNER01');
+  await page.fill('#pinInput', '9999');
+  await page.click('#loginBtn');
+  await page.waitForTimeout(400);
+
+  const ownerBadge = await page.$eval('#userBadge', el => el.textContent);
+  const ownerCashierTabVis = await page.$eval('[data-tab="tabCashier"]', el => el.style.display !== 'none');
+  const ownerAnalyticsTabVis = await page.$eval('[data-tab="tabAnalytics"]', el => el.style.display !== 'none');
+
+  console.log(`   Owner User Badge: "${ownerBadge}"`);
+  console.log('   Owner has full access to Cashier Tab:', ownerCashierTabVis);
+  console.log('   Owner has full access to Analytics Tab:', ownerAnalyticsTabVis);
+
   console.log('\n========================================================');
   console.log('            Diagnostics Execution Complete              ');
   console.log('========================================================\n');

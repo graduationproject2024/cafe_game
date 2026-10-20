@@ -223,22 +223,27 @@ tr:hover td { background: var(--surface-alt); }
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;">
+      <div id="userBadge" style="display:none;font-size:12px;font-weight:700;padding:6px 12px;border-radius:99px;background:var(--surface-alt);border:1px solid var(--border)"></div>
       <button id="themeToggleBtn" class="btn alt" style="width:auto;padding:8px 12px">🌙</button>
       <button id="logoutBtn" class="btn ghost" style="width:auto;padding:8px 12px;display:none">خروج 🔒</button>
     </div>
   </header>
 
-  <!-- شاشة التحقق وتسجيل الدخول -->
+  <!-- شاشة التحقق وتسجيل الدخول بحسب الدور والصلاحيات -->
   <div id="authSection" class="auth-box">
     <img src="assets/logo_gold.png" alt="Logo" style="height:48px;margin-bottom:14px">
-    <h2>تسجيل دخول الإدارة والكاشير</h2>
-    <p>أدخل الرمز السري المعتمد للوصول إلى لوحة الموظفين والتحليلات وبيانات العملاء.</p>
+    <h2>تسجيل دخول منصة الموظفين</h2>
+    <p>أدخل الرقم الوظيفي والرمز السري للوصول إلى مهامك وصلاحياتك المعتمدة.</p>
     <div class="field">
-      <label for="pinInput">الرمز السري (Staff PIN)</label>
-      <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" autocomplete="off">
+      <label for="empIdInput">الرقم الوظيفي (Employee ID)</label>
+      <input id="empIdInput" type="text" placeholder="مثال: CASHIER01 أو ADMIN01 أو OWNER01" autocomplete="username">
+    </div>
+    <div class="field">
+      <label for="pinInput">الرمز السري (Staff PIN / Password)</label>
+      <input id="pinInput" type="password" inputmode="numeric" placeholder="••••" autocomplete="current-password">
     </div>
     <div id="authErr" class="alert error" style="display:none"></div>
-    <button id="loginBtn" class="btn">دخول لوحة الإدارة 🔑</button>
+    <button id="loginBtn" class="btn">دخول منصة الموظفين 🔑</button>
   </div>
 
   <!-- لوحة التحكم الرئيسية بعد تسجيل الدخول -->
@@ -527,16 +532,59 @@ function sanitizeForCsv(val){
   return s;
 }
 
-// مصادقة الموظفين
+// ============ مصادقة الموظفين وإدارة الصلاحيات والأدوار (RBAC) ============
+const STAFF_ACCOUNTS = {
+  CASHIER01: { pin: '1001', role: 'cashier', name: 'كاشير the A&A', title: 'كاشير 🎟️' },
+  ADMIN01: { pin: '2024', role: 'admin', name: 'مدير العمليات', title: 'مدير النظام 🛡️' },
+  OWNER01: { pin: '9999', role: 'owner', name: 'مالك the A&A', title: 'مالك المقهى 👑' }
+};
+
+const ROLE_PERMISSIONS = {
+  cashier: [
+    'tabCashier',
+    'VERIFY_COUPON',
+    'REDEEM_COUPON',
+    'VIEW_CASHIER_HISTORY'
+  ],
+  admin: [
+    'tabAnalytics',
+    'tabCustomers',
+    'tabLeaderboards',
+    'tabSheets',
+    'tabAudit',
+    'tabBackup',
+    'VIEW_ANALYTICS',
+    'VIEW_CUSTOMERS',
+    'EXPORT_CUSTOMERS',
+    'VIEW_LEADERBOARDS',
+    'SYNC_SHEETS',
+    'VIEW_AUDIT',
+    'BACKUP_DB',
+    'RESTORE_DB'
+  ],
+  owner: ['*']
+};
+
+let currentEmployee = null;
+
+function hasPermission(role, perm){
+  if(!role) return false;
+  if(role === 'owner') return true;
+  const list = ROLE_PERMISSIONS[role] || [];
+  return list.includes(perm) || list.includes('*');
+}
+
 let loginAttempts = 0;
 let lockoutUntil = 0;
 
 const authSection = document.getElementById('authSection');
 const mainDashboard = document.getElementById('mainDashboard');
+const empIdInput = document.getElementById('empIdInput');
 const pinInput = document.getElementById('pinInput');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 const authErr = document.getElementById('authErr');
+const userBadge = document.getElementById('userBadge');
 
 loginBtn.addEventListener('click', () => {
   const now = Date.now();
@@ -547,26 +595,49 @@ loginBtn.addEventListener('click', () => {
     return;
   }
 
+  const rawId = (empIdInput ? empIdInput.value : '').trim().toUpperCase();
   const pin = (pinInput.value || '').trim();
-  if(pin === STAFF_PIN_AUTHORITATIVE){
+
+  let account = null;
+  let resolvedId = rawId;
+
+  if(resolvedId && STAFF_ACCOUNTS[resolvedId]){
+    account = STAFF_ACCOUNTS[resolvedId];
+  } else if(!resolvedId){
+    // دعم التوافق: التعرف على الدور من خلال الرمز السري إذا ترك الحقل فارغاً
+    if(pin === '1001'){ resolvedId = 'CASHIER01'; account = STAFF_ACCOUNTS.CASHIER01; }
+    else if(pin === '2024' || pin === STAFF_PIN_AUTHORITATIVE){ resolvedId = 'ADMIN01'; account = STAFF_ACCOUNTS.ADMIN01; }
+    else if(pin === '9999'){ resolvedId = 'OWNER01'; account = STAFF_ACCOUNTS.OWNER01; }
+  }
+
+  if(account && account.pin === pin){
     loginAttempts = 0;
+    currentEmployee = {
+      id: resolvedId,
+      role: account.role,
+      name: account.name,
+      title: account.title
+    };
+
     authSection.style.display = 'none';
     mainDashboard.style.display = 'block';
     logoutBtn.style.display = 'block';
     authErr.style.display = 'none';
     pinInput.value = '';
-    recordAudit('STAFF_LOGIN', 'نجاح تسجيل الدخول للوحة الإدارة');
-    refreshAllDashboard();
+    if(empIdInput) empIdInput.value = '';
+
+    recordAudit('STAFF_LOGIN', `تسجيل دخول ناجح بالمعرف [${currentEmployee.id}] والدور [${currentEmployee.role}]`, currentEmployee.id);
+    applyRolePermissions(currentEmployee);
   } else {
     loginAttempts++;
     authErr.style.display = 'block';
     if(loginAttempts >= 5){
       lockoutUntil = Date.now() + 60000;
-      authErr.textContent = 'الرمز السري غير صحيح. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
-      recordAudit('LOGIN_LOCKOUT', 'تجاوز الحد الأقصى لمحاولات تسجيل الدخول (5 محاولات)');
+      authErr.textContent = 'البيانات غير صحيحة. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
+      recordAudit('LOGIN_LOCKOUT', `تجاوز الحد الأقصى لمحاولات تسجيل الدخول للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
     } else {
-      authErr.textContent = 'الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - loginAttempts);
-      recordAudit('LOGIN_FAILED', 'محاولة فاشلة برمز غير صحيح');
+      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - loginAttempts);
+      recordAudit('LOGIN_FAILED', `محاولة فاشلة برمز غير صحيح للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
     }
   }
 });
@@ -574,22 +645,84 @@ loginBtn.addEventListener('click', () => {
 pinInput.addEventListener('keydown', e => {
   if(e.key === 'Enter') loginBtn.click();
 });
+if(empIdInput){
+  empIdInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') pinInput.focus();
+  });
+}
 
 logoutBtn.addEventListener('click', () => {
-  recordAudit('STAFF_LOGOUT', 'تسجيل خروج من لوحة الإدارة');
+  if(currentEmployee){
+    recordAudit('STAFF_LOGOUT', `تسجيل خروج الموظف [${currentEmployee.id}]`, currentEmployee.id);
+  }
+  currentEmployee = null;
   mainDashboard.style.display = 'none';
   authSection.style.display = 'block';
   logoutBtn.style.display = 'none';
+  if(userBadge) userBadge.style.display = 'none';
   pinInput.value = '';
 });
 
-// التنقل بين التبويبات
+// تطبيق صلاحيات الدور وعزل التبويبات بالكامل
+function applyRolePermissions(emp){
+  const allTabBtns = document.querySelectorAll('.tab-btn');
+  const allPanels = document.querySelectorAll('.panel');
+
+  if(userBadge){
+    userBadge.style.display = 'inline-block';
+    const badgeColor = emp.role === 'owner' ? '#E0B73F' : (emp.role === 'admin' ? '#5B9BD5' : '#9DB88A');
+    userBadge.innerHTML = `<span style="color:${badgeColor}">●</span> ${emp.name} (${emp.id}) • <b>${emp.title}</b>`;
+  }
+
+  // عزل الواجهة بناءً على مصفوفة الأدوار
+  allTabBtns.forEach(btn => {
+    const tabId = btn.getAttribute('data-tab');
+    if(emp.role === 'cashier'){
+      // الكاشير يقتصر على تبويب الصرف وفحص المكافآت فقط
+      btn.style.display = (tabId === 'tabCashier') ? 'inline-block' : 'none';
+    } else if(emp.role === 'admin'){
+      // المدير ممنوع تماماً من واجهة الصرف المخصصة للكاشير
+      btn.style.display = (tabId === 'tabCashier') ? 'none' : 'inline-block';
+    } else {
+      // المالك لديه صلاحية الوصول لكافة التبويبات
+      btn.style.display = 'inline-block';
+    }
+  });
+
+  allTabBtns.forEach(b => b.classList.remove('active'));
+  allPanels.forEach(p => p.classList.remove('active'));
+
+  if(emp.role === 'cashier'){
+    const cBtn = document.querySelector('.tab-btn[data-tab="tabCashier"]');
+    const cPanel = document.getElementById('tabCashier');
+    if(cBtn) cBtn.classList.add('active');
+    if(cPanel) cPanel.classList.add('active');
+    renderCashierHistory();
+  } else {
+    const aBtn = document.querySelector('.tab-btn[data-tab="tabAnalytics"]');
+    const aPanel = document.getElementById('tabAnalytics');
+    if(aBtn) aBtn.classList.add('active');
+    if(aPanel) aPanel.classList.add('active');
+    refreshAllDashboard();
+  }
+}
+
+// حظر التنقل البرمجي أو اليدوي لغير المصرح لهم
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if(!currentEmployee){
+      alert('يجب تسجيل الدخول أولاً.');
+      return;
+    }
+    const tabId = btn.getAttribute('data-tab');
+    if(!hasPermission(currentEmployee.role, tabId)){
+      recordAudit('UNAUTHORIZED_ACCESS_BLOCKED', `محاولة وصول غير مصرح بها للتبويب [${tabId}] من قبل [${currentEmployee.id}]`, currentEmployee.id);
+      alert('غير مصرح لك بالوصول إلى هذا القسم بناءً على صلاحيات دورك الوظيفي.');
+      return;
+    }
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    const tabId = btn.getAttribute('data-tab');
     const targetPanel = document.getElementById(tabId);
     if(targetPanel) targetPanel.classList.add('active');
   });
@@ -609,8 +742,11 @@ const GAME_TITLES = {
   basketball: 'لعبة السلة'
 };
 
-// تحديث كافة البيانات في لوحة الإدارة
+// تحديث كافة البيانات في لوحة الإدارة — تحليلات حقيقية مستمدة من قاعدة البيانات
 function refreshAllDashboard(){
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'VIEW_ANALYTICS')){
+    return;
+  }
   const db = getDB();
 
   // 1. إحصائيات عامة
@@ -625,36 +761,41 @@ function refreshAllDashboard(){
   const startOfWeek = startOfDay - 7 * 86400000;
   const startOfMonth = startOfDay - 30 * 86400000;
 
-  const todayCount = customers.filter(c => c.time >= startOfDay).length;
-  const weekCount = customers.filter(c => c.time >= startOfWeek).length;
-  const monthCount = customers.filter(c => c.time >= startOfMonth).length;
+  const todayCount = customers.filter(c => (c.time || c.firstVisit || 0) >= startOfDay).length;
+  const weekCount = customers.filter(c => (c.time || c.firstVisit || 0) >= startOfWeek).length;
+  const monthCount = customers.filter(c => (c.time || c.firstVisit || 0) >= startOfMonth).length;
 
   document.getElementById('stTodayCust').textContent = todayCount;
   document.getElementById('stWeeklyCust').textContent = 'أسبوعي: ' + weekCount + ' • شهري: ' + monthCount;
 
-  // جولات اللعب من سجل الشيت
-  const gameSessions = sheetLog.filter(s => s.action === 'GAME_RESULT' || s.action === 'PLAY_SESSION');
-  document.getElementById('stTotalSessions').textContent = gameSessions.length || customers.length * 3;
-  document.getElementById('stTotalRedeemed').textContent = history.length;
-  document.getElementById('stRedeemRate').textContent = 'إجمالي الأكواد المنفذة: ' + history.length;
+  // جولات اللعب الفعلية الحقيقية دون أي مضاعفات وهمية
+  const gameSessions = history.filter(h => h.gameId)
+    .concat(sheetLog.filter(s => s.action === 'GAME_RESULT' || s.action === 'PLAY_SESSION'));
+  document.getElementById('stTotalSessions').textContent = gameSessions.length;
+  
+  const redeemedCoupons = history.filter(h => h.code && (!h.status || h.status.includes('تم الصرف')));
+  const mintedCoupons = history.filter(h => h.code);
+  document.getElementById('stTotalRedeemed').textContent = redeemedCoupons.length;
+  const rate = mintedCoupons.length > 0 ? Math.round((redeemedCoupons.length / mintedCoupons.length) * 100) : 0;
+  document.getElementById('stRedeemRate').textContent = 'نسبة الصرف: ' + rate + '% (' + redeemedCoupons.length + ' من ' + mintedCoupons.length + ')';
 
-  // جدول إحصائيات الألعاب
+  // جدول إحصائيات الألعاب — حسابات حقيقية دون أي أرقام عشوائية
   const tbodyGame = document.querySelector('#tblGameStats tbody');
   tbodyGame.innerHTML = '';
   Object.keys(GAME_TITLES).forEach(gId => {
     const gName = GAME_TITLES[gId];
-    const sessions = gameSessions.filter(s => s.lastGame === gName || s.gameName === gName);
-    const count = sessions.length || Math.floor(Math.random() * 8) + 1;
-    const scores = sessions.map(s => Number(s.lastScore || s.score || 0)).filter(n => !isNaN(n) && n > 0);
-    const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : (gId==='basketball'?850:1240);
-    const maxScore = scores.length ? Math.max(...scores) : (gId==='basketball'?2100:2600);
+    const sessions = gameSessions.filter(s => s.gameId === gId || s.lastGame === gName || s.gameName === gName);
+    const count = sessions.length;
+    const scores = sessions.map(s => Number(s.score || s.lastScore || 0)).filter(n => !isNaN(n) && n > 0);
+    const avgScore = scores.length ? Math.round(scores.reduce((a,b)=>a+b,0)/scores.length) : 0;
+    const maxScore = scores.length ? Math.max(...scores) : 0;
 
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td><b>${gName}</b></td>
-      <td>${count} جولة</td>
-      <td>${avgScore} نقطة</td>
-      <td><span class="badge success">${maxScore} نقطة</span></td>
+      <td>${count > 0 ? count + ' جولة' : '0'}</td>
+      <td>${avgScore > 0 ? avgScore + ' نقطة' : '—'}</td>
+      <td><span class="badge ${maxScore > 0 ? 'success' : 'secondary'}">${maxScore > 0 ? maxScore + ' نقطة' : '—'}</span></td>
     `;
     tbodyGame.appendChild(tr);
   });
@@ -682,30 +823,59 @@ function refreshAllDashboard(){
   }
 }
 
-// فحص وصرف كود المكافأة
+// أزرار مزامنة وتحديث اللوحة
+const btnRefreshAnalytics = document.getElementById('btnRefreshAnalytics');
+if(btnRefreshAnalytics){
+  btnRefreshAnalytics.addEventListener('click', () => {
+    refreshAllDashboard();
+    recordAudit('ANALYTICS_REFRESH', 'تحديث يدوي للتحليلات التشغيلية', currentEmployee ? currentEmployee.id : 'Staff');
+  });
+}
+
+// فحص وصرف كود المكافأة مع فرض تفويض الكاشير والمالك وحظر المدير
 const btnVerifyCode = document.getElementById('btnVerifyCode');
 const cashierCodeInput = document.getElementById('cashierCodeInput');
 const cashierResult = document.getElementById('cashierResult');
 
 btnVerifyCode.addEventListener('click', () => {
-  const code = (cashierCodeInput.value || '').trim();
-  if(!code){
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
+    recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة فحص/صرف مكافأة من مستخدم غير مصرح (الكاشير والمالك فقط)', currentEmployee ? currentEmployee.id : 'Anonymous');
+    alert('غير مصرح لك بإجراء صرف المكافآت. هذا الإجراء مخصص للكاشير والمالك فقط.');
+    return;
+  }
+  const rawCode = (cashierCodeInput.value || '').trim();
+  if(!rawCode){
     cashierResult.style.display = 'block';
     cashierResult.className = 'alert error';
     cashierResult.textContent = 'يرجى إدخال كود المكافأة أولاً.';
     return;
   }
 
+  const code = rawCode.toUpperCase();
   const db = getDB();
   const history = db.history || [];
-  const found = history.find(h => h.code === code);
+  const found = history.find(h => h.code === code && (!h.status || h.status.includes('تم الصرف')));
 
   if(found){
     cashierResult.style.display = 'block';
     cashierResult.className = 'alert error';
     cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً بتاريخ <b>${new Date(found.time).toLocaleString('ar-SA')}</b> ولا يمكن صرفه مجدداً.`;
-    recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + code);
+    recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + code, currentEmployee.id);
     return;
+  }
+
+  // التعرف الدقيق على نوع الجائزة ومطابقتها للقواعد المعتمدة
+  let rewardName = 'خصم 5% على إجمالي الفاتورة';
+  let rewType = 'T';
+  if(code.startsWith('S') || code.includes('-S')){
+    rewardName = 'خصم 7% على إجمالي الفاتورة';
+    rewType = 'S';
+  } else if(code.startsWith('G') || code.includes('-G')){
+    rewardName = 'ترقية مشروب مجانية من the A&A 🏆';
+    rewType = 'G';
+  } else if(code.startsWith('T') || code.includes('-T')){
+    rewardName = 'خصم 5% على إجمالي الفاتورة';
+    rewType = 'T';
   }
 
   // كود صالح
@@ -713,24 +883,31 @@ btnVerifyCode.addEventListener('click', () => {
   cashierResult.className = 'alert success';
   cashierResult.innerHTML = `
     <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
-    <div style="font-size:13px;margin-bottom:12px">الكود: <span class="code-box">${code}</span> • الخصم المعتمد: خصم 7% على إجمالي الفاتورة</div>
+    <div style="font-size:13px;margin-bottom:12px">الكود: <span class="code-box">${code}</span> • المكافأة المعتمدة: <b>${rewardName}</b></div>
     <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
   `;
 
   document.getElementById('btnConfirmRedeemAction').onclick = () => {
+    if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
+      alert('غير مصرح لك بإجراء صرف المكافآت.');
+      return;
+    }
     history.unshift({
       code: code,
-      type: 'S',
-      name: 'خصم 7% على إجمالي الفاتورة',
+      type: rewType,
+      rewardType: rewardName,
+      name: rewardName,
       time: Date.now(),
-      cashier: 'Main Drive-Thru Cashier'
+      dateTimeArabic: new Date().toLocaleString('ar-SA'),
+      status: 'تم الصرف لدى الكاشير ✓',
+      cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
     });
     db.history = history;
     saveDB(db);
 
-    recordAudit('REDEEM_CONFIRMED', 'صرف مكافأة للعميل كود: ' + code);
+    recordAudit('REDEEM_CONFIRMED', `صرف مكافأة للعميل [${rewardName}] بكود: ${code}`, currentEmployee.id);
     cashierResult.className = 'alert success';
-    cashierResult.textContent = 'تم صرف المكافأة بنجاح وتحديث النظام آلياً ✓';
+    cashierResult.textContent = 'تم صرف المكافأة بنجاح وتحديث السجل آلياً ومنع أي إعادة استخدام ✓';
     cashierCodeInput.value = '';
     renderCashierHistory();
   };
@@ -939,15 +1116,20 @@ function renderAuditLogs(){
   });
 }
 
-// تصدير CSV الآمن مع منع ثغرات Formula Injection
+// تصدير CSV الآمن مع منع ثغرات Formula Injection وفرض الصلاحيات
 document.getElementById('btnExportCustCsv').addEventListener('click', () => {
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'EXPORT_CUSTOMERS')){
+    recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة تصدير بيانات عملاء من مستخدم غير مصرح', currentEmployee ? currentEmployee.id : 'Anonymous');
+    alert('غير مصرح لك بتصدير بيانات العملاء. الإجراء مخصص للمدير والمالك فقط.');
+    return;
+  }
   const db = getDB();
   const custs = db.customers || [];
   if(!custs.length){
     alert('لا توجد بيانات عملاء مسجلة بعد لتصديرها.');
     return;
   }
-  recordAudit('CSV_EXPORT_CUSTOMERS', 'تصدير ملف بيانات العملاء CSV');
+  recordAudit('CSV_EXPORT_CUSTOMERS', 'تصدير ملف بيانات العملاء CSV', currentEmployee.id);
   const headers = ['Phone', 'Nickname', 'Order_Number', 'Best_Score', 'Reward_Code', 'Registration_Date'];
   const rows = custs.map(c => [
     sanitizeForCsv(c.phone),
@@ -963,9 +1145,14 @@ document.getElementById('btnExportCustCsv').addEventListener('click', () => {
 });
 
 document.getElementById('btnExportAuditCsv').addEventListener('click', () => {
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'VIEW_AUDIT')){
+    recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة تصدير سجل التدقيق من مستخدم غير مصرح', currentEmployee ? currentEmployee.id : 'Anonymous');
+    alert('غير مصرح لك بتصدير سجل التدقيق.');
+    return;
+  }
   const db = getDB();
   const audits = db.auditLogs || [];
-  recordAudit('CSV_EXPORT_AUDIT', 'تصدير سجل التدقيق الإداري CSV');
+  recordAudit('CSV_EXPORT_AUDIT', 'تصدير سجل التدقيق الإداري CSV', currentEmployee.id);
   const headers = ['Timestamp', 'Actor', 'Action', 'Details'];
   const rows = audits.map(a => [
     sanitizeForCsv(a.dateTimeArabic || new Date(a.timestamp).toISOString()),
@@ -988,8 +1175,13 @@ function downloadBlob(content, filename, type){
   document.body.removeChild(a);
 }
 
-// النسخ الاحتياطي والاستعادة
+// النسخ الاحتياطي والاستعادة المقيد بالصلاحيات
 document.getElementById('btnCreateBackup').addEventListener('click', () => {
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'BACKUP_DB')){
+    recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة إنشاء نسخة احتياطية من مستخدم غير مصرح', currentEmployee ? currentEmployee.id : 'Anonymous');
+    alert('غير مصرح لك بإنشاء نسخ احتياطية.');
+    return;
+  }
   const db = getDB();
   const backupData = {
     backupDate: new Date().toISOString(),
@@ -999,7 +1191,7 @@ document.getElementById('btnCreateBackup').addEventListener('click', () => {
     payload: db
   };
   const jsonStr = JSON.stringify(backupData, null, 2);
-  recordAudit('BACKUP_CREATED', 'إنشاء وتنزيل نسخة احتياطية كاملة لقاعدة البيانات');
+  recordAudit('BACKUP_CREATED', 'إنشاء وتنزيل نسخة احتياطية كاملة لقاعدة البيانات', currentEmployee.id);
   downloadBlob(jsonStr, 'the_aa_backup_' + new Date().toISOString().slice(0,10) + '.json', 'application/json');
 
   const bMsg = document.getElementById('backupStatusMsg');
@@ -1008,6 +1200,11 @@ document.getElementById('btnCreateBackup').addEventListener('click', () => {
 });
 
 document.getElementById('fileRestoreInput').addEventListener('change', ev => {
+  if(!currentEmployee || !hasPermission(currentEmployee.role, 'RESTORE_DB')){
+    recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة استعادة قاعدة البيانات من مستخدم غير مصرح', currentEmployee ? currentEmployee.id : 'Anonymous');
+    alert('غير مصرح لك باستعادة قاعدة البيانات.');
+    return;
+  }
   const file = ev.target.files[0];
   if(!file) return;
   const reader = new FileReader();
@@ -1018,12 +1215,12 @@ document.getElementById('fileRestoreInput').addEventListener('change', ev => {
         throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
       }
       saveDB(parsed.payload);
-      recordAudit('BACKUP_RESTORED', 'استعادة ناجحة لقاعدة البيانات من ملف: ' + file.name);
+      recordAudit('BACKUP_RESTORED', 'استعادة ناجحة لقاعدة البيانات من ملف: ' + file.name, currentEmployee.id);
       alert('تمت استعادة قاعدة البيانات بنجاح وتحديث كافة السجلات!');
       refreshAllDashboard();
     } catch(err){
       alert('خطأ أثناء استعادة النسخة الاحتياطية: ' + err.message);
-      recordAudit('BACKUP_RESTORE_FAILED', 'فشل الاستعادة: ' + err.message);
+      recordAudit('BACKUP_RESTORE_FAILED', 'فشل الاستعادة: ' + err.message, currentEmployee.id);
     }
   };
   reader.readAsText(file);

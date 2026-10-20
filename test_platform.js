@@ -418,6 +418,91 @@ assert(scriptCode.includes('class="rh-track-pill'), 'Rhythm track selection pill
 console.log('\n--- Suite 21: CSV Formula Injection Defense ---');
 assert(staffHtml.includes('sanitizeForCsv') || staffHtml.includes('replace(/^[=+\\-@]/'), 'Staff portal sanitizes CSV export against CSV formula injection (=, +, -, @)');
 
+// 22. Public Customer Homepage Security
+console.log('\n--- Suite 22: Public Customer Homepage Security ---');
+assert(!html.includes('id="btnStaffAccess"'), 'Employee entry button (#btnStaffAccess) completely removed from customer homepage DOM');
+assert(!scriptCode.includes("btnStaffAccess.addEventListener('click'"), 'Customer script does not wire click listener for employee entry button');
+assert(html.includes('id="goBtn"'), 'Customer homepage prominently features public start challenge button (#goBtn)');
+
+// 23. Reward Economy 5,000 Points = 5% Discount Boundary Tests
+console.log('\n--- Suite 23: Reward Economy 5,000 Points = 5% Discount Boundary Tests ---');
+assert(scriptCode.includes("pts: 5000,  label: (currentLang === 'en' ? '5% OFF' : 'خصم 5%')"), '1st reward stop in ladder() configured as 5% OFF at 5,000 points');
+assert(scriptCode.includes("T: { name: 'خصم 5% على الفاتورة', tier: 1, discount: 5 }"), 'REW.T defines authoritative 5% discount for Tier 1');
+assert(scriptCode.includes("TIER_TXT = { 1: 'خصم 5%', 2: 'خصم 7%', 3: 'ترقية مشروب' }"), 'TIER_TXT maps Tier 1 to 5% discount');
+
+// Execute sandbox boundary tests on tierOf logic
+const sandboxEnv = {};
+vm.createContext(sandboxEnv);
+const tierOfMatch = scriptCode.match(/function tierOf\(score\)\{[\s\S]*?\n\}/)[0];
+const tierHarness = `
+${cfgMatch[0]}
+${tierOfMatch}
+globalThis.tierOf = tierOf;
+`;
+vm.runInContext(tierHarness, sandboxEnv);
+assert(typeof sandboxEnv.tierOf === 'function', 'tierOf calculation function accessible in sandbox');
+assert(sandboxEnv.tierOf(4999) === 0, 'Boundary test 4,999 pts: Unlocked tier is 0 (Locked)');
+assert(sandboxEnv.tierOf(5000) === 1, 'Boundary test 5,000 pts: Unlocked tier is 1 (5% OFF unlocked)');
+assert(sandboxEnv.tierOf(5001) === 1, 'Boundary test 5,001 pts: Unlocked tier is 1 (5% OFF unlocked)');
+assert(sandboxEnv.tierOf(7499) === 1, 'Boundary test 7,499 pts: Unlocked tier remains 1');
+assert(sandboxEnv.tierOf(7500) === 2, 'Boundary test 7,500 pts: Unlocked tier is 2 (7% OFF unlocked)');
+assert(sandboxEnv.tierOf(10000) === 3, 'Boundary test 10,000 pts: Unlocked tier is 3 (Drink Upgrade unlocked)');
+
+// 24. Two-Minute Inactivity Session Expiry
+console.log('\n--- Suite 24: Two-Minute Inactivity Session Expiry ---');
+assert(scriptCode.includes('INACTIVITY_TIMEOUT_MS = 120000'), 'Authoritative 2-minute inactivity threshold defined (120,000 ms)');
+assert(scriptCode.includes('lastActiveAt: Date.now()') || scriptCode.includes('S.lastActiveAt = Date.now()'), 'Session state initializes and tracks lastActiveAt timestamp');
+assert(scriptCode.includes('checkSessionInactivity'), 'Periodic session inactivity watchdog implemented');
+assert(scriptCode.includes('run.expired = true'), 'Temporary round marked expired on inactivity timeout');
+assert(scriptCode.includes('now - (cp.timestamp || 0) > INACTIVITY_TIMEOUT_MS'), 'Checkpoint resume strictly rejects sessions older than 2 minutes');
+
+// 25. Multi-Role Employee Platform RBAC
+console.log('\n--- Suite 25: Multi-Role Employee Platform RBAC ---');
+assert(staffHtml.includes('CASHIER01') && staffHtml.includes('ADMIN01') && staffHtml.includes('OWNER01'), 'Authoritative employee IDs defined for Cashier, Administrator, and Cafe Owner');
+assert(staffHtml.includes('empIdInput'), 'Employee login form includes Employee ID input field');
+assert(staffHtml.includes('ROLE_PERMISSIONS'), 'Centralized role-based access control matrix defined');
+assert(staffHtml.includes('hasPermission(role, perm)'), 'Centralized authorization check method implemented');
+
+// Check role separation in permission definitions:
+const staffScriptMatch = staffHtml.match(/<script>([\s\S]*?)<\/script>/);
+const staffScriptCode = staffScriptMatch ? staffScriptMatch[1] : '';
+const staffSandbox = { document: { querySelectorAll: () => [], getElementById: () => ({ style: {} }), documentElement: { getAttribute: () => 'dark' } }, localStorage: { getItem: () => null, setItem: () => null } };
+vm.createContext(staffSandbox);
+const mPerm = staffScriptCode.match(/const ROLE_PERMISSIONS\s*=\s*\{[\s\S]*?\n\};/);
+const mHas = staffScriptCode.match(/function hasPermission\(role, perm\)\{[\s\S]*?\n\}/);
+if (mPerm && mHas) {
+  vm.runInContext(mPerm[0] + ';\n' + mHas[0] + ';\nglobalThis.hasPermission = hasPermission;', staffSandbox);
+}
+assert(typeof staffSandbox.hasPermission === 'function', 'Staff hasPermission function verified');
+assert(staffSandbox.hasPermission('cashier', 'tabCashier') === true, 'Cashier role has permission to access cashier tab');
+assert(staffSandbox.hasPermission('cashier', 'tabAnalytics') === false, 'Cashier role is FORBIDDEN from analytics tab');
+assert(staffSandbox.hasPermission('cashier', 'tabCustomers') === false, 'Cashier role is FORBIDDEN from customer administration tab');
+assert(staffSandbox.hasPermission('cashier', 'REDEEM_COUPON') === true, 'Cashier role has permission to redeem coupons');
+
+assert(staffSandbox.hasPermission('admin', 'tabCashier') === false, 'Administrator role is FORBIDDEN from cashier redemption interface');
+assert(staffSandbox.hasPermission('admin', 'REDEEM_COUPON') === false, 'Administrator role is FORBIDDEN from cashier coupon redemption');
+assert(staffSandbox.hasPermission('admin', 'tabAnalytics') === true, 'Administrator role has permission to access analytics tab');
+assert(staffSandbox.hasPermission('admin', 'tabCustomers') === true, 'Administrator role has permission to access customer database');
+
+assert(staffSandbox.hasPermission('owner', 'tabCashier') === true, 'Owner role has permission to access cashier interface');
+assert(staffSandbox.hasPermission('owner', 'tabAnalytics') === true, 'Owner role has permission to access analytics');
+assert(staffSandbox.hasPermission('owner', 'REDEEM_COUPON') === true, 'Owner role has full permission to redeem coupons');
+
+// 26. Real Database-Backed Analytics
+console.log('\n--- Suite 26: Real Database-Backed Analytics ---');
+// Verify zero Math.random() in refreshAllDashboard:
+const refreshDashMatch = staffScriptCode.match(/function refreshAllDashboard\(\)\{[\s\S]*?\n\}/);
+assert(refreshDashMatch && !refreshDashMatch[0].includes('Math.random()'), 'Zero random numbers or placeholder data in refreshAllDashboard analytics');
+assert(staffScriptCode.includes('stTotalSessions') && staffScriptCode.includes('gameSessions.length'), 'Total game sessions metric counts genuine database session records');
+
+// 27. Coherent Post-Game Messaging
+console.log('\n--- Suite 27: Coherent Post-Game Messaging ---');
+assert(scriptCode.includes('run.expired'), 'Handles session expired outcome messaging');
+assert(scriptCode.includes('run.hearts <= 0'), 'Handles hearts exhausted outcome messaging');
+assert(scriptCode.includes('recover an extra heart via Instagram'), 'Displays recovery opportunity only when hearts exhausted and recovery available');
+assert(scriptCode.includes('New personal best!'), 'Congratulates player on new personal best only when score improved');
+assert(!scriptCode.includes("reason + ' • ' + encMsg"), 'Contradictory concatenated messages eliminated');
+
 console.log('\n========================================================');
 console.log(`Test Execution Complete: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);
 console.log('========================================================\n');

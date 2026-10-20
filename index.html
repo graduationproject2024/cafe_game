@@ -1174,41 +1174,42 @@ h2 {
   filter: drop-shadow(0 6px 16px rgba(0,0,0,0.12));
 }
 .cup-takeaway-lid-top {
-  width: 136px;
-  height: 15px;
+  width: 138px;
+  height: 18px;
   background: #FAF7F2;
   border: 2.5px solid #2C3527;
   border-bottom: none;
-  border-radius: 9px 9px 0 0;
+  border-radius: 4px 4px 0 0;
+  clip-path: polygon(7% 0%, 93% 0%, 100% 100%, 0% 100%);
   position: relative;
   z-index: 12;
 }
 .cup-takeaway-lid-sip {
   position: absolute;
-  top: 2px;
-  inset-inline-start: 18px;
+  top: 3px;
+  inset-inline-start: 22px;
   width: 18px;
   height: 4px;
   background: #2C3527;
   border-radius: 2px;
 }
 .cup-takeaway-lid-rim {
-  width: 164px;
-  height: 13px;
+  width: 166px;
+  height: 15px;
   background: #FFFFFF;
   border: 2.5px solid #2C3527;
-  border-radius: 4px;
+  border-radius: 3px;
   z-index: 11;
   box-shadow: 0 2px 4px rgba(44, 53, 39, 0.12);
 }
 .cup-takeaway-body {
   position: relative;
-  width: 150px;
-  height: 196px;
+  width: 154px;
+  height: 202px;
   background: #FCFAF6;
   border: 2.5px solid #2C3527;
   border-top: none;
-  border-radius: 0 0 20px 20px;
+  border-radius: 0 0 18px 18px;
   box-shadow: inset 0 2px 10px rgba(0,0,0,0.06);
   transform-origin: top center;
   transform: perspective(350px) rotateX(12deg);
@@ -1907,7 +1908,6 @@ h2 {
       <h3 style="font-size:18px;font-weight:900;color:var(--primary);margin-bottom:6px">جاهز للتحدي؟</h3>
       <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px">اختر من ألعاب the A&A الحصرية، سجّل أعلى سكور، واكسب خصومات فورية حتى 7% وترقية مشروب مجانية!</p>
       <button id="goBtn" class="btn" type="button" style="font-size:16px;padding:14px 24px">ابدأ اللعب الآن ☕✨</button>
-      <button id="btnStaffAccess" class="btn ghost btn-sm" type="button" style="margin-top:10px;font-size:12px">بوابة موظفي the A&A 🔐</button>
     </div>
 
     <div class="social-footer">
@@ -2677,7 +2677,9 @@ function parseCode(raw){
   return { type: s[0], day: dec(s.slice(1, 3)), body: body, code: s };
 }
 
-/* ============ إدارة الحالة والجلسة ============ */
+/* ============ إدارة الحالة والجلسة وانتهاء الصلاحية بعد دقيقتين ============ */
+const INACTIVITY_TIMEOUT_MS = 120000; // مهلة عدم النشاط المعتمدة: دقيقتان (120 ثانية)
+
 let S = {
   phone: '',
   order: '',
@@ -2685,6 +2687,7 @@ let S = {
   consent: false,
   day: dayNow(),
   startedAt: 0,
+  lastActiveAt: Date.now(),
   best: 0,
   bestBy: {},
   claim: null,
@@ -2773,7 +2776,7 @@ function ladder(score){
   score = Number(score) || 0;
   const STOPS = [
     { pts: 0,     label: (currentLang === 'en' ? 'Start' : 'البداية'), start: true },
-    { pts: 5000,  label: (currentLang === 'en' ? '7% OFF' : 'خصم 7%') },
+    { pts: 5000,  label: (currentLang === 'en' ? '5% OFF' : 'خصم 5%') },
     { pts: 7500,  label: (currentLang === 'en' ? '7% OFF' : 'خصم 7%') },
     { pts: 10000, label: (currentLang === 'en' ? 'Drink Upgrade 🏆' : 'ترقية مشروب 🏆'), icon: '★', prize: true }
   ];
@@ -2944,26 +2947,46 @@ function endRun(reason){
   $('#resTitle').textContent = (currentLang === 'en') ? ('Round Over: ' + (gm.nameEn || gm.name)) : ('انتهت جولة ' + gm.name);
   $('#resScore').textContent = run.score;
 
-  // Phase 7: رسائل تحفيزية طبيعية وموجزة تعكس النتيجة والتقدم الفعلي
-  const dScore = run.score;
-  let encMsg = '';
-  if(currentLang === 'en'){
-    if(dScore >= 2000) encMsg = 'Master barista performance! You are very close to top A&A rewards ✨';
-    else if(dScore >= 1000) encMsg = 'Great accuracy and rhythm! Keep going to unlock your next milestone ☕';
-    else if(dScore > prevBest && prevBest > 0) encMsg = 'Great effort! You beat your best score in this game 🔥';
-    else encMsg = 'Good attempt! Try again to improve your score and climb the leaderboard 🎯';
+  // نظام رسائل ما بعد اللعبة المتناسق والمبني على النتيجة الفعلية دون أي تناقض
+  const t = tierOf(S.best);
+  let outcomeMsg = '';
+  const isEn = (currentLang === 'en');
+
+  if(run.expired){
+    outcomeMsg = isEn ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.';
+  } else if(run.technicalError){
+    outcomeMsg = isEn ? 'An unexpected error occurred. Start a new round to play.' : 'حدث خطأ غير متوقع. ابدأ جولة جديدة لمواصلة اللعب.';
+  } else if(run.abandoned){
+    outcomeMsg = isEn ? 'Round ended early. Play again to qualify for the A&A rewards.' : 'تم الخروج من الجولة مبكراً. العب مجدداً للتأهل إلى مكافآت the A&A.';
+  } else if(run.hearts <= 0){
+    const hasBonus = (!S.extraHeartFollowClaimed || !S.extraHeartLikeClaimed);
+    if(hasBonus){
+      outcomeMsg = isEn ? 'Out of hearts! Don\'t stop now, recover an extra heart via Instagram below to resume your round.' : 'نفدت القلوب! لا تتوقف الآن، يمكنك استعادة محاولة إضافية عبر إنستغرام أدناه ومتابعة الجولة.';
+    } else {
+      outcomeMsg = isEn ? 'You ran out of hearts for this round. Better luck in your next game!' : 'انتهت المحاولات المتاحة في هذه الجولة. حظاً أوفر في الجولة القادمة!';
+    }
+  } else if(t > 0 && !S.claim && run.score >= (CFG.tiers[t - 1] || 5000)){
+    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (TIER_TXT[t] || 'your reward') + '. Claim your voucher now 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (TIER_TXT[t] || 'المكافأة') + '. احجز كود الخصم الآن 🎁');
+  } else if(run.score > prevBest && prevBest > 0){
+    outcomeMsg = isEn ? ('New personal best! You scored ' + run.score + ' pts, beating your previous record (' + prevBest + ' pts) 🔥') : ('رقم قياسي جديد لك! حققت ' + run.score + ' نقطة، متجاوزاً أفضل نتيجة سابقة (' + prevBest + ' نقطة) 🔥');
+  } else if(run.score > 0 && S.best < 5000){
+    const remaining = 5000 - S.best;
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts to unlock your first reward (5% OFF).') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية للوصول إلى مكافأتك الأولى (خصم 5%).');
+  } else if(run.score > 0 && S.best < 7500){
+    const remaining = 7500 - S.best;
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts to reach 7% OFF.') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية للوصول إلى خصم 7%.');
+  } else if(run.score > 0 && S.best < 10000){
+    const remaining = 10000 - S.best;
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts for Free Drink Upgrade 🏆.') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية لترقية المشروب المجانية 🏆.');
   } else {
-    if(dScore >= 2000) encMsg = 'أداء باريستا استثنائي! اقتربت جداً من أرقى مكافآت the A&A ✨';
-    else if(dScore >= 1000) encMsg = 'دقة عالية وتركيز رائع! واصل لتصل إلى هدفك القادم ☕';
-    else if(dScore > prevBest && prevBest > 0) encMsg = 'رائع! حققت أفضل رقم لك في هذه اللعبة 🔥';
-    else encMsg = 'محاولة ممتازة! العب مرة أخرى وتجاوز نتيجتك السابقة 🎯';
+    outcomeMsg = isEn ? ('Well done! You finished the round with ' + run.score + ' pts. Keep playing!') : ('أحسنت! أنهيت الجولة بنجاح بـ ' + run.score + ' نقطة. واصل التحدي!');
   }
-  $('#resMsg').textContent = reason ? (reason + ' • ' + encMsg) : encMsg;
+
+  $('#resMsg').textContent = outcomeMsg;
   $('#ladderRes').innerHTML = ladder(S.best);
   renderEmbeddedLeaderboard($('#resLeaderboardList'), gm.id);
   syncCustomerTransactionToStaffDB('GAME_SESSION', { gameId: gm.id, score: run.score, mistakeCount: run.mistakeCount });
 
-  const t = tierOf(S.best);
   $('#resClaim').style.display = (t > 0 && !S.claim) ? 'block' : 'none';
 
   // Phase 1, Req 3: عرض خيار استعادة القلب الإضافي عند نفاد القلوب فقط
@@ -4877,9 +4900,15 @@ function makeCtx(game){
 
 /* ============ استئناف اللعبة من نقطة الحفظ بعد استعادة القلب الإضافي ============ */
 function resumeCheckpointRun(cp){
-  if(!cp) return;
+  if(!cp) return false;
+  const now = Date.now();
+  if(now - (cp.timestamp || 0) > INACTIVITY_TIMEOUT_MS){
+    window.lastRunCheckpoint = null;
+    banner(currentLang === 'en' ? 'Recovery checkpoint expired (> 2 mins).' : 'انتهت صلاحية نقطة الاستئناف لتجاوز دقيقتين.');
+    return false;
+  }
   const gm = GAMES.find(g => g.id === cp.gameId) || curGame;
-  if(!gm) return;
+  if(!gm) return false;
 
   curGame = gm;
   const restoredTimeLeft = Math.max(10, cp.timeLeft || 30);
@@ -4976,13 +5005,30 @@ if(goBtn){
   });
 }
 
-const btnStaffAccess = $('#btnStaffAccess');
-if(btnStaffAccess){
-  btnStaffAccess.addEventListener('click', () => {
-    location.hash = '#staff';
-    checkStaffHash();
-  });
+// مراقبة النشاط الفعلي وإلغاء الجلسات المؤقتة بعد دقيقتين من عدم النشاط
+function recordUserActivity(){
+  if(typeof S !== 'undefined') S.lastActiveAt = Date.now();
 }
+['pointerdown', 'keydown', 'touchstart'].forEach(evt => {
+  window.addEventListener(evt, recordUserActivity, { passive: true });
+});
+
+function checkSessionInactivity(){
+  if(!run || run.over) return;
+  const now = Date.now();
+  if(now - (S.lastActiveAt || now) >= INACTIVITY_TIMEOUT_MS){
+    run.over = true;
+    run.expired = true;
+    run.cleanups.forEach(f => { try { f(); } catch(e){} });
+    run.cleanups = [];
+    window.lastRunCheckpoint = null;
+    endRun(currentLang === 'en' ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.');
+  }
+}
+setInterval(checkSessionInactivity, 4000);
+document.addEventListener('visibilitychange', () => {
+  if(!document.hidden) checkSessionInactivity();
+});
 
 // التحقق من رقم الجوال السعودي عند طلب المكافأة والكود المشفر (#choicePhoneCard)
 const chPhoneInput = $('#chPhone');
@@ -5343,6 +5389,8 @@ window.__GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
 window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
 window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
 window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
+window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
+window.__S = () => (typeof S !== 'undefined' ? S : null);
 
 })();
 </script>
