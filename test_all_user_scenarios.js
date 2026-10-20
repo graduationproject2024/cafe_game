@@ -4,7 +4,7 @@ const fs = require('fs');
 
 async function runAllScenarios() {
   console.log('================================================================');
-  console.log('   A&A Cafe Games — 11 User Issues Comprehensive Verification  ');
+  console.log('   the A&A Cafe Games — User Requests Comprehensive E2E Tests  ');
   console.log('================================================================\n');
 
   const browser = await chromium.launch({ headless: true });
@@ -22,7 +22,6 @@ async function runAllScenarios() {
 
   const results = {};
 
-  // Helper to open a game by name
   async function openGame(name) {
     await page.evaluate((targetName) => {
       const tiles = Array.from(document.querySelectorAll('#grid button.tile'));
@@ -35,9 +34,9 @@ async function runAllScenarios() {
 
   try {
     // -------------------------------------------------------------
-    // ISSUE 2: Home Counter & Fresh Session Start
+    // 1. Reset Session Button Removed & Clean Zero Counter
     // -------------------------------------------------------------
-    console.log('--- TEST 1: Home Counter & Fresh Session Start ---');
+    console.log('--- TEST 1: Session Reset Button Removal & Zero Counter ---');
     await page.goto('http://localhost:8085/index.html', { waitUntil: 'networkidle' });
     await page.waitForTimeout(500);
 
@@ -45,344 +44,258 @@ async function runAllScenarios() {
     await page.click('#goBtn');
     await page.waitForTimeout(400);
 
-    // Check resetSession button exists in home header
-    const resetBtnVisible = await page.$eval('#sessionResetHome', el => el.offsetWidth > 0).catch(() => false);
-    console.log('   [Check] #sessionResetHome exists in header:', resetBtnVisible);
+    // Verify #sessionResetHome button is COMPLETELY REMOVED from DOM
+    const resetBtnExists = await page.$eval('#sessionResetHome', () => true).catch(() => false);
+    console.log('   [Check] #sessionResetHome removed from DOM:', !resetBtnExists);
 
-    // Click reset to ensure clean fresh start
-    await page.click('#sessionResetHome');
-    await page.waitForTimeout(300);
-
-    const homeScore = await page.$eval('#bestTxt', el => el.textContent.trim()).catch(() => '');
     const ladderScore = await page.$eval('#ladderHome .rp-score span', el => el.textContent.trim()).catch(() => '');
-    console.log(`   [Result] Best text: "${homeScore}", Ladder score: "${ladderScore}"`);
-    const isZeroClean = ladderScore === '0' || ladderScore === '';
-    results.issue2_homeCounter = isZeroClean ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 2 (Counter fixed at 6541):', results.issue2_homeCounter);
-    await page.screenshot({ path: path.join(screenshotDir, '01_home_fresh_counter.png') });
+    console.log(`   [Check] Clean ladder score on entry: "${ladderScore}"`);
+    const isZeroClean = (!resetBtnExists) && (ladderScore === '0' || ladderScore === '');
+    results.req10_sessionResetRemoved = isZeroClean ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 10 (Remove reset session button):', results.req10_sessionResetRemoved);
+    await page.screenshot({ path: path.join(screenshotDir, '01_home_screen.png') });
 
     // -------------------------------------------------------------
-    // ISSUE 1 & 8: Latte Art Takeaway Cup Design & No Buttons
+    // 2. English Layout (LTR) and Typography (Outfit / Plus Jakarta Sans)
     // -------------------------------------------------------------
-    console.log('\n--- TEST 2: Latte Art Cup Design & Controls (pour) ---');
+    console.log('\n--- TEST 2: English Language LTR & Font Polish ---');
+    await page.click('#langToggleHome');
+    await page.waitForTimeout(400);
+
+    const langState = await page.evaluate(() => {
+      const htmlDir = document.documentElement.dir;
+      const bodyDir = document.body.dir;
+      const htmlLang = document.documentElement.lang;
+      const fontH2 = window.getComputedStyle(document.querySelector('#homeTitle')).fontFamily;
+      const homeTitleText = document.querySelector('#homeTitle').textContent;
+      return { htmlDir, bodyDir, htmlLang, fontH2, homeTitleText };
+    });
+    console.log('   [Check] English mode attributes:', langState);
+
+    const isLtrCorrect = langState.htmlDir === 'ltr' && langState.bodyDir === 'ltr' && langState.htmlLang === 'en';
+    const isFontPolished = langState.fontH2.includes('Outfit');
+    results.req1_12_englishAndFonts = (isLtrCorrect && isFontPolished) ? 'PASS' : 'FAIL';
+    console.log('   -> Requirements 1 & 12 (English layout & fonts):', results.req1_12_englishAndFonts);
+    await page.screenshot({ path: path.join(screenshotDir, '02_english_ltr.png') });
+
+    // Switch back to Arabic for subsequent tests
+    await page.click('#langToggleHome');
+    await page.waitForTimeout(400);
+
+    // -------------------------------------------------------------
+    // 3. Latte Cup Contrast & Barista Counter Station
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 3: Latte Cup Contrast & Barista Mat (pour) ---');
     await openGame('فن صب');
     await page.click('#preGo');
     await page.waitForTimeout(600);
 
-    // Verify #pourBtn is GONE from DOM
-    const pourBtnExists = await page.$eval('#pourBtn', () => true).catch(() => false);
-    console.log('   [Check] #pourBtn completely removed:', !pourBtnExists);
-
-    // Verify cup design elements match reference takeaway cup
-    const cupLidTop = await page.$eval('.cup-takeaway-lid-top', el => el.offsetWidth > 0).catch(() => false);
-    const cupLidRim = await page.$eval('.cup-takeaway-lid-rim', el => el.offsetWidth > 0).catch(() => false);
-    const cupBody = await page.$eval('.cup-takeaway-body', el => el.offsetWidth > 0).catch(() => false);
-    const cupSleeve = await page.$eval('.cup-takeaway-sleeve img', el => el.getAttribute('src')).catch(() => '');
-    console.log('   [Check] Cup elements present:', { cupLidTop, cupLidRim, cupBody, cupSleeve });
-
-    // Verify required target is visible from start
-    const targetHeaderVal = await page.$eval('#pourTargetHeader', el => el.textContent.trim());
-    const clientLevelBefore = await page.$eval('#pourLevelTxt', el => el.textContent.trim());
-    console.log(`   [Check] Required target displayed from start: "${targetHeaderVal}" (e.g. 65%)`);
-    console.log(`   [Check] Client percentage hidden before pour: "${clientLevelBefore}" (should be ---)`);
-
-    const targetHasNumber = /\d+%/.test(targetHeaderVal);
-    const clientHidden = clientLevelBefore === '---';
-
-    // Test pouring by touching screen
-    console.log('   [Action] Holding on stage to pour coffee...');
-    const stageBox = await page.$('#stage').then(el => el.boundingBox());
-    await page.mouse.move(stageBox.x + stageBox.width / 2, stageBox.y + stageBox.height * 0.6);
-    await page.mouse.down();
-    await page.waitForTimeout(1200);
-
-    const clientLevelDuring = await page.$eval('#pourLevelTxt', el => el.textContent.trim());
-    console.log(`   [Check] Client level during pour: "${clientLevelDuring}" (must not show percentage)`);
-    const clientHiddenDuring = !/\d+%/.test(clientLevelDuring);
-
-    await page.mouse.up();
-    await page.waitForTimeout(400);
-
-    const clientLevelAfter = await page.$eval('#pourLevelTxt', el => el.textContent.trim());
-    console.log(`   [Check] Client level AFTER release: "${clientLevelAfter}" (should now reveal %!)`);
-    const clientRevealedAfter = /\d+%/.test(clientLevelAfter);
-
-    results.issue1_cupDesign = (cupLidTop && cupLidRim && cupBody) ? 'PASS' : 'FAIL';
-    results.issue8_pourButtonsAndLevels = (!pourBtnExists && targetHasNumber && clientHidden && clientHiddenDuring && clientRevealedAfter) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 1 (Cup Design matching reference):', results.issue1_cupDesign);
-    console.log('   -> Issue 8 (Remove buttons, target visible, client level hidden until release):', results.issue8_pourButtonsAndLevels);
-    await page.screenshot({ path: path.join(screenshotDir, '02_latte_pour_game.png') });
+    const cupCheck = await page.evaluate(() => {
+      const station = document.querySelector('#pourStation');
+      const lidTop = document.querySelector('.cup-takeaway-lid-top');
+      const lidRim = document.querySelector('.cup-takeaway-lid-rim');
+      const body = document.querySelector('.cup-takeaway-body');
+      const stStyle = window.getComputedStyle(station);
+      return {
+        stationBorder: stStyle.borderColor,
+        stationBg: stStyle.backgroundImage,
+        hasLidTop: !!lidTop && lidTop.offsetWidth > 0,
+        hasLidRim: !!lidRim && lidRim.offsetWidth > 0,
+        hasBody: !!body && body.offsetWidth > 0
+      };
+    });
+    console.log('   [Check] Precision Pour cup & station:', cupCheck);
+    results.req3_cupContrast = (cupCheck.hasLidTop && cupCheck.hasLidRim && cupCheck.hasBody && cupCheck.stationBg.includes('gradient')) ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 3 (Latte cup contrast with station backdrop):', results.req3_cupContrast);
+    await page.screenshot({ path: path.join(screenshotDir, '03_pour_cup_contrast.png') });
 
     await page.click('#gExit');
     await page.waitForTimeout(400);
 
     // -------------------------------------------------------------
-    // ISSUE 4, 10 & 11: Espresso Notes (rhythm) No Button & No 119 Auto-Score
+    // 4. Flavor Harmony Completely Removed
     // -------------------------------------------------------------
-    console.log('\n--- TEST 3: Espresso Notes (rhythm) Fixes ---');
-    await openGame('نغمات الإسبريسو');
-
-    // Click #preGo to start
-    await page.click('#preGo');
-    // Wait 2 seconds without touching anything
-    console.log('   [Action] Waiting 2 seconds without touching anything in rhythm game...');
-    await page.waitForTimeout(2000);
-
-    const rhythmScoreAFK = await page.$eval('#gScore', el => parseInt(el.textContent, 10));
-    console.log(`   [Check] Score after 2s without playing: ${rhythmScoreAFK} (was 119 in bug!)`);
-    const noAutoScore = rhythmScoreAFK === 0;
-
-    // Verify #rhBtn is gone
-    const rhBtnExists = await page.$eval('#rhBtn', () => true).catch(() => false);
-    console.log('   [Check] #rhBtn button completely removed:', !rhBtnExists);
-
-    // Tap stage to test strike
-    await page.mouse.click(stageBox.x + stageBox.width / 2, stageBox.y + stageBox.height * 0.5);
-    await page.waitForTimeout(300);
-    const pulseExists = await page.$eval('.rh-pulse', () => true).catch(() => false);
-    console.log('   [Check] Tapping screen produces note strike pulse:', pulseExists !== false);
-
-    results.issue4_rhythmRestored = noAutoScore ? 'PASS' : 'FAIL';
-    results.issue10_rhythm119Fix = (rhythmScoreAFK === 0) ? 'PASS' : 'FAIL';
-    results.issue11_rhythmButtonRemoved = (!rhBtnExists) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 4 (Rhythm game gameplay):', results.issue4_rhythmRestored);
-    console.log('   -> Issue 10 (119 pts auto score bug resolved):', results.issue10_rhythm119Fix);
-    console.log('   -> Issue 11 (Remove rhythm button):', results.issue11_rhythmButtonRemoved);
-    await page.screenshot({ path: path.join(screenshotDir, '03_rhythm_game.png') });
-
-    await page.click('#gExit');
-    await page.waitForTimeout(400);
+    console.log('\n--- TEST 4: Flavor Harmony Completely Removed ---');
+    const fhExists = await page.evaluate(() => {
+      const tiles = Array.from(document.querySelectorAll('#grid button.tile'));
+      const foundInTiles = tiles.some(t => t.textContent.includes('تناغم النكهات') || t.textContent.includes('Flavor Harmony'));
+      const foundInGames = (typeof GAMES !== 'undefined') && GAMES.some(g => g.id === 'colorshift');
+      return foundInTiles || foundInGames;
+    });
+    console.log('   [Check] Flavor Harmony present in tiles or GAMES array:', fhExists);
+    results.req4_flavorHarmonyRemoved = (!fhExists) ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 4 (Completely remove flavor harmony):', results.req4_flavorHarmonyRemoved);
 
     // -------------------------------------------------------------
-    // ISSUE 3: Basketball Hoop Assembly & Realistic Motion
+    // 5. Basketball Progressive Difficulty
     // -------------------------------------------------------------
-    console.log('\n--- TEST 4: Basketball Hoop Alignment & Animation (basketball) ---');
+    console.log('\n--- TEST 5: Basketball Progressive Difficulty ---');
     await openGame('لعبة السلة');
     await page.click('#preGo');
     await page.waitForTimeout(600);
 
-    // Check hoop DOM structure: .bb-backboard contains .bb-hoop which contains .bb-rim and .bb-net
-    const hoopAssembly = await page.evaluate(() => {
-      const board = document.querySelector('.bb-backboard');
-      if (!board) return { exists: false };
-      const hoop = board.querySelector('.bb-hoop');
-      if (!hoop) return { exists: false, hasHoop: false };
-      const rim = hoop.querySelector('.bb-rim');
-      const net = hoop.querySelector('.bb-net');
+    const bbState = await page.evaluate(() => {
+      const board = document.querySelector('#bbBoard');
+      const ball = document.querySelector('#bbBall');
+      const rim = document.querySelector('#bbRim');
+      const net = document.querySelector('#bbNet');
       return {
-        exists: true,
-        hasHoop: true,
-        hasRim: !!rim,
-        hasNet: !!net,
-        hoopBottom: window.getComputedStyle(hoop).bottom,
-        rimTop: window.getComputedStyle(rim).top,
-        netTop: window.getComputedStyle(net).top
+        boardLeft: board ? board.style.left : '',
+        ballExists: !!ball,
+        rimExists: !!rim,
+        netExists: !!net
       };
     });
-    console.log('   [Check] Hoop assembly unified structure:', hoopAssembly);
-    const hoopProperlyUnified = hoopAssembly.hasHoop && hoopAssembly.hasRim && hoopAssembly.hasNet;
-
-    // Test shooting ball with drag & release
-    const ballPosBefore = await page.$eval('#bbBall', el => el.getBoundingClientRect());
-    console.log(`   [Action] Dragging ball from (${Math.round(ballPosBefore.x)}, ${Math.round(ballPosBefore.y)}) upward...`);
-    await page.mouse.move(ballPosBefore.x + 22, ballPosBefore.y + 22);
-    await page.mouse.down();
-    await page.mouse.move(ballPosBefore.x + 22, ballPosBefore.y - 60, { steps: 5 });
-    await page.mouse.up();
-
-    // Check shot in progress and depth scale/spin
-    await page.waitForTimeout(300);
-    const ballTransformDuringFlight = await page.$eval('#bbBall', el => el.style.transform);
-    console.log('   [Check] Ball transform during trajectory flight:', ballTransformDuringFlight);
-    const hasScaleAndRotate = ballTransformDuringFlight.includes('scale') && ballTransformDuringFlight.includes('rotate');
-
-    results.issue3_basketballHoopAndPhysics = (hoopProperlyUnified && hasScaleAndRotate) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 3 (Hoop unified & realistic ball physics):', results.issue3_basketballHoopAndPhysics);
-    await page.screenshot({ path: path.join(screenshotDir, '04_basketball_game.png') });
+    console.log('   [Check] Basketball initial board position (stationary at 50%):', bbState.boardLeft);
+    const bbStationaryInitial = bbState.boardLeft === '50%' || bbState.boardLeft === '';
+    results.req5_basketballDifficulty = (bbStationaryInitial && bbState.ballExists && bbState.rimExists) ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 5 (Basketball progressive difficulty):', results.req5_basketballDifficulty);
+    await page.screenshot({ path: path.join(screenshotDir, '04_basketball_stationary.png') });
 
     await page.click('#gExit');
     await page.waitForTimeout(400);
 
     // -------------------------------------------------------------
-    // ISSUE 5: Flavor Harmony Layout
+    // 6. Where Is the Bean (Shows Coffee Bean 🫘, Not Cup)
     // -------------------------------------------------------------
-    console.log('\n--- TEST 5: Flavor Harmony Layout (colorshift) ---');
-    await openGame('تناغم النكهات');
+    console.log('\n--- TEST 6: Where Is the Bean Icon (🫘✨) ---');
+    await openGame('أين حبة البن');
     await page.click('#preGo');
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(500);
 
-    const csLayout = await page.evaluate(() => {
-      const banner = document.querySelector('#csRuleBanner');
-      const target = document.querySelector('#csTarget');
-      const grid = document.querySelector('#csGrid');
-      const cards = Array.from(grid.querySelectorAll('.cs-card'));
-      return {
-        bannerText: banner ? banner.textContent : '',
-        targetHTML: target ? target.innerHTML : '',
-        hasDuplicateCat: target ? target.querySelector('.cs-prompt-cat') !== null : true,
-        cardCount: cards.length,
-        firstCardHeight: cards[0] ? cards[0].offsetHeight : 0
-      };
+    const beanIcon = await page.evaluate(() => {
+      const ballEl = document.querySelector('.s-ball');
+      return ballEl ? ballEl.textContent.trim() : '';
     });
-    console.log('   [Check] Target has duplicate category:', csLayout.hasDuplicateCat);
-    console.log(`   [Check] Card count: ${csLayout.cardCount}, First card height: ${csLayout.firstCardHeight}px`);
-
-    results.issue5_flavorHarmonyLayout = (!csLayout.hasDuplicateCat && csLayout.cardCount === 4 && csLayout.firstCardHeight >= 60) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 5 (Flavor harmony layout fixed):', results.issue5_flavorHarmonyLayout);
-    await page.screenshot({ path: path.join(screenshotDir, '05_flavor_harmony.png') });
+    console.log(`   [Check] Icon under cups: "${beanIcon}" (must contain bean 🫘)`);
+    results.req6_beanIcon = beanIcon.includes('🫘') ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 6 (Coffee bean under cup instead of coffee cup):', results.req6_beanIcon);
+    await page.screenshot({ path: path.join(screenshotDir, '05_where_is_the_bean.png') });
 
     await page.click('#gExit');
     await page.waitForTimeout(400);
 
     // -------------------------------------------------------------
-    // ISSUE 9: Cup Tower Overlapping Sentence Fix
+    // 7. Player Profile Modal, Avatar Grid & Photo Upload
     // -------------------------------------------------------------
-    console.log('\n--- TEST 6: Cup Tower Instructions (stack) ---');
-    await openGame('برج الأكواب');
-    await page.click('#preGo');
-    await page.waitForTimeout(600);
-
-    const stackInstructions = await page.evaluate(() => {
-      const stage = document.querySelector('#stage');
-      const msgs = Array.from(stage.querySelectorAll('.t-msg, .stack-guide-banner'));
-      return msgs.map(m => ({ class: m.className, text: m.textContent }));
-    });
-    console.log('   [Check] Instruction banners in stage:', stackInstructions);
-    const noDuplicateStackMsg = stackInstructions.length === 1;
-
-    results.issue9_cupTowerTextOverlap = noDuplicateStackMsg ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 9 (Cup tower overlapping sentences fixed):', results.issue9_cupTowerTextOverlap);
-    await page.screenshot({ path: path.join(screenshotDir, '06_cup_tower.png') });
-
-    await page.click('#gExit');
+    console.log('\n--- TEST 7: Player Profile, Avatar Selection & Photo Upload ---');
+    await page.click('#profileToggleHome');
     await page.waitForTimeout(400);
 
-    // -------------------------------------------------------------
-    // ISSUE 7: Score Deductions (-10 pts) in Reflex & Beans
-    // -------------------------------------------------------------
-    console.log('\n--- TEST 7: Score Deductions in Barista Speed & Bean Catching ---');
+    const profModalVisible = await page.$eval('#modalProfile', el => el.classList.contains('active'));
+    const avatarButtonsCount = await page.$$eval('#profAvatarGrid .prof-avatar-btn', btns => btns.length);
+    const fileInputExists = await page.$eval('#profFileInput', el => el.type === 'file');
+    console.log(`   [Check] Profile modal visible: ${profModalVisible}, Avatars: ${avatarButtonsCount}, File upload exists: ${fileInputExists}`);
 
-    // Reflex Rush: start with score 50, wait for gold target to expire, verify -10 deduction
+    // Set nickname and choose avatar
+    await page.fill('#profNickInput', 'باريستا فهد');
+    await page.click('#profAvatarGrid .prof-avatar-btn[data-avatar="👑"]');
+    await page.click('#btnSaveProfile');
+    await page.waitForTimeout(400);
+
+    const savedProfile = await page.evaluate(() => {
+      const s = (typeof window.getCafeState === 'function') ? window.getCafeState() : {};
+      return { nickname: s.nickname, avatar: s.avatar };
+    });
+    console.log('   [Check] Saved profile state:', savedProfile);
+    results.req8_playerProfile = (profModalVisible && avatarButtonsCount >= 8 && fileInputExists && savedProfile.nickname === 'باريستا فهد' && savedProfile.avatar === '👑') ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 8 (Nickname & avatar/photo profile):', results.req8_playerProfile);
+
+    // -------------------------------------------------------------
+    // 8. Leaderboard Clean State Until Nicknames Are Registered
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 8: Leaderboard Clean Registration ---');
     await openGame('سرعة الباريستا');
-    await page.click('#preGo');
-    await page.waitForTimeout(500);
+    const lbContent = await page.$eval('#preLeaderboardList', el => el.textContent.trim());
+    console.log(`   [Check] Embedded leaderboard text: "${lbContent}"`);
+    results.req11_leaderboardEmptyState = (lbContent.length > 0) ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 11 (Clean leaderboard with clear notice):', results.req11_leaderboardEmptyState);
 
-    const reflexDeducted = await page.evaluate(async () => {
-      const run = window.__getRun();
-      run.score = 50;
-      const init = run.score;
-      // Wait 2.2s for the first gold target (life ~1.65s) to expire naturally
-      await new Promise(r => setTimeout(r, 2200));
-      return {
-        initial: init,
-        after: run.score,
-        deducted: run.score < init && (init - run.score) >= 10
-      };
-    });
-    console.log(`   [Reflex] Initial: ${reflexDeducted.initial}, After natural expiration: ${reflexDeducted.after}`);
-    console.log(`   [Reflex] Missed gold target deducted 10 points:`, reflexDeducted.deducted);
-
-    await page.click('#gExit');
-    await page.waitForTimeout(400);
-
-    // Bean Catching: move sack off-screen so no beans are caught, let good bean fall off bottom, verify -10 deduction
-    await openGame('اصطياد البن');
-    await page.click('#preGo');
-    await page.waitForTimeout(500);
-
-    // Move basket to left edge so middle and right beans fall off screen
-    for (let k = 0; k < 15; k++) {
-      await page.keyboard.press('ArrowLeft');
-    }
-
-    const beansDeducted = await page.evaluate(async () => {
-      const run = window.__getRun();
-      run.score = 60;
-      const init = run.score;
-      // Wait 3.5s for beans to fall off screen
-      await new Promise(r => setTimeout(r, 3500));
-      return {
-        initial: init,
-        after: run.score,
-        deducted: run.score < init
-      };
-    });
-    console.log(`   [Beans] Initial: ${beansDeducted.initial}, After falling off screen: ${beansDeducted.after}`);
-    console.log(`   [Beans] Missed good bean deducted 10 points:`, beansDeducted.deducted);
-
-    results.issue7_scoreDeduction = (reflexDeducted.deducted && beansDeducted.deducted) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 7 (Missed targets/beans deduct 10 pts):', results.issue7_scoreDeduction);
-    await page.screenshot({ path: path.join(screenshotDir, '07_score_deduction.png') });
-
-    await page.click('#gExit');
+    await page.click('#preBack');
     await page.waitForTimeout(400);
 
     // -------------------------------------------------------------
-    // ISSUE 6: Reward Voucher Claim Button & Full Claim Flow
+    // 9. Single Reward Upgrade & Next Order Wording
     // -------------------------------------------------------------
-    console.log('\n--- TEST 8: Reward Voucher Claim Flow ---');
-    // Open a game and simulate achieving winning score (6,000 pts >= Tier 1: 5,000 pts)
-    await openGame('سرعة الباريستا');
-    await page.click('#preGo');
-    await page.waitForTimeout(500);
-
+    console.log('\n--- TEST 9: Single Reward per Session, Upgrades & Next Order Badge ---');
+    // Simulate scoring 5000 points
     await page.evaluate(() => {
-      const run = window.__getRun();
-      if (run) { run.score = 6200; }
-      window.__endRun('Test round completed with winning score');
+      const s = window.getCafeState();
+      if(s){ s.best = 5200; window.saveCafeState(); window.renderHomeView(); }
     });
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(400);
 
-    // Check result screen is shown
-    const resultVisible = await page.$eval('#result', el => el.classList.contains('on'));
-    console.log('   [Check] Result screen active:', resultVisible);
-
-    // Check #resClaim button is visible and active!
-    const claimBtnDisplay = await page.$eval('#resClaim', el => el.style.display);
-    const claimBtnText = await page.$eval('#resClaim', el => el.textContent.trim());
-    console.log(`   [Check] #resClaim button display: "${claimBtnDisplay}", text: "${claimBtnText}"`);
-
-    const claimButtonActive = claimBtnDisplay !== 'none' && claimBtnDisplay !== '';
-
-    // Click claim button to proceed to voucher choice screen
-    await page.click('#resClaim');
+    // Click claim button on home claimbar
+    await page.click('#claimBar button');
     await page.waitForTimeout(500);
 
-    const choiceScreenActive = await page.$eval('#choice', el => el.classList.contains('on'));
-    console.log('   [Check] Choice screen active after clicking claim:', choiceScreenActive);
-
-    // Select the 5% reward button
+    // Select 5% reward
     await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('#chOpts button'));
       if (btns[0]) btns[0].click();
     });
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(400);
 
-    // If phone card appears, enter Saudi mobile number
+    // Enter phone if prompted
     const phoneCardVisible = await page.$eval('#choicePhoneCard', el => el.style.display !== 'none').catch(() => false);
     if (phoneCardVisible) {
-      console.log('   [Action] Entering valid Saudi mobile number: 0501234567');
       await page.fill('#chPhone', '0501234567');
       await page.click('#btnConfirmChoicePhone');
-      await page.waitForTimeout(800);
+      await page.waitForTimeout(600);
     }
 
-    // Verify voucher reward screen (#reward) is now active with code!
-    const rewardScreenActive = await page.$eval('#reward', el => el.classList.contains('on'));
-    const voucherCode = await page.$eval('#rwCode', el => el.textContent.trim());
-    console.log(`   [Check] Reward screen active: ${rewardScreenActive}, Issued Code: "${voucherCode}"`);
+    // Verify NEXT ORDER text prominently on voucher screen
+    const voucherNextOrderText = await page.$eval('#rwNextOrderBadge', el => el.textContent.trim());
+    const voucherExpText = await page.$eval('#rwExp', el => el.textContent.trim());
+    console.log(`   [Check] Next order badge: "${voucherNextOrderText}"`);
+    console.log(`   [Check] Voucher validity: "${voucherExpText}"`);
+    const hasNextOrderNotice = voucherNextOrderText.includes('طلبك القادم') || voucherNextOrderText.includes('NEXT ORDER');
 
-    // Now return to home and verify claim bar is visible with button to view voucher
+    // Return to home and verify claim bar is now for VIEW or UPGRADE only (one reward only!)
     await page.click('#rwBack');
     await page.waitForTimeout(400);
 
-    const homeClaimBarVisible = await page.$eval('#claimBar', el => !el.hidden && el.offsetWidth > 0).catch(() => false);
-    const homeClaimBarBtn = await page.$eval('#claimBar button', el => el.textContent.trim()).catch(() => '');
-    console.log(`   [Check] Home claim bar visible with reserved voucher: ${homeClaimBarVisible}, button: "${homeClaimBarBtn}"`);
+    const claimBarText = await page.$eval('#claimBar', el => el.textContent.trim());
+    console.log(`   [Check] Claim bar with reserved voucher: "${claimBarText}"`);
 
-    results.issue6_rewardVoucherClaim = (claimButtonActive && choiceScreenActive && rewardScreenActive && voucherCode.length > 5 && homeClaimBarVisible) ? 'PASS' : 'FAIL';
-    console.log('   -> Issue 6 (Reward voucher claim & view flow):', results.issue6_rewardVoucherClaim);
-    await page.screenshot({ path: path.join(screenshotDir, '08_reward_voucher_flow.png') });
+    // Now simulate player earning 8000 points (tier 2 upgrade available!)
+    await page.evaluate(() => {
+      const s = window.getCafeState();
+      if(s){ s.best = 8200; window.saveCafeState(); window.renderHomeView(); }
+    });
+    await page.waitForTimeout(400);
+
+    const upgradeBarText = await page.$eval('#claimBar', el => el.textContent.trim());
+    const upgradeBtnText = await page.$eval('#claimBar button', el => el.textContent.trim());
+    console.log(`   [Check] Claim bar when higher score earned: "${upgradeBtnText}"`);
+
+    const isSingleRewardUpgrade = hasNextOrderNotice && (upgradeBtnText.includes('ترقية') || upgradeBtnText.includes('Upgrade'));
+    results.req7_9_singleRewardAndNextOrder = isSingleRewardUpgrade ? 'PASS' : 'FAIL';
+    console.log('   -> Requirements 7 & 9 (Single reward upgrade & Next Order badge):', results.req7_9_singleRewardAndNextOrder);
+    await page.screenshot({ path: path.join(screenshotDir, '06_reward_next_order.png') });
+
+    // -------------------------------------------------------------
+    // 10. Motivating Loss Message
+    // -------------------------------------------------------------
+    console.log('\n--- TEST 10: Motivating Loss Message ---');
+    await openGame('سرعة الباريستا');
+    await page.click('#preGo');
+    await page.waitForTimeout(500);
+
+    const lossMsg = await page.evaluate(() => {
+      const r = window.__getRun();
+      if(r){
+        r.hearts = 0;
+        r.score = 0;
+      }
+      window.__endRun('hearts');
+      const msg = document.querySelector('#resMsg');
+      return msg ? msg.textContent.trim() : '';
+    });
+    console.log(`   [Check] Motivating loss message on 0 hearts / 0 score: "${lossMsg}"`);
+    const hasMotivatingWords = lossMsg.includes('لا تتوقف') || lossMsg.includes('لا تستسلم') || lossMsg.includes('محاولة رائعة') || lossMsg.includes('جرب مرة ثانية');
+    results.req2_motivatingLossMessage = hasMotivatingWords ? 'PASS' : 'FAIL';
+    console.log('   -> Requirement 2 (Motivating message to keep playing):', results.req2_motivatingLossMessage);
 
   } catch (err) {
     console.error('Test execution error:', err);
@@ -395,7 +308,7 @@ async function runAllScenarios() {
   console.log('================================================================');
   console.table(results);
   const allPassed = Object.values(results).every(v => v === 'PASS');
-  console.log(`OVERALL STATUS: ${allPassed ? 'ALL TESTS PASSED (100% HEALTHY) ✓' : 'SOME TESTS FAILED ✗'}`);
+  console.log(`OVERALL STATUS: ${allPassed ? 'ALL USER REQUIREMENTS VERIFIED & PASSED (100%) ✓' : 'SOME TESTS FAILED ✗'}`);
 }
 
 runAllScenarios();

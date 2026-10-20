@@ -883,7 +883,8 @@ btnVerifyCode.addEventListener('click', () => {
   cashierResult.className = 'alert success';
   cashierResult.innerHTML = `
     <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
-    <div style="font-size:13px;margin-bottom:12px">الكود: <span class="code-box">${code}</span> • المكافأة المعتمدة: <b>${rewardName}</b></div>
+    <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${code}</span> • المكافأة المعتمدة: <b>${rewardName}</b></div>
+    <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:12px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
     <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
   `;
 

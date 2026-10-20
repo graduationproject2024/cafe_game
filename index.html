@@ -9,7 +9,7 @@
 <link rel="icon" type="image/png" href="assets/logo_gold.png">
 <style>
 /* ============ نظام التصميم والهوية البصرية لكافيه the A&A ============ */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800&family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
 
 /* لوحة الألوان الرسمية المعتمدة لـ the A&A من دليل الهوية */
 :root {
@@ -197,6 +197,34 @@ html, body {
   -webkit-user-select: none;
   touch-action: manipulation;
   transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* دعم الاتجاهين والخط الإنجليزي الفاخر */
+html[dir="ltr"], html[dir="ltr"] body {
+  direction: ltr !important;
+  text-align: left !important;
+}
+html[dir="rtl"], html[dir="rtl"] body {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+html[lang="en"], html[lang="en"] body {
+  font-family: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+html[lang="en"] h1, html[lang="en"] h2, html[lang="en"] h3, html[lang="en"] .brand-title {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+html[lang="en"] .brand-subtitle {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  letter-spacing: 0.02em;
+  font-size: 12px;
+}
+html[lang="en"] .btn, html[lang="en"] .card-name, html[lang="en"] .rp-score, html[lang="en"] .rp-reward, html[lang="en"] .fine {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif !important;
 }
 
 /* ============ إطارات الشاشات والتدفق ============ */
@@ -1083,71 +1111,7 @@ h2 {
 .b-bean.bonus { background: #E0B73F; border: 2px solid #fff; animation: pulseTarget 0.8s infinite alternate; }
 .b-bean.burnt { background: #3B1E18; border: 1.5px solid var(--error); color: #ff857a; }
 
-/* 6. Flavor Harmony (تناغم النكهات) — بطاقات النكهات الحسية للقهوة */
-.cs-wrap {
-  width: 100%; height: 100%;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: space-between;
-  padding: 10px 14px;
-  box-sizing: border-box;
-}
-.cs-rule-banner {
-  background: var(--surface-alt);
-  border: 1.5px solid var(--border-strong);
-  border-radius: var(--radius-full);
-  padding: 5px 14px;
-  font-size: 12px; font-weight: 800; color: var(--primary);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 90%;
-  box-shadow: var(--shadow-sm);
-}
-.cs-target-card {
-  width: 100%; max-width: 320px;
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border-strong);
-  background: var(--surface);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  padding: 12px 14px;
-  box-sizing: border-box;
-  text-align: center;
-  box-shadow: var(--shadow-sm);
-}
-.cs-prompt-title {
-  font-size: 14px; font-weight: 800; color: var(--text);
-  line-height: 1.45; margin-bottom: 4px;
-}
-.cs-prompt-sub {
-  font-size: 11px; font-weight: 700; color: var(--primary);
-}
-.cs-options-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 10px; width: 100%; max-width: 320px;
-}
-.cs-card {
-  min-height: 74px;
-  padding: 8px 6px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  gap: 4px; cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  color: var(--text);
-  text-align: center;
-  transition: transform 0.12s, border-color 0.12s, background-color 0.12s;
-}
-.cs-card:active { transform: scale(0.95); }
-.cs-card .cs-icon { font-size: 24px; line-height: 1; }
-.cs-card .cs-name { font-size: 11px; font-weight: 700; line-height: 1.35; color: var(--text); }
-.cs-card.correct { border-color: var(--success) !important; background: rgba(125, 155, 106, 0.2) !important; transform: scale(1.03); }
-.cs-card.wrong { border-color: var(--error) !important; background: rgba(217, 83, 79, 0.2) !important; animation: shake 0.3s; }
-
-/* 7. Precision Pour (فن صبّ اللاتيه) — تصميم الكوب الورقي المرجعي */
+/* 6. Precision Pour (فن صبّ اللاتيه) — تصميم الكوب الورقي المرجعي مع التباين الفاخر */
 .pour-wrap {
   width: 100%; height: 100%;
   display: flex; flex-direction: column;
@@ -1163,8 +1127,18 @@ h2 {
 .pour-station {
   position: relative;
   display: flex; flex-direction: column; align-items: center;
-  margin: 2px 0;
+  margin: 6px auto;
+  padding: 20px 30px 16px;
+  background: radial-gradient(circle at 50% 40%, #352B20 0%, #1A140E 100%);
+  border: 2px solid #C9A961;
+  border-radius: 24px;
+  box-shadow: 0 12px 30px rgba(28, 22, 16, 0.4), inset 0 2px 8px rgba(0,0,0,0.6);
   cursor: pointer;
+}
+[data-theme="dark"] .pour-station {
+  background: radial-gradient(circle at 50% 40%, #2A2117 0%, #100C08 100%);
+  border-color: #C9A961;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.75), inset 0 2px 10px rgba(0,0,0,0.8);
 }
 .pitcher-spout {
   position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
@@ -1188,14 +1162,23 @@ h2 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,0.12));
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.5)) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
 }
-/* الغطاء العلوي المشطوف مطابق تماماً للمرجع */
+.latte-cup-assembly::after {
+  content: '';
+  display: block;
+  width: 140px;
+  height: 12px;
+  background: radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.65) 0%, transparent 75%);
+  border-radius: 50%;
+  margin-top: 4px;
+}
+/* الغطاء العلوي المشطوف مطابق تماماً للمرجع وبتباين واضح */
 .cup-takeaway-lid-top {
   width: 144px;
   height: 22px;
-  background: #FFFFFF;
-  border: 2px solid #221D17;
+  background: linear-gradient(180deg, #FFFFFF 0%, #EFEBE1 100%);
+  border: 2.5px solid #221D17;
   border-bottom: none;
   border-radius: 4px 4px 0 0;
   clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
@@ -1209,24 +1192,102 @@ h2 {
 .cup-takeaway-lid-rim {
   width: 172px;
   height: 18px;
-  background: #FFFFFF;
-  border: 2px solid #221D17;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E8E3D7 100%);
+  border: 2.5px solid #221D17;
   border-radius: 4px;
   z-index: 11;
-  box-shadow: 0 2px 4px rgba(34, 29, 23, 0.12);
+  box-shadow: 0 3px 6px rgba(34, 29, 23, 0.22);
 }
-/* جسم الكوب المخروطي النظيف */
+/* جسم الكوب المخروطي النظيف مع إضاءة ثلاثية الأبعاد */
 .cup-takeaway-body {
   position: relative;
   width: 158px;
   height: 204px;
-  background: #FFFFFF;
-  border: 2px solid #221D17;
+  background: linear-gradient(90deg, #EBE4D5 0%, #FAF8F2 20%, #FFFFFF 50%, #FAF8F2 80%, #DFD6C2 100%);
+  border: 2.5px solid #221D17;
   border-top: none;
   border-radius: 0 0 16px 16px;
   clip-path: polygon(0% 0%, 100% 0%, 86% 100%, 14% 100%);
   overflow: hidden;
   z-index: 5;
+}
+/* شارة القسيمة للطلب القادم */
+.t-next-order-badge {
+  background: var(--surface-alt);
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  margin: 10px 0;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+/* تنسيقات الملف الشخصي والاسم المستعار والافاتار */
+.prof-avatar-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 8px auto 12px;
+  border: 3px solid var(--primary);
+  background: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+}
+.prof-avatar-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.prof-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+.prof-avatar-btn {
+  font-size: 24px;
+  padding: 6px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prof-avatar-btn:hover, .prof-avatar-btn.selected {
+  border-color: var(--primary);
+  transform: scale(1.15);
+  background: var(--surface-alt);
+}
+.lb-avatar-slot {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border-strong);
+  overflow: hidden;
+  margin-inline-end: 8px;
+  flex-shrink: 0;
+}
+.lb-avatar-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.lb-avatar-slot .lb-emoji {
+  font-size: 18px;
+  line-height: 1;
 }
 .cup-takeaway-sleeve {
   position: absolute;
@@ -1790,7 +1851,9 @@ h2 {
   pointer-events: none;
 }
 [dir="rtl"] .rp-stop { transform: translateX(50%); }
-[dir="rtl"] .rp-car { transform: translateX(50%); }
+[dir="rtl"] .rp-car { transform: translateX(50%) scaleX(1); }
+[dir="ltr"] .rp-stop { transform: translateX(-50%); }
+[dir="ltr"] .rp-car { transform: translateX(-50%) scaleX(-1); }
 .rp-dot {
   width: 26px; height: 26px; border-radius: 50%;
   display: grid; place-items: center;
@@ -1961,8 +2024,8 @@ h2 {
           <svg class="snd-icon snd-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
           <svg class="snd-icon snd-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
         </button>
-        <button id="sessionResetHome" class="icon-action-btn" type="button" aria-label="بدء جلسة جديدة" title="بدء جلسة جديدة">
-          <span style="font-size:15px">🔄</span>
+        <button id="profileToggleHome" class="icon-action-btn" type="button" aria-label="الملف الشخصي واسم اللاعب / Player Profile" title="الملف الشخصي واسم اللاعب">
+          <span id="profileAvatarHome" style="font-size:15px">👤</span>
         </button>
       </div>
     </header>
@@ -2133,7 +2196,10 @@ h2 {
       <div class="t-sep"></div>
       <div class="t-code" id="rwCode"></div>
       <p class="t-exp" id="rwExp"></p>
-      <p class="t-note">كود مشفر لمرة واحدة. اعرضه على كاشير the A&A بالمدينة المنورة.</p>
+      <div class="t-next-order-badge" id="rwNextOrderBadge">
+        📌 <b>صالحة للاستخدام في طلبك القادم</b> (وليست على نفس الطلب الحالي)
+      </div>
+      <p class="t-note">كود مشفر لمرة واحدة. اعرضه على كاشير the A&A بالمدينة المنورة في زيارتك القادمة.</p>
     </div>
 
     <div class="reward-terms-note">
@@ -2145,19 +2211,90 @@ h2 {
   </div>
 </section>
 
+<!-- مودال الملف الشخصي للاعب (الاسم المستعار + الصورة/الافاتار) -->
+<div id="modalProfile" class="modal-overlay">
+  <div class="modal-dialog" style="max-width:350px;text-align:center">
+    <div style="font-size:32px">☕👑</div>
+    <h3 id="profTitle" style="margin:4px 0 6px">الملف الشخصي للاعب</h3>
+    <p id="profSub" style="font-size:12px;color:var(--text-muted);margin:0 0 12px">
+      سجّل اسمك وصورتك لتتصدر قائمة أفضل 10 لاعبين في the A&A
+    </p>
+
+    <!-- معاينة الصورة الشخصية الدائرية -->
+    <div class="prof-avatar-preview" id="profAvatarPreview">
+      <span id="profAvatarDisplay" style="font-size:38px">☕</span>
+    </div>
+
+    <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">اختر أفاتار الباريستا أو ارفع صورتك:</div>
+    <div class="prof-avatar-grid" id="profAvatarGrid">
+      <button type="button" class="prof-avatar-btn selected" data-avatar="☕">☕</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🧑‍🍳">🧑‍🍳</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="👑">👑</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🦁">🦁</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🦅">🦅</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="⚡">⚡</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🌟">🌟</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🫖">🫖</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🥐">🥐</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🏆">🏆</button>
+    </div>
+
+    <div style="margin:6px 0 10px">
+      <label class="btn ghost btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:6px 14px;font-size:12px">
+        <span>📸 رفع صورة مخصصة</span>
+        <input type="file" id="profFileInput" accept="image/*" style="display:none">
+      </label>
+    </div>
+
+    <div class="field" style="margin-top:6px">
+      <input id="profNickInput" type="text" maxlength="15" placeholder="اسمك المستعار (مثال: باريستا المدينة)" style="text-align:center">
+      <div id="profErr" class="err"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button id="btnSaveProfile" class="btn" style="flex:1">حفظ الملف 🏆</button>
+      <button id="btnCloseProfile" class="btn ghost" style="width:auto">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <!-- مودالات لوحة المتصدرين والاسم المستعار والتهنئة -->
 <div id="modalNickname" class="modal-overlay">
-  <div class="modal-dialog">
+  <div class="modal-dialog" style="max-width:350px;text-align:center">
     <div style="font-size:36px;text-align:center">🏆✨</div>
-    <h3>تهانينا! تأهلت لقائمة أفضل 10 لاعبين</h3>
-    <p style="font-size:14px;color:var(--text-muted);text-align:center;margin:0">
-      سجّل اسمك المستعار (Nickname) ليظهر في لوحة الشرف لرواد the A&A:
+    <h3 id="nickModalTitle">تهانينا! تأهلت لقائمة أفضل 10 لاعبين</h3>
+    <p id="nickModalSub" style="font-size:13px;color:var(--text-muted);text-align:center;margin:0 0 10px">
+      سجّل اسمك المستعار وافصل أفاتارك ليظهر في لوحة الشرف لرواد the A&A:
     </p>
+
+    <!-- معاينة الصورة الشخصية -->
+    <div class="prof-avatar-preview" id="modalNickAvatarPreview">
+      <span id="modalNickAvatarDisplay" style="font-size:38px">☕</span>
+    </div>
+
+    <div class="prof-avatar-grid" id="modalNickAvatarGrid">
+      <button type="button" class="prof-avatar-btn selected" data-avatar="☕">☕</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🧑‍🍳">🧑‍🍳</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="👑">👑</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🦁">🦁</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="⚡">⚡</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🌟">🌟</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🫖">🫖</button>
+      <button type="button" class="prof-avatar-btn" data-avatar="🏆">🏆</button>
+    </div>
+
+    <div style="margin:4px 0 8px">
+      <label class="btn ghost btn-sm" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:5px 12px;font-size:12px">
+        <span>📸 رفع صورة شخصية</span>
+        <input type="file" id="modalNickFileInput" accept="image/*" style="display:none">
+      </label>
+    </div>
+
     <div class="field" style="margin-top:6px">
       <input id="nickInput" type="text" maxlength="15" placeholder="اسمك المستعار (مثال: باريستا المدينة)" style="text-align:center">
       <div id="nickErr" class="err"></div>
     </div>
-    <button id="btnSaveNickname" class="btn">حفظ ومتابعة 🏆</button>
+    <button id="btnSaveNickname" class="btn" style="margin-top:10px">حفظ ومتابعة 🏆</button>
   </div>
 </div>
 
@@ -2558,12 +2695,17 @@ const LeaderboardEngine = {
     if(top.length < 10) return true;
     return score > top[top.length - 1].score;
   },
-  recordScore(gameId, score, nickname, phone){
+  recordScore(gameId, score, nickname, phone, avatar){
     if(!this.qualifies(gameId, score)) return { qualified: false, isNewTop10: false };
+    const effectiveNick = nickname || (typeof S !== 'undefined' && S && S.nickname);
+    // إذا لم يكن العميل قد أنشأ اسماً مستعاراً بعد، نطلب منه إنشاء الاسم والصورة قبل التسجيل
+    if(!effectiveNick){
+      return { qualified: true, requiresNickname: true };
+    }
+    const effectiveAvatar = avatar || (typeof S !== 'undefined' && S && S.avatar) || '☕';
     const boards = this.getBoards();
     if(!boards[gameId]) boards[gameId] = [];
     const now = Date.now();
-    const effectiveNick = nickname || (typeof S !== 'undefined' && S && S.nickname) || 'باريستا the A&A';
     
     // Check if player already registered
     const existingIdx = boards[gameId].findIndex(e => (phone && e.phone === phone) || (effectiveNick && e.nickname === effectiveNick));
@@ -2571,6 +2713,7 @@ const LeaderboardEngine = {
     let isNewTop10 = false;
     if(existingIdx >= 0){
       entry = boards[gameId][existingIdx];
+      entry.avatar = effectiveAvatar;
       if(score > entry.score){
         entry.score = score;
         entry.updatedAt = now;
@@ -2579,6 +2722,7 @@ const LeaderboardEngine = {
       isNewTop10 = true;
       entry = {
         nickname: effectiveNick,
+        avatar: effectiveAvatar,
         phone: phone ? phone.slice(0, 6) + '***' + phone.slice(-2) : '',
         score: score,
         qualifiedAt: now,
@@ -2979,25 +3123,27 @@ function endRun(reason){
   } else if(run.hearts <= 0){
     const hasBonus = (!S.extraHeartFollowClaimed || !S.extraHeartLikeClaimed);
     if(hasBonus){
-      outcomeMsg = isEn ? 'Out of hearts! Don\'t stop now, recover an extra heart via Instagram below to resume your round.' : 'نفدت القلوب! لا تتوقف الآن، يمكنك استعادة محاولة إضافية عبر إنستغرام أدناه ومتابعة الجولة.';
+      outcomeMsg = isEn ? '☕ Don\'t stop now, Champion! You can recover an extra heart via Instagram below to continue the challenge!' : '☕ لا تتوقف الآن يا بطل! استعد محاولتك الإضافية عبر إنستغرام أدناه وواصل التحدي لحصد هديتك!';
     } else {
-      outcomeMsg = isEn ? 'You ran out of hearts for this round. Better luck in your next game!' : 'انتهت المحاولات المتاحة في هذه الجولة. حظاً أوفر في الجولة القادمة!';
+      outcomeMsg = isEn ? '☕ Great effort, Champion! Every master barista practices. Tap "Play Again" now, your special reward is just around the corner!' : '☕ محاولة رائعة يا بطل! القهوة بتعلمنا الإصرار والمهارة.. اضغط "جرب مرة ثانية" الآن وهديتك بانتظارك!';
     }
   } else if(t > 0 && !S.claim && run.score >= (CFG.tiers[t - 1] || 5000)){
-    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (TIER_TXT[t] || 'your reward') + '. Claim your voucher now 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (TIER_TXT[t] || 'المكافأة') + '. احجز كود الخصم الآن 🎁');
+    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (TIER_TXT[t] || 'your reward') + '. Claim your voucher now for your next order 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (TIER_TXT[t] || 'المكافأة') + '. احجز كود الخصم لطلبك القادم الآن 🎁');
   } else if(run.score > prevBest && prevBest > 0){
     outcomeMsg = isEn ? ('New personal best! You scored ' + run.score + ' pts, beating your previous record (' + prevBest + ' pts) 🔥') : ('رقم قياسي جديد لك! حققت ' + run.score + ' نقطة، متجاوزاً أفضل نتيجة سابقة (' + prevBest + ' نقطة) 🔥');
   } else if(run.score > 0 && S.best < 5000){
     const remaining = 5000 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts to unlock your first reward (5% OFF).') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية للوصول إلى مكافأتك الأولى (خصم 5%).');
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts to unlock 5% OFF on your next order. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لفتح خصم 5% على طلبك القادم. العب جولة ثانية الآن ☕');
   } else if(run.score > 0 && S.best < 7500){
     const remaining = 7500 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts to reach 7% OFF.') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية للوصول إلى خصم 7%.');
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts to reach 7% OFF on your next order. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية خصمك إلى 7% على طلبك القادم. العب جولة ثانية الآن ☕');
   } else if(run.score > 0 && S.best < 10000){
     const remaining = 10000 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts. You need ' + remaining + ' more pts for Free Drink Upgrade 🏆.') : ('جمعت ' + run.score + ' نقطة في هذه الجولة. تحتاج إلى ' + remaining + ' نقطة إضافية لترقية المشروب المجانية 🏆.');
+    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts for Free Drink Upgrade 🏆. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية المشروب المجانية 🏆. العب جولة ثانية الآن ☕');
+  } else if(run.score === 0){
+    outcomeMsg = isEn ? '☕ Don\'t give up, Champion! Every great barista starts with practice. Hit "Play Again" now, your special A&A reward is waiting!' : '☕ لا تستسلم يا بطل! بداية كل باريستا محترف محاولة وتجربة.. اضغط "العب مرة أخرى" وورجينا مهارتك، هديتك بانتظارك!';
   } else {
-    outcomeMsg = isEn ? ('Well done! You finished the round with ' + run.score + ' pts. Keep playing!') : ('أحسنت! أنهيت الجولة بنجاح بـ ' + run.score + ' نقطة. واصل التحدي!');
+    outcomeMsg = isEn ? ('Awesome game! You finished the round with ' + run.score + ' pts. Keep the momentum going!') : ('أداء رائع يا بطل! أنهيت الجولة بـ ' + run.score + ' نقطة. واصل التحدي واللعب ☕✨');
   }
 
   $('#resMsg').textContent = outcomeMsg;
@@ -3009,12 +3155,16 @@ function endRun(reason){
   if(claimBtn){
     if(t > 0){
       claimBtn.style.display = 'block';
-      if(S.claim){
+      const curClaimTier = S.claim ? (S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1)) : 0;
+      if(S.claim && t > curClaimTier){
+        claimBtn.textContent = isEn ? 'Upgrade Your Voucher ⬆️' : 'ترقية قسيمتك الحالية ⬆️';
+        claimBtn.onclick = () => { claimFlow(true); SFX.tap(); };
+      } else if(S.claim){
         claimBtn.textContent = isEn ? 'View Reserved Voucher 🎟️' : 'عرض قسيمتك المحجوزة 🎟️';
         claimBtn.onclick = () => { renderReward(S.claim); show('reward'); SFX.tap(); };
       } else {
         claimBtn.textContent = isEn ? 'Claim Voucher Now 🎁' : 'استلم قسيمتك الآن 🎁';
-        claimBtn.onclick = () => { claimFlow(); SFX.tap(); };
+        claimBtn.onclick = () => { claimFlow(false); SFX.tap(); };
       }
     } else {
       claimBtn.style.display = 'none';
@@ -3044,11 +3194,11 @@ function endRun(reason){
 
   // Phase 10: فحص قائمة أفضل 10 لاعبين وعرض التهنئة والاسم المستعار
   if(run.score > 0){
-    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone);
-    if(lb && lb.newlyQualified){
+    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone, S.avatar);
+    if(lb && (lb.newlyQualified || lb.requiresNickname)){
       if(!S.nickname){
         openNicknameModal(gm.id);
-      } else {
+      } else if(lb.newlyQualified){
         openTop10CelebrationPopup();
       }
     }
@@ -3331,7 +3481,7 @@ const GAMES = [
     const msg = $('.sh-msg', st);
     const cups = [0, 1, 2].map(i => {
       const e = el('div', 's-cup',
-        '<div class="s-bean-nest"><span class="s-ball">☕✨</span></div>' +
+        '<div class="s-bean-nest"><span class="s-ball">🫘✨</span></div>' +
         '<div class="s-cup-model">' +
           '<div class="s-cup-lid"></div>' +
           '<div class="s-cup-body">' +
@@ -3658,200 +3808,7 @@ const GAMES = [
   }
 },
 
-// 6. Color Shift (تناغم النكهات) — بطاقات النكهات الحسية للقهوة المختصة
-{
-  id: 'colorshift',
-  name: 'تناغم النكهات',
-  nameEn: 'Flavor Harmony',
-  altName: 'تحوّل الألوان',
-  emoji: '🎨',
-  weight: 1.8,
-  how: 'اقرأ بطاقة التذوق الحسية للقهوة المختصة، وطابق الإيحاء الحقيقي أو استبعد النكهة الدخيلة دون تكرار أي إشارة مضللة!',
-  howEn: 'Read the specialty coffee cupping card, match the genuine tasting note or spot the intruder!',
-  start(c){
-    const st = c.stage;
-    st.innerHTML = '<div class="cs-wrap">' +
-      '<div class="cs-rule-banner" id="csRuleBanner">🎯 بطاقة التذوق الحسي the A&A ☕</div>' +
-      '<div id="csTarget" class="cs-target-card"></div>' +
-      '<div class="cs-options-grid" id="csGrid"></div>' +
-    '</div>';
-
-    const bannerEl = $('#csRuleBanner', st);
-    const targetEl = $('#csTarget', st);
-    const gridEl = $('#csGrid', st);
-
-    // بنك أسئلة التذوق الحسي للقهوة المختصة (Specialty Coffee Cupping Bank)
-    // تم تصميم الأسئلة بحيث لا تتطابق الأيقونات أو الألوان بين السؤال والجواب لمنع كشف الإجابة بالصدفة
-    const CUPPING_BANK = [
-      {
-        category: 'عائلة الإيحاءات: الحمضيات والزهور 🍋',
-        categoryEn: 'Sensory Family: Citrus & Floral 🍋',
-        prompt: 'ما الإيحاء الحقيقي المنتمي لهذه العائلة الفاخرة؟',
-        promptEn: 'Which tasting note belongs to this sensory family?',
-        correct: { text: 'ياسمين وبرغموت وزهر البرتقال', textEn: 'Jasmine, Bergamot & Citrus Blossom', icon: '🌸' },
-        distractors: [
-          { text: 'شوكولاتة داكنة ثقيلة', textEn: 'Heavy Dark Chocolate', icon: '🍫' },
-          { text: 'بندق محمص بالزبدة', textEn: 'Roasted Butter Hazelnut', icon: '🌰' },
-          { text: 'تبغ مدخن وتوابل حارة', textEn: 'Smoked Tobacco & Spice', icon: '🍂' }
-        ]
-      },
-      {
-        category: 'معالجة البن: المعالجة المجففة الطبيعية ☀️',
-        categoryEn: 'Coffee Process: Natural / Dry Process ☀️',
-        prompt: 'ما الطابع الحسي الأبرز للمحصول المجفف في الشمس؟',
-        promptEn: 'What is the prominent cupping profile of sun-dried naturals?',
-        correct: { text: 'فاكهية وتوتية واضحة وقوام عسلي ممتلئ', textEn: 'Rich Berries, Fruit Jam & Honey Body', icon: '🫐' },
-        distractors: [
-          { text: 'حمضية ليمونية حادة وقوام شايوي خفيف', textEn: 'Sharp Lemon Acidity & Tea Body', icon: '🍵' },
-          { text: 'مرارة كربونية بدون أي حلاوة', textEn: 'Carbon Bitterness & No Sweetness', icon: '☕' },
-          { text: 'نكهة عشبية ترابية باهتة', textEn: 'Dull Earthy Herbaceous Note', icon: '🌱' }
-        ]
-      },
-      {
-        category: 'عائلة الإيحاءات: المكسرات والكراميل 🍯',
-        categoryEn: 'Sensory Family: Nutty & Confectionery 🍯',
-        prompt: 'أي من هذه النوتات تمثل هذه العائلة الكلاسيكية؟',
-        promptEn: 'Which note represents this classic sweet profile?',
-        correct: { text: 'لوز محمص وتوفي كراميل وسكر بني', textEn: 'Roasted Almond, Toffee & Brown Sugar', icon: '🥜' },
-        distractors: [
-          { text: 'حمضية خل العنب اللاذعة', textEn: 'Pungent Grape Vinegar Sourness', icon: '⚡' },
-          { text: 'نعناع أخضر وريحان بري', textEn: 'Wild Mint & Basil Leaves', icon: '🌿' },
-          { text: 'يوسفي وليمون أخضر حامض', textEn: 'Sour Green Lime & Tangerine', icon: '🍋' }
-        ]
-      },
-      {
-        category: 'معالجة البن: المعالجة المغسولة بالماء 💧',
-        categoryEn: 'Coffee Process: Fully Washed Process 💧',
-        prompt: 'بماذا يشتهر الكوب المغسول لدى خبراء the A&A؟',
-        promptEn: 'What defines a washed coffee for the A&A baristas?',
-        correct: { text: 'نقاء عالي جداً وحمضية مشرقة متوازنة', textEn: 'High Cup Clarity & Bright Clean Acidity', icon: '💎' },
-        distractors: [
-          { text: 'قوام غليظ لزج ونكهات متخمرة فاقعة', textEn: 'Over-fermented Heavy Sludgy Body', icon: '🍷' },
-          { text: 'طعم الرماد والمطاط المحروق', textEn: 'Burnt Ash & Rubber Off-flavor', icon: '🚫' },
-          { text: 'حلاوة سكرية بدون أي حمضية', textEn: 'Pure Sugar with Zero Acidity', icon: '🍭' }
-        ]
-      },
-      {
-        category: 'درجة التحميص: تحميص فاتح مختص (Light Roast) 🔥',
-        categoryEn: 'Roast Profile: Specialty Light Roast 🔥',
-        prompt: 'ما الهدف الأساسي للباريستا من التحميص الفاتح؟',
-        promptEn: 'What is the barista goal with a light roast?',
-        correct: { text: 'إبراز النوتات الأصلية للحبوب وبلد المنشأ', textEn: 'Highlight Origin Terroir & Fruit Acids', icon: '🌱' },
-        distractors: [
-          { text: 'تغطية عيوب البن بطعم الحرق والتفحيم', textEn: 'Mask Defects with Charcoal Roasting', icon: '💨' },
-          { text: 'إنتاج زيوت سوداء ثقيلة على سطح الحبة', textEn: 'Force Heavy Black Oils to Surface', icon: '🛢️' },
-          { text: 'إزالة الكافيين بالكامل من الحبة', textEn: 'Completely Strip Caffeine from Beans', icon: '❌' }
-        ]
-      },
-      {
-        category: 'عائلة التوابل الدافئة ☕✨',
-        categoryEn: 'Sensory Family: Warm Baking Spices ☕✨',
-        prompt: 'ما الإيحاء الحسي المنسجم مع قهوتنا العربية والمختصة؟',
-        promptEn: 'Which warm spice harmonizes with our specialty blends?',
-        correct: { text: 'هيل ملكي وقرفة سيلانية وزنجبيل خفيف', textEn: 'Royal Cardamom, Cinnamon & Ginger', icon: '🫚' },
-        distractors: [
-          { text: 'حمضيات لاذعة جداً كالجريب فروت', textEn: 'Harsh Grapefruit Pith Acid', icon: '🍋' },
-          { text: 'نكهة زبدة الفول السوداني الاصطناعية', textEn: 'Artificial Peanut Paste Flavor', icon: '🥜' },
-          { text: 'طعم الأخشاب المتعفنة الرطبة', textEn: 'Damp Mildewed Wood Defect', icon: '🪵' }
-        ]
-      },
-      {
-        category: 'استبعاد النوتة الشاذة (الدخيلة) 🔍',
-        categoryEn: 'Odd One Out: Spot the Intruder 🔍',
-        prompt: 'ثلاث نوتات تنتمي لعائلة الشوكولاتة الداكنة، ما هي النوتة الدخيلة؟',
-        promptEn: 'Three notes fit Dark Chocolate; spot the intruder!',
-        correct: { text: 'حموضة الليمون الأخضر المنعشة (لا تنتمي)', textEn: 'Fresh Lime Acidity (Does Not Belong)', icon: '🍋' },
-        distractors: [
-          { text: 'كاكاو نيبس نقي 85%', textEn: 'Pure 85% Cacao Nibs', icon: '🍫' },
-          { text: 'شوكولاتة الحليب بالكراميل', textEn: 'Caramel Milk Chocolate', icon: '🍬' },
-          { text: 'ترافل شوكولاتة غنية', textEn: 'Rich Truffle Cocoa', icon: '☕' }
-        ]
-      },
-      {
-        category: 'بلد المنشأ: إثيوبيا ييرغاتشيفي 🌍',
-        categoryEn: 'Coffee Origin: Ethiopia Yirgacheffe 🌍',
-        prompt: 'ما الإيحاء الأيقوني العالمي لهذا المحصول الإثيوبي؟',
-        promptEn: 'What is the iconic signature of this Ethiopian coffee?',
-        correct: { text: 'الياسمين والخوخ وزهر الخزامى والبرتقال', textEn: 'Jasmine Floral, Peach & Sweet Orange', icon: '🌸' },
-        distractors: [
-          { text: 'طعم التبغ والجلد القديم المدخن', textEn: 'Smoked Leather & Tobacco Note', icon: '🍂' },
-          { text: 'مرارة كربونية وقوام زيتي كثيف جداً', textEn: 'Heavy Carbon Bitterness & Sludge', icon: '☕' },
-          { text: 'مكسرات مالحة وفشار بالزبدة', textEn: 'Salted Nuts & Buttered Popcorn', icon: '🍿' }
-        ]
-      }
-    ];
-
-    let lastQuestionIdx = -1;
-    let options = [];
-    let lock = false;
-
-    function nextChallenge(){
-      lock = false;
-
-      // اختيار سؤال عشوائي دون تكرار المباشر
-      let qIdx;
-      do {
-        qIdx = Math.floor(Math.random() * CUPPING_BANK.length);
-      } while(qIdx === lastQuestionIdx && CUPPING_BANK.length > 1);
-      lastQuestionIdx = qIdx;
-
-      const q = CUPPING_BANK[qIdx];
-      const catTxt = (currentLang === 'en' && q.categoryEn) ? q.categoryEn : q.category;
-      const promptTxt = (currentLang === 'en' && q.promptEn) ? q.promptEn : q.prompt;
-
-      bannerEl.textContent = '🎯 ' + catTxt;
-      targetEl.innerHTML = '<div class="cs-prompt-title">' + promptTxt + '</div>' +
-        '<div class="cs-prompt-sub">' + (currentLang === 'en' ? 'Select the matching specialty cupping note:' : 'اختر الإيحاء الحسي المطابق للقاعدة:') + '</div>';
-
-      // تجهيز الخيارات: إجابة صحيحة + 3 مشتتات
-      const allChoices = [
-        { item: q.correct, isCorrect: true },
-        ...q.distractors.map(d => ({ item: d, isCorrect: false }))
-      ];
-
-      // خلط عشوائي لمواقع الخيارات (Shuffle)
-      for(let i = allChoices.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [allChoices[i], allChoices[j]] = [allChoices[j], allChoices[i]];
-      }
-      options = allChoices;
-
-      gridEl.innerHTML = '';
-      options.forEach((opt, idx) => {
-        const btn = el('button', 'cs-card');
-        const optTxt = (currentLang === 'en' && opt.item.textEn) ? opt.item.textEn : opt.item.text;
-        btn.innerHTML = '<span class="cs-icon">' + opt.item.icon + '</span><span class="cs-name">' + optTxt + '</span>';
-        btn.addEventListener('pointerdown', ev => {
-          ev.preventDefault();
-          chooseOption(idx, btn);
-        });
-        gridEl.append(btn);
-      });
-    }
-
-    function chooseOption(idx, btn){
-      if(lock) return;
-      lock = true;
-      const opt = options[idx];
-      const W = c.W(), H = c.H();
-
-      if(opt && opt.isCorrect){
-        btn.classList.add('correct');
-        c.ok(1.5, W / 2, H * 0.45, currentLang === 'en' ? 'Sensory Harmony! 🎯' : 'تناغم نكهات متقن! 🎯');
-        c.after(400, nextChallenge);
-      } else {
-        btn.classList.add('wrong');
-        c.loseHeart();
-        c.miss(W / 2, H * 0.45, 1.0, currentLang === 'en' ? 'Sensory Clash! (-1 ❤️)' : 'خالفت النكهة! (-1 ❤️)');
-        c.after(550, nextChallenge);
-      }
-    }
-
-    nextChallenge();
-  }
-},
-
-// 7. Precision Pour (فن صبّ اللاتيه) — تصميم كوب السيراميك الفاخر والهدف المتحرك
+// 6. Precision Pour (فن صبّ اللاتيه) — تصميم كوب السيراميك الفاخر والهدف المتحرك
 {
   id: 'pour',
   name: 'فن صبّ اللاتيه',
@@ -4317,10 +4274,16 @@ const GAMES = [
     const gravity = 880;
     let hoopX = 0, hoopY = 0;
     let shotResolved = false;
+    let basketsMade = 0;
+    let hoopOscTime = 0;
 
     function resetBall(){
       const W = c.W(), H = c.H();
-      hoopX = W / 2;
+      if(basketsMade === 0){
+        hoopX = W / 2;
+        const boardEl = $('#bbBoard', st);
+        if(boardEl) boardEl.style.left = '50%';
+      }
       hoopY = 118;
       ballX = W / 2 - 22;
       ballY = H - 65;
@@ -4427,9 +4390,20 @@ const GAMES = [
     c.on(window, 'pointerup', onPointerUp);
 
     c.loop(dt => {
+      const W = c.W(), H = c.H();
+
+      // حركة السلة الأفقية الانسيابية وتدرج الصعوبة بعد أول تسجيل
+      if(basketsMade >= 1){
+        const maxOsc = Math.min(80, (W - 140) / 2);
+        const oscSpeed = 1.0 + Math.min(1.8, basketsMade * 0.35);
+        hoopOscTime += dt * oscSpeed;
+        hoopX = (W / 2) + Math.sin(hoopOscTime) * maxOsc;
+        const boardEl = $('#bbBoard', st);
+        if(boardEl) boardEl.style.left = hoopX + 'px';
+      }
+
       if(state !== STATES.SHOT_IN_PROGRESS && state !== STATES.VALIDATING_SHOT) return;
 
-      const W = c.W(), H = c.H();
       ballX += vx * dt;
       ballY += vy * dt;
       vy += gravity * dt;
@@ -4459,6 +4433,7 @@ const GAMES = [
         if(Math.abs(bCenterX - hoopX) <= 22){
           // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
           state = STATES.SHOT_MADE;
+          basketsMade++;
           netEl.classList.add('swish');
           c.ok(2.6, hoopX, hoopY - 10, currentLang === 'en' ? 'Swish! Clean Basket! 🏀✨' : 'سلة متقنة! 🏀✨');
           msgEl.textContent = (currentLang === 'en' ? '🏀✨ Clean Basket!' : '🏀✨ سلة رائعة ومتقنة!');
@@ -4520,15 +4495,22 @@ function renderClaimBar(){
   const t = tierOf(S.best), bar = $('#claimBar');
   if(!bar) return;
   if(S.claim){
+    const curTier = S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1);
+    if(t > curTier){
+      bar.hidden = false;
+      bar.innerHTML = '<div><b>' + (currentLang === 'en' ? '🌟 Upgrade Your Reward!' : '🌟 متاح لك ترقية مكافأتك!') + '</b><small>' + (currentLang === 'en' ? 'Upgrade your voucher to ' + TIER_TXT[t] : 'رقّ قسيمتك الحالية إلى ' + TIER_TXT[t]) + '</small></div><button type="button" class="btn alt">' + (currentLang === 'en' ? 'Upgrade Voucher ⬆️' : 'ترقية القسيمة ⬆️') + '</button>';
+      bar.querySelector('button').onclick = () => { claimFlow(true); SFX.tap(); };
+      return;
+    }
     bar.hidden = false;
-    bar.innerHTML = '<div><b>' + (currentLang === 'en' ? 'Your voucher is reserved! 🎟️' : 'قسيمتك محجوزة لطلبك! 🎟️') + '</b><small>' + fmtCode(S.claim.code) + '</small></div><button type="button" class="btn alt">' + (currentLang === 'en' ? 'View Voucher 🎟️' : 'عرض القسيمة 🎟️') + '</button>';
+    bar.innerHTML = '<div><b>' + (currentLang === 'en' ? 'Your voucher is reserved! 🎟️' : 'قسيمتك محجوزة لطلبك القادم! 🎟️') + '</b><small>' + fmtCode(S.claim.code) + '</small></div><button type="button" class="btn alt">' + (currentLang === 'en' ? 'View Voucher 🎟️' : 'عرض القسيمة 🎟️') + '</button>';
     bar.querySelector('button').onclick = () => { renderReward(S.claim); show('reward'); SFX.tap(); };
     return;
   }
   if(!t){ bar.hidden = true; return; }
   bar.hidden = false;
-  bar.innerHTML = '<div><b>' + (currentLang === 'en' ? 'Congratulations! You qualified for ' : 'مبروك! حققت ') + (TIER_TXT[t] || '') + '</b><small>' + (currentLang === 'en' ? 'Claim your discount code before checkout' : 'احجز كود الخصم قبل انتهاء زيارتك') + '</small></div><button type="button" class="btn alt">' + (currentLang === 'en' ? 'Claim Voucher 🎁' : 'استلم مكافأتك 🎁') + '</button>';
-  bar.querySelector('button').onclick = () => { claimFlow(); SFX.tap(); };
+  bar.innerHTML = '<div><b>' + (currentLang === 'en' ? 'Congratulations! You qualified for ' : 'مبروك! حققت ') + (TIER_TXT[t] || '') + '</b><small>' + (currentLang === 'en' ? 'Claim your discount code for your next order' : 'احجز كود الخصم لطلبك القادم') + '</small></div><button type="button" class="btn alt">' + (currentLang === 'en' ? 'Claim Voucher 🎁' : 'استلم مكافأتك 🎁') + '</button>';
+  bar.querySelector('button').onclick = () => { claimFlow(false); SFX.tap(); };
 }
 
 /* إدارة المحاولات الإضافية عبر إنستغرام: خطوتان (متابعة ثم لايك) */
@@ -4596,36 +4578,47 @@ function openPre(g){
 
 function goHome(){ renderHome(); show('home'); }
 
-/* ============ صرف المكافأة ============ */
-function claimFlow(){
+/* ============ صرف وترقية المكافأة للطلب القادم ============ */
+function claimFlow(isUpgrade){
   const t = tierOf(S.best);
   if(!t) return;
-  if(S.claim){ renderReward(S.claim); return; }
+  const curTier = S.claim ? (S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1)) : 0;
+  if(S.claim && !isUpgrade && t <= curTier){ renderReward(S.claim); show('reward'); return; }
 
   const opts = [];
-  if(t >= 1) opts.push({ type: 'T', name: (currentLang === 'en') ? '5% OFF Receipt' : 'خصم 5% على الفاتورة' });
-  if(t >= 2) opts.push({ type: 'S', name: (currentLang === 'en') ? '7% OFF Receipt' : 'خصم 7% على الفاتورة' });
-  if(t >= 3) opts.push({ type: 'G', name: (currentLang === 'en') ? 'Free Drink Upgrade 🏆' : 'ترقية مشروب مجانية من the A&A 🏆' });
+  if(t >= 1 && curTier < 1) opts.push({ type: 'T', name: (currentLang === 'en') ? '5% OFF Next Order' : 'خصم 5% على طلبك القادم' });
+  if(t >= 2 && curTier < 2) opts.push({ type: 'S', name: (currentLang === 'en') ? '7% OFF Next Order' : 'خصم 7% على طلبك القادم' });
+  if(t >= 3 && curTier < 3) opts.push({ type: 'G', name: (currentLang === 'en') ? 'Free Drink Upgrade 🏆' : 'ترقية مشروب مجانية في طلبك القادم 🏆' });
+
+  if(opts.length === 0){
+    if(S.claim){ renderReward(S.claim); show('reward'); }
+    return;
+  }
+
+  $('#chTitle').textContent = isUpgrade ? 
+    (currentLang === 'en' ? 'Upgrade Your A&A Reward ⬆️' : 'ترقية مكافأة the A&A ⬆️') :
+    (currentLang === 'en' ? 'Choose Your A&A Reward 🎁' : 'اختر مكافأة the A&A 🎁');
 
   const chOpts = $('#chOpts');
   chOpts.innerHTML = '';
   opts.forEach(o => {
-    const b = el('button', 'btn' + (o.type === 'G' ? ' alt' : ''), o.name);
+    const b = el('button', 'btn' + (o.type === 'G' ? ' alt' : ''), (isUpgrade ? (currentLang === 'en' ? 'Upgrade to: ' : 'ترقية إلى: ') : '') + o.name);
     b.addEventListener('click', () => {
-      commitReward(o.type);
+      commitReward(o.type, isUpgrade);
     });
     chOpts.append(b);
   });
   show('choice');
 }
 
-function commitReward(type){
+function commitReward(type, isUpgrade){
   // Phase 1, Req 2: طلب رقم الجوال السعودي قبل إصدار الكود المشفر
   if(!S.phone){
     const phoneCard = $('#choicePhoneCard');
     if(phoneCard){
       phoneCard.style.display = 'block';
       phoneCard.dataset.pendingType = type;
+      phoneCard.dataset.isUpgrade = isUpgrade ? '1' : '0';
       const chPhone = $('#chPhone');
       if(chPhone) chPhone.focus();
       const chErr = $('#chErr');
@@ -4634,16 +4627,23 @@ function commitReward(type){
     }
   }
 
-  finalizeRewardClaim(type);
+  finalizeRewardClaim(type, isUpgrade);
 }
 
-function finalizeRewardClaim(type){
+function finalizeRewardClaim(type, isUpgrade){
   const day = dayNow();
   const c = mintCode(type);
-  S.claim = { type: type, code: c, day: day, redeemed: false };
+  if(isUpgrade && S.claim){
+    S.claim.type = type;
+    S.claim.code = c;
+    S.claim.upgraded = true;
+    S.claim.redeemed = false;
+  } else {
+    S.claim = { type: type, code: c, day: day, redeemed: false };
+  }
   save();
 
-  syncToGoogleSheet('CLAIM_REWARD');
+  syncToGoogleSheet(isUpgrade ? 'UPGRADE_REWARD' : 'CLAIM_REWARD');
 
   const o = store.get();
   o.used = o.used || {};
@@ -4654,7 +4654,6 @@ function finalizeRewardClaim(type){
   o.dev['d:' + day] = (o.dev['d:' + day] || 0) + 1;
   store.set(o);
 
-  // Phase 12: احتفال الفوز بالكوبون مع قصاصات الكونفيتي والموسيقى
   launchCelebrationConfetti();
   SFX.celebrate();
 
@@ -4663,9 +4662,18 @@ function finalizeRewardClaim(type){
 
 function renderReward(claim){
   const rw = REW[claim.type];
-  $('#rwText').textContent = rw ? rw.name : 'مكافأة the A&A';
+  const rwName = rw ? (currentLang === 'en' && rw.nameEn ? rw.nameEn : rw.name) : 'مكافأة the A&A';
+  $('#rwText').textContent = rwName;
   $('#rwCode').textContent = fmtCode(claim.code);
-  $('#rwExp').textContent = 'صالح حتى نهاية اليوم • كود مخصص لطلب: ' + (S.order || 'درايف ثرو');
+  $('#rwExp').textContent = (currentLang === 'en')
+    ? 'Valid on your NEXT ORDER • Order ref: ' + (S.order || 'Drive-thru')
+    : 'صالح للاستخدام على طلبك القادم • كود مخصص لطلب: ' + (S.order || 'درايف ثرو');
+  const badge = $('#rwNextOrderBadge');
+  if(badge){
+    badge.innerHTML = (currentLang === 'en')
+      ? '📌 <b>Valid on your NEXT ORDER</b> (Not applicable to your current order)'
+      : '📌 <b>صالحة للاستخدام في طلبك القادم</b> (وليست على نفس الطلب الحالي)';
+  }
   show('reward');
 }
 
@@ -5112,18 +5120,159 @@ if(btnConfirmChoicePhone){
 
     const phoneCard = $('#choicePhoneCard');
     const pType = (phoneCard && phoneCard.dataset.pendingType) ? phoneCard.dataset.pendingType : 'T';
+    const isUp = (phoneCard && phoneCard.dataset.isUpgrade === '1');
     if(phoneCard) phoneCard.style.display = 'none';
 
-    finalizeRewardClaim(pType);
+    finalizeRewardClaim(pType, isUp);
+  });
+}
+
+/* ============ مساعدات الأفاتار والملف الشخصي ============ */
+function renderAvatarHtml(avatar){
+  if(avatar && String(avatar).startsWith('data:image/')){
+    return '<span class="lb-avatar-slot"><img src="' + avatar + '" alt="Avatar"></span>';
+  }
+  return '<span class="lb-avatar-slot"><span class="lb-emoji">' + (avatar || '☕') + '</span></span>';
+}
+
+function updateProfileHeaderAvatar(){
+  const avEl = $('#profileAvatarHome');
+  if(!avEl) return;
+  const av = (S && S.avatar) ? S.avatar : '👤';
+  if(String(av).startsWith('data:image/')){
+    avEl.innerHTML = '<img src="' + av + '" style="width:20px;height:20px;border-radius:50%;object-fit:cover;vertical-align:middle">';
+  } else {
+    avEl.textContent = av;
+  }
+}
+
+function handleAvatarFileUpload(file, previewEl, callback){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const max = 120;
+      let w = img.width, h = img.height;
+      if(w > h){ if(w > max){ h = Math.round(h * max / w); w = max; } }
+      else { if(h > max){ w = Math.round(w * max / h); h = max; } }
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      if(previewEl) previewEl.innerHTML = '<img src="' + dataUrl + '" alt="Avatar">';
+      callback(dataUrl);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* إدارة مودال الملف الشخصي المستقل */
+let currentProfileAvatar = '☕';
+function openProfileModal(){
+  const modal = $('#modalProfile');
+  if(!modal) return;
+  currentProfileAvatar = (S && S.avatar) || '☕';
+  const display = $('#profAvatarDisplay');
+  const preview = $('#profAvatarPreview');
+  if(String(currentProfileAvatar).startsWith('data:image/')){
+    if(preview) preview.innerHTML = '<img src="' + currentProfileAvatar + '" alt="Avatar">';
+  } else {
+    if(preview) preview.innerHTML = '<span id="profAvatarDisplay" style="font-size:38px">' + currentProfileAvatar + '</span>';
+  }
+
+  // تحديد الزر النشط في شبكة الأفاتار
+  $$('#profAvatarGrid .prof-avatar-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.avatar === currentProfileAvatar);
+  });
+
+  const nickIn = $('#profNickInput');
+  if(nickIn) nickIn.value = (S && S.nickname) || '';
+  const err = $('#profErr');
+  if(err) err.textContent = '';
+
+  modal.classList.add('active');
+}
+
+function closeProfileModal(){
+  const modal = $('#modalProfile');
+  if(modal) modal.classList.remove('active');
+}
+
+const profToggleBtn = $('#profileToggleHome');
+if(profToggleBtn) profToggleBtn.addEventListener('click', openProfileModal);
+
+const btnCloseProf = $('#btnCloseProfile');
+if(btnCloseProf) btnCloseProf.addEventListener('click', closeProfileModal);
+
+$$('#profAvatarGrid .prof-avatar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('#profAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentProfileAvatar = btn.dataset.avatar;
+    const preview = $('#profAvatarPreview');
+    if(preview) preview.innerHTML = '<span id="profAvatarDisplay" style="font-size:38px">' + currentProfileAvatar + '</span>';
+  });
+});
+
+const profFileInput = $('#profFileInput');
+if(profFileInput){
+  profFileInput.addEventListener('change', ev => {
+    const file = ev.target.files && ev.target.files[0];
+    if(file){
+      handleAvatarFileUpload(file, $('#profAvatarPreview'), dataUrl => {
+        currentProfileAvatar = dataUrl;
+        $$('#profAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
+      });
+    }
+  });
+}
+
+const btnSaveProfile = $('#btnSaveProfile');
+if(btnSaveProfile){
+  btnSaveProfile.addEventListener('click', () => {
+    const nickIn = $('#profNickInput');
+    const val = (nickIn ? nickIn.value : '').trim();
+    const err = $('#profErr');
+    if(!val || val.length < 2 || val.length > 15){
+      if(err) err.textContent = (currentLang === 'en') ? 'Please enter a nickname between 2 and 15 characters.' : 'يرجى إدخال اسم مستعار بين ٢ و ١٥ حرفاً.';
+      return;
+    }
+    const clean = val.replace(/[<>&"']/g, '');
+    S.nickname = clean;
+    S.avatar = currentProfileAvatar;
+    save();
+    updateProfileHeaderAvatar();
+    closeProfileModal();
+    banner(currentLang === 'en' ? 'Profile saved successfully! 🏆' : 'تم حفظ الملف الشخصي بنجاح! 🏆');
+    SFX.ok();
+
+    // تحديث أي بطاقة متصدرين معروضة حالياً
+    renderEmbeddedLeaderboard($('#ladderRes'));
+    renderEmbeddedLeaderboard($('#resLeaderboardList'));
+    if(curGame) renderEmbeddedLeaderboard($('#preLeaderboardList'), curGame.id);
   });
 }
 
 /* ============ مودالات لوحة المتصدرين والاسم المستعار والتهنئة ============ */
+let currentModalNickAvatar = '☕';
 function openNicknameModal(gameId){
   const modal = $('#modalNickname');
   if(!modal) return;
   modal.classList.add('active');
   modal.dataset.gameId = gameId || '';
+  currentModalNickAvatar = (S && S.avatar) || '☕';
+  const preview = $('#modalNickAvatarPreview');
+  if(String(currentModalNickAvatar).startsWith('data:image/')){
+    if(preview) preview.innerHTML = '<img src="' + currentModalNickAvatar + '" alt="Avatar">';
+  } else {
+    if(preview) preview.innerHTML = '<span id="modalNickAvatarDisplay" style="font-size:38px">' + currentModalNickAvatar + '</span>';
+  }
+  $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => {
+    b.classList.toggle('selected', b.dataset.avatar === currentModalNickAvatar);
+  });
   const input = $('#nickInput');
   const err = $('#nickErr');
   if(err) err.textContent = '';
@@ -5138,6 +5287,29 @@ function closeNicknameModal(){
   if(modal) modal.classList.remove('active');
 }
 
+$$('#modalNickAvatarGrid .prof-avatar-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentModalNickAvatar = btn.dataset.avatar;
+    const preview = $('#modalNickAvatarPreview');
+    if(preview) preview.innerHTML = '<span id="modalNickAvatarDisplay" style="font-size:38px">' + currentModalNickAvatar + '</span>';
+  });
+});
+
+const modalNickFileInput = $('#modalNickFileInput');
+if(modalNickFileInput){
+  modalNickFileInput.addEventListener('change', ev => {
+    const file = ev.target.files && ev.target.files[0];
+    if(file){
+      handleAvatarFileUpload(file, $('#modalNickAvatarPreview'), dataUrl => {
+        currentModalNickAvatar = dataUrl;
+        $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
+      });
+    }
+  });
+}
+
 function openTop10CelebrationPopup(){
   const modal = $('#modalTop10Popup');
   if(!modal) return;
@@ -5150,7 +5322,6 @@ function closeTop10CelebrationPopup(){
   if(modal) modal.classList.remove('active');
 }
 
-
 /* ============ رسم لوحة المتصدرين الدائمة والمباشرة في شاشات الاستقبال والنتيجة ============ */
 function renderEmbeddedLeaderboard(container, gameId){
   if(!container) return;
@@ -5158,7 +5329,7 @@ function renderEmbeddedLeaderboard(container, gameId){
   const top10 = LeaderboardEngine.getTop10(gId);
   if(!top10 || !top10.length){
     container.innerHTML = '<div class="lb-empty">' +
-      (currentLang === 'en' ? 'No scores recorded yet. Be the first to rank! ☕✨' : 'لا توجد نتائج مسجلة بعد. كن أول بطل يتصدر اللوحة! ☕✨') +
+      (currentLang === 'en' ? '🏆 No champions ranked yet! Set your nickname & score to take #1! ☕✨' : '🏆 لا يوجد متصدرون حتى الآن! سجّل اسمك وافصل أول سكور لتتصدر القائمة! ☕✨') +
     '</div>';
     return;
   }
@@ -5168,6 +5339,7 @@ function renderEmbeddedLeaderboard(container, gameId){
     const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
     return '<div class="lb-embed-item' + (isMe ? ' my-rank' : '') + '">' +
       '<span class="lb-rank">' + badge + '</span>' +
+      renderAvatarHtml(entry.avatar) +
       '<span class="lb-name">' + escapeHtml(entry.nickname || (currentLang === 'en' ? 'the A&A Barista' : 'باريستا the A&A')) + '</span>' +
       '<span class="lb-score">' + entry.score + ' <small>' + (currentLang === 'en' ? 'pts' : 'نقطة') + '</small></span>' +
     '</div>';
@@ -5191,7 +5363,7 @@ function openLeaderboard(gameId){
   const top10 = LeaderboardEngine.getTop10(gId);
   if(!top10 || !top10.length){
     list.innerHTML = '<div style="text-align:center;padding:24px 10px;color:var(--text-muted)">' +
-      (currentLang === 'en' ? 'No scores recorded yet for this challenge. Be the first to rank!' : 'لا توجد نتائج مسجلة بعد في هذه اللعبة. كن أول من يتصدر اللوحة! ☕✨') +
+      (currentLang === 'en' ? '🏆 No champions ranked yet for this challenge. Set your nickname to be #1!' : '🏆 لا يوجد متصدرون حتى الآن في هذه اللعبة. سجّل اسمك لتكون الأول! ☕✨') +
     '</div>';
   } else {
     list.innerHTML = top10.map((entry, idx) => {
@@ -5202,6 +5374,7 @@ function openLeaderboard(gameId){
       const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
       return '<div class="leaderboard-item' + (isMe ? ' my-rank' : '') + '">' +
         '<div class="lb-rank">' + rankBadge + '</div>' +
+        renderAvatarHtml(entry.avatar) +
         '<div class="lb-user">' +
           '<div class="lb-name">' + escapeHtml(entry.nickname || (currentLang === 'en' ? 'the A&A Barista' : 'باريستا the A&A')) + '</div>' +
           '<div class="lb-days">' + daysTxt + '</div>' +
@@ -5237,12 +5410,14 @@ if(btnSaveNickname){
     }
     const clean = val.replace(/[<>&"']/g, '');
     S.nickname = clean;
+    S.avatar = currentModalNickAvatar;
     save();
+    updateProfileHeaderAvatar();
     closeNicknameModal();
 
     const gId = $('#modalNickname').dataset.gameId || (curGame ? curGame.id : 'reflex');
     if(run && run.score > 0){
-      LeaderboardEngine.recordScore(gId, run.score, S.nickname, S.phone);
+      LeaderboardEngine.recordScore(gId, run.score, S.nickname, S.phone, S.avatar);
     }
 
     openTop10CelebrationPopup();
@@ -5355,6 +5530,7 @@ function applyLang(lang){
   localStorage.setItem('the_aa_lang', lang);
   document.documentElement.lang = lang;
   document.documentElement.dir = (lang === 'en') ? 'ltr' : 'rtl';
+  if(document.body) document.body.dir = (lang === 'en') ? 'ltr' : 'rtl';
 
   const t = I18N[lang];
   if($('#langTxt')) $('#langTxt').textContent = t.langBtn;
@@ -5382,6 +5558,13 @@ function applyLang(lang){
   if($('#resHome')) $('#resHome').textContent = t.resHome;
   if($('#resScoreLbl')) $('#resScoreLbl').textContent = t.resScoreLbl;
   if($('#resScorePts')) $('#resScorePts').textContent = t.resScorePts;
+
+  if($('#profTitle')) $('#profTitle').textContent = (lang === 'en' ? 'Player Profile ☕👑' : 'الملف الشخصي للبطل ☕👑');
+  if($('#profSub')) $('#profSub').textContent = (lang === 'en' ? 'Choose your nickname and avatar to rank in the Top 10' : 'اختر لقبك وصورتك للظهور في قائمة أفضل 10 لاعبين');
+  if($('#nickModalTitle')) $('#nickModalTitle').textContent = (lang === 'en' ? 'Congratulations! You qualified for the Top 10' : 'تهانينا! تأهلت لقائمة أفضل 10 لاعبين');
+  if($('#nickModalSub')) $('#nickModalSub').textContent = (lang === 'en' ? 'Set your nickname and avatar to shine in the A&A Hall of Fame:' : 'سجّل اسمك المستعار وافصل أفاتارك ليظهر في لوحة الشرف لرواد the A&A:');
+
+  updateProfileHeaderAvatar();
 
   if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
   if($('#ladderHome')) $('#ladderHome').innerHTML = ladder(S.best || 0);
@@ -5439,8 +5622,6 @@ function resetSession(){
   SFX.tap();
 }
 
-if($('#sessionResetHome')) $('#sessionResetHome').addEventListener('click', resetSession);
-
 if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
 checkStaffHash();
 
@@ -5455,6 +5636,9 @@ window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? Leaderb
 window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
 window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
 window.__S = () => (typeof S !== 'undefined' ? S : null);
+window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
+window.saveCafeState = () => (typeof save === 'function' ? save() : null);
+window.renderHomeView = () => (typeof renderHome === 'function' ? renderHome() : null);
 window.__resetSession = resetSession;
 
 })();

@@ -45,8 +45,8 @@ assert(html.includes('ردة الفعل السريعة'), 'Reflex Rush Arabic ti
 assert(html.includes('قفل النمط'), 'Pattern Lock title present');
 assert(html.includes('أين الحبة؟'), 'Where Is the Ball? title present');
 assert(html.includes('برج الكوبايات'), 'Cup Tower title present');
-assert(html.includes('اصطياد الحبوب'), 'Catch the Beans (5th game) title present');
-assert(html.includes('تحوّل الألوان'), 'Color Shift (New game 1) title present');
+assert(!html.includes("id: 'colorshift'"), 'Flavor Harmony (colorshift) completely retired');
+assert(html.includes('كرة السلة') || html.includes('رمية السلة') || html.includes('Basketball'), 'Basketball Shoot title present');
 assert(html.includes('صبّة الدقة'), 'Precision Pour (New game 2) title present');
 assert(html.includes('إيقاع القهوة'), 'Rhythm Relay (New game 3) title present');
 assert(html.includes('صيد الأزواج'), 'Pair Hunt (New game 4) title present');
@@ -100,18 +100,18 @@ if (gamesDefMatch) {
   const games = mockSandbox.__gamesList;
   const gameIds = games.map(g => g.id);
 
-  assert(gameIds.length === 10, `Expected exactly 10 games, found ${gameIds.length}: [${gameIds.join(', ')}]`);
+  assert(gameIds.length === 9, `Expected exactly 9 games, found ${gameIds.length}: [${gameIds.join(', ')}]`);
   assert(gameIds.includes('reflex'), '1. Reflex Rush (reflex) is active');
   assert(gameIds.includes('pattern'), '2. Pattern Lock (pattern) is active');
-  assert(gameIds.includes('shuffle'), '3. Where Is the Ball (shuffle) is active');
+  assert(gameIds.includes('shuffle'), '3. Where Is the Bean (shuffle) is active');
   assert(gameIds.includes('stack'), '4. Cup Tower (stack) is active');
   assert(gameIds.includes('beans'), '5. Catch the Beans (beans) is active');
-  assert(gameIds.includes('colorshift'), '6. Color Shift (colorshift) is active');
-  assert(gameIds.includes('pour'), '7. Precision Pour (pour) is active');
-  assert(gameIds.includes('rhythm'), '8. Rhythm Relay (rhythm) is active');
-  assert(gameIds.includes('pairhunt'), '9. Pair Hunt (pairhunt) is active');
-  assert(gameIds.includes('basketball'), '10. Basketball (basketball) is active');
+  assert(gameIds.includes('pour'), '6. Precision Pour (pour) is active');
+  assert(gameIds.includes('rhythm'), '7. Rhythm Relay (rhythm) is active');
+  assert(gameIds.includes('pairhunt'), '8. Pair Hunt (pairhunt) is active');
+  assert(gameIds.includes('basketball'), '9. Basketball (basketball) is active');
 
+  assert(!gameIds.includes('colorshift'), 'Flavor Harmony (colorshift) is retired per customer request');
   assert(!gameIds.includes('sort'), 'Hot or Cold (sort) is retired');
   assert(!gameIds.includes('quiz'), 'Coffee Quiz (quiz) is retired');
   assert(!gameIds.includes('bubbles'), 'Legacy Bubbles is not active');
@@ -327,18 +327,16 @@ assert(scriptCode.includes('netEl.classList.add(\'swish\')'), 'Basketball trigge
 const bbMadeBlock = scriptCode.match(/state\s*=\s*STATES\.SHOT_MADE;[\s\S]*?return;/);
 assert(bbMadeBlock && !bbMadeBlock[0].includes('loseHeart'), 'Basketball made shot NEVER deducts a heart');
 
-// 13. Precision Pour & Flavor Harmony Overhaul
-console.log('\n--- Suite 13: Precision Pour & Flavor Harmony Overhaul ---');
+// 13. Precision Pour Contrast & Next Order Policy
+console.log('\n--- Suite 13: Precision Pour Contrast & Next Order Policy ---');
 // Pour live numeric % is hidden during active pour
 assert(scriptCode.includes("levelTxt.textContent = (currentLang === 'en' ? '☕ Pouring...' : '☕ جارٍ الصب...')"), 'Precision Pour hides live numeric percentage during pouring');
 assert(scriptCode.includes('speed = lerp(16, 28, d)'), 'Precision Pour early speed calibrated (lerp 16 -> 28)');
 assert(html.includes('cup-takeaway-sleeve') && html.includes('assets/logo_transparent.png'), 'Takeaway cup sleeve uses transparent logo (assets/logo_transparent.png)');
 assert(/\.cup-grad-markers\s*\{[\s\S]*?display:\s*none\s*!important/.test(html), 'Graduation markers hidden to avoid trivial stopping point cues');
-
-// Flavor Harmony question bank & icon decoupling
-assert(scriptCode.includes('CUPPING_BANK = ['), 'Specialty coffee cupping question bank defined (CUPPING_BANK)');
-assert(scriptCode.includes('allChoices[i], allChoices[j]'), 'Flavor Harmony shuffles option positions across rounds');
-assert(scriptCode.includes('Sensory Harmony! 🎯'), 'Flavor Harmony rewarding feedback implemented');
+assert(html.includes('pour-station') && html.includes('latte-cup-assembly'), 'Barista pour station and 3D cup contrast assembly present in DOM');
+assert(html.includes('rwNextOrderBadge'), 'Next order voucher badge present on voucher screen');
+assert(html.includes('modalProfile'), 'Player profile modal for nickname and avatar present in DOM');
 
 // 14. Google Maps & Confetti Celebration
 console.log('\n--- Suite 14: Google Maps, Social Links & Celebration ---');
