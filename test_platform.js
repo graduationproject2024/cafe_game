@@ -313,10 +313,10 @@ console.log('\n--- Suite 12: Bean Catching & Basketball Defect Verifications ---
 // Bean Catching swept continuous collision check
 assert(scriptCode.includes('inCatchY = (it.y + 24 >= cupTop)'), 'Bean Catching swept collision detection implemented (inCatchY)');
 assert(scriptCode.includes('inCatchX = Math.abs(it.x - cx) <= (half + 12)'), 'Bean Catching swept X-axis tolerance implemented');
-assert(scriptCode.includes('c.ok(0.25') && scriptCode.includes('Evaded Burnt Bean'), 'Evading burnt beans awards evasion points without deducting hearts');
 
 const beansExitBlock = scriptCode.match(/if\(it\.y > H\)\{[\s\S]*?return false;\s*\}/);
 assert(beansExitBlock && !beansExitBlock[0].includes('loseHeart'), 'Missed falling good beans do not call c.loseHeart()');
+assert(beansExitBlock && !beansExitBlock[0].includes('c.ok('), 'Evading burnt beans safely does not grant unfair AFK auto-scoring points');
 
 // Basketball Shot Lifecycle State Machine
 assert(scriptCode.includes('STATES = {'), 'Basketball explicit shot lifecycle states defined');
@@ -396,16 +396,16 @@ assert(scriptCode.includes("renderEmbeddedLeaderboard($('#resLeaderboardList'), 
 
 // 19. Clean Failure & Deduction Rules (Bean Catching & Barista Speed)
 console.log('\n--- Suite 19: Clean Failure & Deduction Rules ---');
-// Verify bean exit block in beans has NO score penalty:
-const beansExitNoPenalty = scriptCode.match(/if\(it\.y > H\)\{[\s\S]*?return false;\s*\}/);
-assert(beansExitNoPenalty && !beansExitNoPenalty[0].includes('c.miss('), 'Bean Catching does not deduct points when good bean exits screen');
+// Verify bean exit block in beans deducts 10 points for missed good bean:
+const beansExitPenalty = scriptCode.match(/if\(it\.y > H\)\{[\s\S]*?return false;\s*\}/);
+assert(beansExitPenalty && beansExitPenalty[0].includes('run.score = Math.max(0, run.score - 10)'), 'Bean Catching deducts 10 points when good bean exits screen');
 
 // Verify reflex empty stage tap has NO score penalty:
 const reflexTapBlock = scriptCode.match(/c\.on\(st,\s*'pointerdown',[\s\S]*?\}\);/);
 assert(reflexTapBlock && !reflexTapBlock[0].includes('c.miss('), 'Barista Speed does not deduct points or hearts on empty stage taps');
 
-// Verify reflex gold expiration has NO score penalty:
-assert(scriptCode.includes('Natural target expiration: fades naturally, ZERO heart deduction & ZERO point deduction!'), 'Barista Speed does not deduct points or hearts on naturally expired targets');
+// Verify reflex gold expiration deducts 10 points:
+assert(scriptCode.includes('Missed gold coffee target: deduct 10 points per client specification') && scriptCode.includes('run.score = Math.max(0, run.score - 10)'), 'Barista Speed deducts 10 points on naturally expired gold targets');
 
 // 20. Espresso Notes Multi-track Selection
 console.log('\n--- Suite 20: Espresso Notes Multi-track Selection ---');
