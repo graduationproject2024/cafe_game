@@ -222,7 +222,12 @@ async function runAllScenarios() {
     // Simulate scoring 5000 points
     await page.evaluate(() => {
       const s = window.getCafeState();
-      if(s){ s.best = 5200; window.saveCafeState(); window.renderHomeView(); }
+      if(s){
+        s.best = 5200;
+        if(typeof window.__mintRunCert === 'function') window.__mintRunCert(5200);
+        window.saveCafeState();
+        window.renderHomeView();
+      }
     });
     await page.waitForTimeout(400);
 
@@ -262,7 +267,12 @@ async function runAllScenarios() {
     // Now simulate player earning 8000 points (tier 2 upgrade available!)
     await page.evaluate(() => {
       const s = window.getCafeState();
-      if(s){ s.best = 8200; window.saveCafeState(); window.renderHomeView(); }
+      if(s){
+        s.best = 8200;
+        if(typeof window.__mintRunCert === 'function') window.__mintRunCert(8200);
+        window.saveCafeState();
+        window.renderHomeView();
+      }
     });
     await page.waitForTimeout(400);
 

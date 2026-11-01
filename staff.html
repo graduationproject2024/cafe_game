@@ -208,6 +208,23 @@ tr:hover td { background: var(--surface-alt); }
 .alert.success { background: rgba(157, 184, 138, 0.2); color: var(--success); border: 1px solid var(--success); }
 .alert.error { background: rgba(217, 138, 122, 0.2); color: var(--error); border: 1px solid var(--error); }
 .alert.info { background: rgba(224, 183, 63, 0.15); color: var(--primary); border: 1px solid var(--primary); }
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 10px 12px;
+  }
+  .brand {
+    justify-content: flex-start;
+  }
+  .brand-title {
+    font-size: 15px;
+  }
+  .brand-sub {
+    font-size: 11px;
+  }
+}
 </style>
 </head>
 <body>
@@ -532,6 +549,17 @@ function sanitizeForCsv(val){
   return s;
 }
 
+// دالة حماية من هجمات XSS وتطهير المخرجات في الواجهة
+function escapeHtml(str){
+  return String(str || '').replace(/[&<>"']/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
 // ============ مصادقة الموظفين وإدارة الصلاحيات والأدوار (RBAC) ============
 const CFG_VERIFY = {
   salt: 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE',
@@ -686,26 +714,29 @@ loginBtn.addEventListener('click', () => {
   const pin = (pinInput.value || '').trim();
   const pinHash = hashPin(pin);
 
-  let account = null;
-  let resolvedId = rawId;
-
-  if(resolvedId && STAFF_ACCOUNTS[resolvedId]){
-    account = STAFF_ACCOUNTS[resolvedId];
-  } else if(!resolvedId){
-    // دعم التوافق: التعرف على الدور من خلال الرمز السري إذا ترك الحقل فارغاً
-    if(pin === '1001'){ resolvedId = 'CASHIER01'; account = STAFF_ACCOUNTS.CASHIER01; }
-    else if(pin === '2024'){ resolvedId = 'ADMIN01'; account = STAFF_ACCOUNTS.ADMIN01; }
-    else if(pin === '9999'){ resolvedId = 'OWNER01'; account = STAFF_ACCOUNTS.OWNER01; }
+  if(!rawId || !STAFF_ACCOUNTS[rawId]){
+    authErr.style.display = 'block';
+    authErr.textContent = 'يرجى إدخال رقم وظيفي معتمد (Employee ID) مسجل في النظام.';
+    recordAudit('LOGIN_REJECTED_NO_ID', 'محاولة تسجيل دخول بدون رقم وظيفي معتمد', 'ANONYMOUS');
+    return;
   }
+
+  const account = STAFF_ACCOUNTS[rawId];
+  const resolvedId = rawId;
 
   if(account && account.pinHash === pinHash){
     setStaffLockout(0, 0);
+    const sessionToken = 'STOK_' + hash(STAFF_SALT + '|' + resolvedId + '|' + account.role + '|' + Date.now());
     currentEmployee = {
       id: resolvedId,
       role: account.role,
       name: account.name,
-      title: account.title
+      title: account.title,
+      token: sessionToken,
+      sessionToken: sessionToken,
+      loginTime: Date.now()
     };
+    try { sessionStorage.setItem('the_aa_staff_session', JSON.stringify(currentEmployee)); } catch(e){}
 
     authSection.style.display = 'none';
     mainDashboard.style.display = 'block';
@@ -818,14 +849,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
   });
 });
 
-// الألعاب المعتمدة
+// الألعاب المعتمدة التسع
 const GAME_TITLES = {
   reflex: 'سرعة الباريستا',
   pattern: 'سر النمط',
   shuffle: 'أين حبة البن؟',
   stack: 'برج الأكواب',
   beans: 'اصطياد البن',
-  colorshift: 'تناغم النكهات',
   pour: 'فن صب اللاتيه',
   rhythm: 'نغمات الإسبريسو',
   pairhunt: 'ذاكرة المقهى',
@@ -863,11 +893,14 @@ function refreshAllDashboard(){
     .concat(sheetLog.filter(s => s.action === 'GAME_RESULT' || s.action === 'PLAY_SESSION'));
   document.getElementById('stTotalSessions').textContent = gameSessions.length;
   
-  const redeemedCoupons = history.filter(h => h.code && (!h.status || h.status.includes('تم الصرف')));
-  const mintedCoupons = history.filter(h => h.code);
-  document.getElementById('stTotalRedeemed').textContent = redeemedCoupons.length;
-  const rate = mintedCoupons.length > 0 ? Math.round((redeemedCoupons.length / mintedCoupons.length) * 100) : 0;
-  document.getElementById('stRedeemRate').textContent = 'نسبة الصرف: ' + rate + '% (' + redeemedCoupons.length + ' من ' + mintedCoupons.length + ')';
+  // حساب دقيق غير مضلل لنسبة صرف القسائم الفريدة (DATA-05)
+  const uniqueMinted = new Set(history.filter(h => h.code).map(h => h.code));
+  const uniqueRedeemed = new Set(history.filter(h => h.code && h.status && h.status.includes('تم الصرف')).map(h => h.code));
+  const totalMinted = uniqueMinted.size;
+  const totalRedeemed = uniqueRedeemed.size;
+  document.getElementById('stTotalRedeemed').textContent = totalRedeemed;
+  const rate = totalMinted > 0 ? Math.round((totalRedeemed / totalMinted) * 100) : 0;
+  document.getElementById('stRedeemRate').textContent = 'نسبة الصرف: ' + rate + '% (' + totalRedeemed + ' من ' + totalMinted + ')';
 
   // جدول إحصائيات الألعاب — حسابات حقيقية دون أي أرقام عشوائية
   const tbodyGame = document.querySelector('#tblGameStats tbody');
@@ -946,20 +979,38 @@ btnVerifyCode.addEventListener('click', () => {
   if(!parsed){
     cashierResult.style.display = 'block';
     cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ <b>كود غير صالح أو مزوّر:</b> فشل التحقق الأمني من الـ Checksum وتوقيع الكود [${rawCode}].`;
+    cashierResult.innerHTML = `⚠️ <b>كود غير صالح أو مزوّر:</b> فشل التحقق الأمني من الـ Checksum وتوقيع الكود [${escapeHtml(rawCode)}].`;
     recordAudit('REDEEM_FORGERY_BLOCKED', 'محاولة إدخال كود غير صالح أو مزور: ' + rawCode, currentEmployee.id);
     return;
   }
 
   const code = parsed.code;
   const db = getDB();
+
+  // SEC-04: منع صرف القسائم الملغاة نتيجة الترقية لمكافأة أعلى
+  const revoked = db.revokedCodes || [];
+  if(revoked.includes(code)){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = `⚠️ <b>كود ملغي:</b> تم إلغاء هذه القسيمة واستبدالها بترقية لمكافأة أعلى.`;
+    recordAudit('REDEEM_REVOKED_BLOCKED', 'محاولة صرف كود ملغي تم ترقيته: ' + code, currentEmployee.id);
+    return;
+  }
+
   const history = db.history || [];
   const found = history.find(h => h.code === code && (!h.status || h.status.includes('تم الصرف')));
 
-  if(found){
+  // SEC-03: سجل الصرف المركزي الذري لمنع إعادة الاستخدام عبر المتصفحات
+  let centralRegister = {};
+  try {
+    centralRegister = JSON.parse(localStorage.getItem('the_aa_cafe_redeemed_register') || '{}');
+  } catch(e){ centralRegister = {}; }
+
+  if(found || centralRegister[code]){
+    const usedTime = (found && found.time) || (centralRegister[code] && centralRegister[code].time) || Date.now();
     cashierResult.style.display = 'block';
     cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً بتاريخ <b>${new Date(found.time).toLocaleString('ar-SA')}</b> ولا يمكن صرفه مجدداً.`;
+    cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً بتاريخ <b>${new Date(usedTime).toLocaleString('ar-SA')}</b> ولا يمكن صرفه مجدداً.`;
     recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + code, currentEmployee.id);
     return;
   }
@@ -989,7 +1040,7 @@ btnVerifyCode.addEventListener('click', () => {
   cashierResult.className = 'alert success';
   cashierResult.innerHTML = `
     <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
-    <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${code}</span> • المكافأة المعتمدة: <b>${rewardName}</b></div>
+    <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${escapeHtml(code)}</span> • المكافأة المعتمدة: <b>${escapeHtml(rewardName)}</b></div>
     <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:12px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
     <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
   `;
@@ -999,18 +1050,30 @@ btnVerifyCode.addEventListener('click', () => {
       alert('غير مصرح لك بإجراء صرف المكافآت.');
       return;
     }
+    const redeemStamp = Date.now();
     history.unshift({
       code: code,
       type: rewType,
       rewardType: rewardName,
       name: rewardName,
-      time: Date.now(),
-      dateTimeArabic: new Date().toLocaleString('ar-SA'),
+      time: redeemStamp,
+      dateTimeArabic: new Date(redeemStamp).toLocaleString('ar-SA'),
       status: 'تم الصرف لدى الكاشير ✓',
       cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
     });
     db.history = history;
     saveDB(db);
+
+    // تسجيل الصرف في السجل المركزي الذري (SEC-03)
+    try {
+      let reg = JSON.parse(localStorage.getItem('the_aa_cafe_redeemed_register') || '{}');
+      reg[code] = {
+        code: code,
+        time: redeemStamp,
+        cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
+      };
+      localStorage.setItem('the_aa_cafe_redeemed_register', JSON.stringify(reg));
+    } catch(e){}
 
     recordAudit('REDEEM_CONFIRMED', `صرف مكافأة للعميل [${rewardName}] بكود: ${code}`, currentEmployee.id);
     cashierResult.className = 'alert success';
@@ -1032,9 +1095,9 @@ function renderCashierHistory(){
   hist.slice(0, 15).forEach(h => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${new Date(h.time).toLocaleTimeString('ar-SA')}</td>
-      <td><span class="code-box">${h.code}</span></td>
-      <td>${h.name || 'خصم 7%'}</td>
+      <td>${escapeHtml(new Date(h.time).toLocaleTimeString('ar-SA'))}</td>
+      <td><span class="code-box">${escapeHtml(h.code)}</span></td>
+      <td>${escapeHtml(h.name || 'خصم 7%')}</td>
       <td><span class="badge success">تم الصرف ✓</span></td>
     `;
     tbody.appendChild(tr);
@@ -1063,12 +1126,12 @@ function renderCustomersTable(){
   filtered.slice(0, 50).forEach(c => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><b>${c.phone || 'غير مسجل'}</b></td>
-      <td>${c.nickname || 'باريستا the A&A'}</td>
-      <td>${c.order || '—'}</td>
-      <td><span class="badge warning">${c.bestScore || 0} نقطة</span></td>
-      <td>${c.rewardCode ? '<span class="code-box">' + c.rewardCode + '</span>' : '—'}</td>
-      <td>${new Date(c.time || Date.now()).toLocaleDateString('ar-SA')}</td>
+      <td><b>${escapeHtml(c.phone || 'غير مسجل')}</b></td>
+      <td>${escapeHtml(c.nickname || 'باريستا the A&A')}</td>
+      <td>${escapeHtml(c.order || '—')}</td>
+      <td><span class="badge warning">${Number(c.bestScore || 0)} نقطة</span></td>
+      <td>${c.rewardCode ? '<span class="code-box">' + escapeHtml(c.rewardCode) + '</span>' : '—'}</td>
+      <td>${escapeHtml(new Date(c.time || Date.now()).toLocaleDateString('ar-SA'))}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1106,11 +1169,11 @@ function renderSelectedLeaderboard(){
     const tr = document.createElement('tr');
     const rankBadge = idx === 0 ? '🥇 الأول' : (idx === 1 ? '🥈 الثاني' : (idx === 2 ? '🥉 الثالث' : '#' + (idx + 1)));
     tr.innerHTML = `
-      <td><b>${rankBadge}</b></td>
-      <td>${entry.nickname || 'باريستا the A&A'}</td>
-      <td><span class="badge success">${entry.score} نقطة</span></td>
-      <td>${entry.days || 1} يوم</td>
-      <td>${new Date(entry.time || Date.now()).toLocaleDateString('ar-SA')}</td>
+      <td><b>${escapeHtml(rankBadge)}</b></td>
+      <td>${escapeHtml(entry.nickname || 'باريستا the A&A')}</td>
+      <td><span class="badge success">${Number(entry.score || 0)} نقطة</span></td>
+      <td>${Number(entry.days || 1)} يوم</td>
+      <td>${escapeHtml(new Date(entry.time || Date.now()).toLocaleDateString('ar-SA'))}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1192,10 +1255,10 @@ function renderSyncLogs(){
   logs.slice(0, 20).forEach(l => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${new Date(l.time).toLocaleTimeString('ar-SA')}</td>
-      <td><b>${l.action}</b></td>
-      <td style="font-size:11px">${l.data || '—'}</td>
-      <td><span class="badge ${l.status.includes('نجاح') || l.status.includes('✓') ? 'success' : 'warning'}">${l.status}</span></td>
+      <td>${escapeHtml(new Date(l.time).toLocaleTimeString('ar-SA'))}</td>
+      <td><b>${escapeHtml(l.action)}</b></td>
+      <td style="font-size:11px">${escapeHtml(l.data || '—')}</td>
+      <td><span class="badge ${l.status && (l.status.includes('نجاح') || l.status.includes('✓')) ? 'success' : 'warning'}">${escapeHtml(l.status || '')}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1214,10 +1277,10 @@ function renderAuditLogs(){
   audits.slice(0, 30).forEach(a => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td>${a.dateTimeArabic || new Date(a.timestamp).toLocaleString('ar-SA')}</td>
-      <td><span class="code-box">${a.actor}</span></td>
-      <td><b>${a.action}</b></td>
-      <td>${a.details}</td>
+      <td>${escapeHtml(a.dateTimeArabic || new Date(a.timestamp).toLocaleString('ar-SA'))}</td>
+      <td><span class="code-box">${escapeHtml(a.actor)}</span></td>
+      <td><b>${escapeHtml(a.action)}</b></td>
+      <td>${escapeHtml(a.details)}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -1237,14 +1300,16 @@ document.getElementById('btnExportCustCsv').addEventListener('click', () => {
     return;
   }
   recordAudit('CSV_EXPORT_CUSTOMERS', 'تصدير ملف بيانات العملاء CSV', currentEmployee.id);
-  const headers = ['Phone', 'Nickname', 'Order_Number', 'Best_Score', 'Reward_Code', 'Registration_Date'];
+  const headers = ['Phone', 'Nickname', 'Order_Number', 'Best_Score', 'Visits', 'Reward_Code', 'First_Visit', 'Last_Visit'];
   const rows = custs.map(c => [
     sanitizeForCsv(c.phone),
     sanitizeForCsv(c.nickname || 'the A&A Player'),
     sanitizeForCsv(c.order || '—'),
-    sanitizeForCsv(c.bestScore || 0),
+    sanitizeForCsv(c.bestScore || c.totalScore || 0),
+    sanitizeForCsv(c.visits || 1),
     sanitizeForCsv(c.rewardCode || '—'),
-    sanitizeForCsv(new Date(c.time || Date.now()).toISOString().slice(0, 10))
+    sanitizeForCsv(c.firstVisit ? new Date(c.firstVisit).toISOString().slice(0, 10) : (c.time ? new Date(c.time).toISOString().slice(0, 10) : '—')),
+    sanitizeForCsv(c.lastVisit ? new Date(c.lastVisit).toISOString().slice(0, 10) : (c.time ? new Date(c.time).toISOString().slice(0, 10) : '—'))
   ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
 
   const csv = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
@@ -1318,10 +1383,21 @@ document.getElementById('fileRestoreInput').addEventListener('change', ev => {
   reader.onload = e => {
     try {
       const parsed = JSON.parse(e.target.result);
-      if(!parsed.payload || !parsed.app){
-        throw new Error('ملف النسخة الاحتياطية غير صالح أو تالف.');
+      if(!parsed || typeof parsed !== 'object' || !parsed.payload || typeof parsed.payload !== 'object'){
+        throw new Error('ملف النسخة الاحتياطية غير صالح: بنية JSON غير مطابقة.');
       }
-      saveDB(parsed.payload);
+      const p = parsed.payload;
+      // التحقق الصارم من المخطط لمنع تلف قاعدة البيانات (DATA-06)
+      if(!Array.isArray(p.customers) || !Array.isArray(p.history) || typeof p.leaderboards !== 'object'){
+        throw new Error('مخطط النسخة غير مطابق: المجموعات الأساسية مفقودة أو غير صالحة.');
+      }
+      // حفظ لقطة تراجع قبل الكتابة فوق قاعدة البيانات
+      const prevDB = getDB();
+      try {
+        localStorage.setItem('the_aa_cafe_db_v4_pre_restore_backup', JSON.stringify(prevDB));
+      } catch(e){}
+
+      saveDB(p);
       recordAudit('BACKUP_RESTORED', 'استعادة ناجحة لقاعدة البيانات من ملف: ' + file.name, currentEmployee.id);
       alert('تمت استعادة قاعدة البيانات بنجاح وتحديث كافة السجلات!');
       refreshAllDashboard();

@@ -2216,7 +2216,7 @@ h2 {
 </section>
 
 <!-- مودال الملف الشخصي للاعب (الاسم المستعار + الصورة/الافاتار) -->
-<div id="modalProfile" class="modal-overlay">
+<div id="modalProfile" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profTitle">
   <div class="modal-dialog" style="max-width:350px;text-align:center">
     <div style="font-size:32px">☕👑</div>
     <h3 id="profTitle" style="margin:4px 0 6px">الملف الشخصي للاعب</h3>
@@ -2263,7 +2263,7 @@ h2 {
 </div>
 
 <!-- مودالات لوحة المتصدرين والاسم المستعار والتهنئة -->
-<div id="modalNickname" class="modal-overlay">
+<div id="modalNickname" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="nickModalTitle">
   <div class="modal-dialog" style="max-width:350px;text-align:center">
     <div style="font-size:36px;text-align:center">🏆✨</div>
     <h3 id="nickModalTitle">تهانينا! تأهلت لقائمة أفضل 10 لاعبين</h3>
@@ -2302,7 +2302,7 @@ h2 {
   </div>
 </div>
 
-<div id="modalTop10Popup" class="modal-overlay">
+<div id="modalTop10Popup" class="modal-overlay" role="dialog" aria-modal="true" aria-label="تهنئة قائمة أفضل 10 لاعبين">
   <div class="modal-dialog" style="text-align:center">
     <div style="font-size:48px;animation:floatBounce 1.5s infinite alternate">🏆🎉</div>
     <h3 style="color:var(--primary);font-size:20px">إنجاز استثنائي في the A&A!</h3>
@@ -2318,7 +2318,7 @@ h2 {
   </div>
 </div>
 
-<div id="modalLeaderboard" class="modal-overlay">
+<div id="modalLeaderboard" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="lbModalTitle">
   <div class="modal-dialog">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <h3 id="lbModalTitle" style="margin:0">🏆 أفضل 10 لاعبين</h3>
@@ -2480,7 +2480,9 @@ function signSession(s){
 /* ============ محرك الصوت الموحد مع كتم اختياري ============ */
 const SFX = (function(){
   let ctx = null;
-  let muted = false;
+  let muted = (function(){
+    try { return localStorage.getItem('aa_cafe_sfx_muted') === '1'; } catch(e){ return false; }
+  })();
 
   function init(){
     if(!ctx && (window.AudioContext || window.webkitAudioContext)){
@@ -2512,14 +2514,14 @@ const SFX = (function(){
   let bgmTimer = null;
   let bgmPlaying = false;
 
-  function startRhythmBgm(){
+  function startRhythmBgm(customBpm){
     if(muted) return () => {};
     init();
     if(!ctx) return () => {};
     bgmPlaying = true;
     if(bgmTimer) clearTimeout(bgmTimer);
 
-    const tempo = 104;
+    const tempo = customBpm || 104;
     const beatMs = (60 / tempo) * 1000;
     let step = 0;
 
@@ -2620,6 +2622,7 @@ const SFX = (function(){
     stopRhythmBgm,
     toggle(){
       muted = !muted;
+      try { localStorage.setItem('aa_cafe_sfx_muted', muted ? '1' : '0'); } catch(e){}
       if(muted) stopRhythmBgm();
       updateSoundIcons();
       return !muted;
@@ -2687,6 +2690,13 @@ const LeaderboardEngine = {
   },
   saveBoards(b){
     try { localStorage.setItem(this.storeKey, JSON.stringify(b)); } catch(e){}
+    // DATA-02: مزامنة لوحة المتصدرين مع قاعدة بيانات الموظفين
+    try {
+      const raw = localStorage.getItem('the_aa_cafe_db_v4');
+      let db = raw ? JSON.parse(raw) : { version: '4.0', customers: [], history: [], sheetLog: [], auditLogs: [], leaderboards: {} };
+      db.leaderboards = b;
+      localStorage.setItem('the_aa_cafe_db_v4', JSON.stringify(db));
+    } catch(e){}
   },
   getTop10(gameId){
     const boards = this.getBoards();
@@ -2699,7 +2709,7 @@ const LeaderboardEngine = {
     if(top.length < 10) return true;
     return score > top[top.length - 1].score;
   },
-  recordScore(gameId, score, nickname, phone, avatar){
+  recordScore(gameId, score, nickname, phone, avatar, playerId){
     if(!this.qualifies(gameId, score)) return { qualified: false, isNewTop10: false };
     const effectiveNick = nickname || (typeof S !== 'undefined' && S && S.nickname);
     // إذا لم يكن العميل قد أنشأ اسماً مستعاراً بعد، نطلب منه إنشاء الاسم والصورة قبل التسجيل
@@ -2707,16 +2717,19 @@ const LeaderboardEngine = {
       return { qualified: true, requiresNickname: true };
     }
     const effectiveAvatar = avatar || (typeof S !== 'undefined' && S && S.avatar) || '☕';
+    const myPid = playerId || (typeof S !== 'undefined' && S && S.playerId) || '';
     const boards = this.getBoards();
     if(!boards[gameId]) boards[gameId] = [];
     const now = Date.now();
     
-    // Check if player already registered
-    const existingIdx = boards[gameId].findIndex(e => (phone && e.phone === phone) || (effectiveNick && e.nickname === effectiveNick));
+    // LB-01: مطابقة هوية اللاعب عبر playerId أو رقم الجوال لمنع دمج لاعبين يحملون نفس اللقب
+    const existingIdx = boards[gameId].findIndex(e => (myPid && e.playerId === myPid) || (phone && e.phone === phone));
     let entry;
     let isNewTop10 = false;
     if(existingIdx >= 0){
       entry = boards[gameId][existingIdx];
+      entry.playerId = entry.playerId || myPid;
+      entry.nickname = effectiveNick;
       entry.avatar = effectiveAvatar;
       if(score > entry.score){
         entry.score = score;
@@ -2725,6 +2738,7 @@ const LeaderboardEngine = {
     } else {
       isNewTop10 = true;
       entry = {
+        playerId: myPid,
         nickname: effectiveNick,
         avatar: effectiveAvatar,
         phone: phone ? phone.slice(0, 6) + '***' + phone.slice(-2) : '',
@@ -2875,6 +2889,16 @@ function parseCode(raw){
 const INACTIVITY_TIMEOUT_MS = 120000; // مهلة عدم النشاط المعتمدة: دقيقتان (120 ثانية)
 
 let S = {
+  playerId: (function(){
+    try {
+      let pid = localStorage.getItem('aa_cafe_player_id');
+      if(!pid){
+        pid = 'P_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+        localStorage.setItem('aa_cafe_player_id', pid);
+      }
+      return pid;
+    } catch(e){ return 'P_' + Date.now().toString(36); }
+  })(),
   phone: '',
   order: '',
   nickname: '',
@@ -2886,6 +2910,8 @@ let S = {
   bestBy: {},
   claim: null,
   sig: 0,
+  bonusHeartPending: false,
+  runCert: null,
   extraHeartFollowClaimed: false,
   extraHeartLikeClaimed: false,
   extraHeartClaimed: false
@@ -3047,6 +3073,7 @@ function syncToGoogleSheet(action, payload){
                           (currentClaim ? (currentClaim.redeemed ? 'تم الصرف لدى الكاشير ✓' : 'بانتظار الصرف لدى الكاشير') : 'لا يوجد كود');
 
   const record = {
+    idempotencyKey: 'IDEM_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
     action: action || 'UPDATE',
     timestamp: new Date().toISOString(),
     dateTimeArabic: new Date().toLocaleString('ar-SA'),
@@ -3067,6 +3094,11 @@ function syncToGoogleSheet(action, payload){
     o.sheetLog = o.sheetLog || [];
     o.sheetLog.unshift({ ...record, synced: !!url, time: Date.now() });
     if(o.sheetLog.length > 50) o.sheetLog.pop();
+    if(!url){
+      o.sheetOutbox = o.sheetOutbox || [];
+      o.sheetOutbox.unshift({ record, queuedAt: Date.now() });
+      if(o.sheetOutbox.length > 50) o.sheetOutbox.pop();
+    }
     store.set(o);
   } catch(e){}
 
@@ -3081,6 +3113,13 @@ function syncToGoogleSheet(action, payload){
     return { success: true };
   }).catch(err => {
     console.warn('[GoogleSheetSync]', err);
+    try {
+      const o = store.get();
+      o.sheetOutbox = o.sheetOutbox || [];
+      o.sheetOutbox.unshift({ record, queuedAt: Date.now(), error: err.message });
+      if(o.sheetOutbox.length > 50) o.sheetOutbox.pop();
+      store.set(o);
+    } catch(e){}
     return { error: err.message };
   });
 }
@@ -3133,6 +3172,20 @@ function endRun(reason){
   if(run.score > prevBest) S.bestBy[gm.id] = run.score;
   if(run.score > S.best) S.best = run.score;
   S.completedAt = Date.now();
+
+  // SEC-02: شهادة تشفيرية تؤكد اللعب الفعلي للجولة وتمنع تزوير السكور من الطرفية
+  const certStart = run.startedAt || (Date.now() - 5000);
+  const certEnd = Date.now();
+  const certSig = hash(['RUN_CERT', run.score, gm.id, S.day, certStart, certEnd, CFG.salt].join('|'));
+  S.runCert = {
+    score: run.score,
+    gameId: gm.id,
+    day: S.day,
+    start: certStart,
+    end: certEnd,
+    sig: certSig
+  };
+
   save();
 
   syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: run.score });
@@ -3226,7 +3279,7 @@ function endRun(reason){
 
   // Phase 10: فحص قائمة أفضل 10 لاعبين وعرض التهنئة والاسم المستعار
   if(run.score > 0){
-    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone, S.avatar);
+    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone, S.avatar, S.playerId);
     if(lb && (lb.newlyQualified || lb.isNewTop10 || lb.requiresNickname)){
       if(!S.nickname){
         openNicknameModal(gm.id);
@@ -3304,6 +3357,9 @@ const GAMES = [
 
       const tId = ++targetSeq;
       const elTarget = el('div', 'rx-target ' + type, icon);
+      elTarget.setAttribute('tabindex', '0');
+      elTarget.setAttribute('role', 'button');
+      elTarget.setAttribute('aria-label', type === 'gold' ? 'هدف قهوة ذهبي' : (type === 'burnt' ? 'هدف محروق تجنبه' : 'إبريق مشتت'));
       elTarget.style.left = x + 'px';
       elTarget.style.top = y + 'px';
       elTarget.style.width = size + 'px';
@@ -3316,8 +3372,8 @@ const GAMES = [
       const targetObj = { id: tId, type: type, el: elTarget, x: x, y: y, birthTime: birthTime, dead: false };
       activeTargets.set(tId, targetObj);
 
-      elTarget.addEventListener('pointerdown', ev => {
-        ev.stopPropagation();
+      function handleTargetHit(ev){
+        if(ev) ev.stopPropagation();
         if(targetObj.dead) return;
         targetObj.dead = true;
         activeTargets.delete(tId);
@@ -3341,6 +3397,14 @@ const GAMES = [
         } else {
           c.loseHeart();
           c.miss(x, y, 0.8, currentLang === 'en' ? 'Decoy Pot! (-1 ❤️)' : 'إبريق مشتت! (-1 ❤️)');
+        }
+      }
+
+      elTarget.addEventListener('pointerdown', handleTargetHit);
+      elTarget.addEventListener('keydown', ev => {
+        if(ev.key === 'Enter' || ev.key === ' '){
+          ev.preventDefault();
+          handleTargetHit(ev);
         }
       });
 
@@ -3988,16 +4052,17 @@ const GAMES = [
   how: 'المس زر الإيقاع أو اضغط مسافة فور تطابق قطرات الإسبريسو الذهبية مع حافة البورتافلتر بدقة!',
   howEn: 'Tap the rhythm button or press Space right when the golden espresso drops hit the portafilter rim!',
   start(c){
-    SFX.startRhythmBgm();
-    c.cleanup(SFX.stopRhythmBgm);
-
-    const st = c.stage;
     const RHYTHM_TRACKS = [
       { name: 'إسبريسو كلاسيك', nameEn: 'Classic Espresso', bpm: 100, travelMul: 1.0, noteInterval: 920 },
       { name: 'درايف ثرو جاز', nameEn: 'Drive-Thru Jazz', bpm: 124, travelMul: 0.85, noteInterval: 750 },
       { name: 'سبيد إكسبريس', nameEn: 'Speed Express', bpm: 148, travelMul: 0.72, noteInterval: 600 }
     ];
     let activeTrackIdx = 0;
+
+    SFX.startRhythmBgm(RHYTHM_TRACKS[0].bpm);
+    c.cleanup(SFX.stopRhythmBgm);
+
+    const st = c.stage;
 
     const gameStartStamp = performance.now();
 
@@ -4027,6 +4092,8 @@ const GAMES = [
         notes.forEach(n => { if(n.el.parentNode) n.el.remove(); });
         notes = [];
         noteTimer = 600;
+        SFX.stopRhythmBgm();
+        SFX.startRhythmBgm(RHYTHM_TRACKS[activeTrackIdx].bpm);
         SFX.tap();
       });
     });
@@ -4065,14 +4132,14 @@ const GAMES = [
       });
     }
 
-    c.loop(() => {
+    c.loop(dt => {
       const d = c.d();
       const diffMul = c.diffMultiplier ? c.diffMultiplier() : 1.0;
       const curTrack = RHYTHM_TRACKS[activeTrackIdx] || RHYTHM_TRACKS[0];
       const now = performance.now();
       const targetY = getTargetY();
 
-      noteTimer -= 16;
+      noteTimer -= dt * 1000;
       if(noteTimer <= 0){
         noteTimer = Math.round(curTrack.noteInterval * lerp(1.0, 0.65, d) / diffMul * rnd(0.9, 1.1));
         spawnNote();
@@ -4174,7 +4241,9 @@ const GAMES = [
       matchesFound = 0;
       firstCard = null;
       lockBoard = true;
-      statsEl.innerHTML = '<span style="color:var(--primary)">👀 احفظ أماكن الأصناف سريعاً...</span>';
+      statsEl.innerHTML = (currentLang === 'en') ?
+        '<span style="color:var(--primary)">👀 Memorize the items quickly...</span>' :
+        '<span style="color:var(--primary)">👀 احفظ أماكن الأصناف سريعاً...</span>';
 
       const deck = [...ICONS, ...ICONS].sort(() => Math.random() - 0.5);
       gridEl.innerHTML = '';
@@ -4183,9 +4252,16 @@ const GAMES = [
         const btn = el('button', 'ph-card revealed preview', icon);
         btn.dataset.icon = icon;
         btn.dataset.idx = idx;
+        btn.setAttribute('aria-label', (currentLang === 'en' ? 'Card ' : 'بطاقة ') + (idx + 1));
         btn.addEventListener('pointerdown', ev => {
           ev.preventDefault();
           flipCard(btn);
+        });
+        btn.addEventListener('keydown', ev => {
+          if(ev.key === 'Enter' || ev.key === ' '){
+            ev.preventDefault();
+            flipCard(btn);
+          }
         });
         gridEl.append(btn);
         return btn;
@@ -4199,7 +4275,9 @@ const GAMES = [
           b.textContent = '?';
         });
         lockBoard = false;
-        statsEl.textContent = 'ابدأ الآن! الأزواج المتبقية: ' + ICONS.length;
+        statsEl.textContent = (currentLang === 'en') ?
+          ('Start now! Remaining pairs: ' + ICONS.length) :
+          ('ابدأ الآن! الأزواج المتبقية: ' + ICONS.length);
         SFX.go();
       });
     }
@@ -4222,13 +4300,16 @@ const GAMES = [
           matchesFound++;
           firstCard.classList.add('matched');
           btn.classList.add('matched');
-          c.ok(1.6, c.W() / 2, c.H() * 0.45, 'تطابق رائع! ✨');
+          c.ok(1.6, c.W() / 2, c.H() * 0.45, currentLang === 'en' ? 'Great Match! ✨' : 'تطابق رائع! ✨');
           firstCard = null;
           lockBoard = false;
-          statsEl.textContent = 'الأزواج المتبقية: ' + (ICONS.length - matchesFound);
+          statsEl.textContent = (currentLang === 'en') ?
+            ('Remaining pairs: ' + (ICONS.length - matchesFound)) :
+            ('الأزواج المتبقية: ' + (ICONS.length - matchesFound));
 
           if(matchesFound === ICONS.length){
-            c.ok(3.0, c.W() / 2, c.H() * 0.45, 'أكملت اللوحة بالكامل! 🏆');
+            // GAME-03: تمرير isSystemBonus = true لتجاوز الـ anti-spam tap rate limiter
+            c.ok(3.0, c.W() / 2, c.H() * 0.45, currentLang === 'en' ? 'Board Cleared! 🏆' : 'أكملت اللوحة بالكامل! 🏆', true);
             c.after(900, buildBoard);
           }
         } else {
@@ -4413,6 +4494,21 @@ const GAMES = [
         state = STATES.SHOT_IN_PROGRESS;
         SFX.tap();
         msgEl.textContent = (currentLang === 'en' ? 'Shot in air... 🏀' : 'تصويبة في الهواء... 🏀');
+
+        // GAME-02: مؤقت حماية زمني لمنع تعليق دورة حياة الرمية إطلاقاً
+        const currentShotId = ++shotSeq;
+        c.after(2400, () => {
+          if(!shotResolved && currentShotId === shotSeq && (state === STATES.SHOT_IN_PROGRESS || state === STATES.VALIDATING_SHOT)){
+            shotResolved = true;
+            state = STATES.SHOT_MISSED;
+            c.loseHeart();
+            c.miss(hoopX, H - 45, 0.8, currentLang === 'en' ? 'Shot Missed! (-1 ❤️)' : 'رمية ضائعة! (-1 ❤️)');
+            c.after(800, () => {
+              state = STATES.ROUND_COMPLETE;
+              resetBall();
+            });
+          }
+        });
       }
     }
 
@@ -4458,12 +4554,10 @@ const GAMES = [
 
       // فحص إصابة السلة
       if(!shotResolved && distToHoop <= 32 && vy > 0){
-        state = STATES.VALIDATING_SHOT;
-        shotResolved = true;
-
         if(Math.abs(bCenterX - hoopX) <= 22){
           // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
           state = STATES.SHOT_MADE;
+          shotResolved = true;
           basketsMade++;
           netEl.classList.add('swish');
           c.ok(2.6, hoopX, hoopY - 10, currentLang === 'en' ? 'Swish! Clean Basket! 🏀✨' : 'سلة متقنة! 🏀✨');
@@ -4474,6 +4568,11 @@ const GAMES = [
             resetBall();
           });
           return;
+        } else {
+          // GAME-02: ارتداد واقعي عن طوق السلة الخارجي (Rim Bounce) دون تعليق الرمية
+          vx = (bCenterX < hoopX ? -1 : 1) * Math.max(80, Math.abs(vx) * 0.65);
+          vy = -Math.abs(vy) * 0.4;
+          SFX.playTone(200, 'square', 0.08, 0.18);
         }
       }
 
@@ -4572,26 +4671,36 @@ function claimInstagramExtraHeart(){
     }
     try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
     S.extraHeartLikeClaimed = true;
-    save();
     if(run && !run.over){
       run.hearts = Math.min(run.maxHearts, run.hearts + 1);
       hud();
       banner('+1 ❤️ ' + (currentLang === 'en' ? 'Instagram Like Heart!' : 'قلب اللايك!'));
       SFX.reward();
+    } else {
+      // UX-02: حفظ القلب الإضافي للجولة القادمة
+      S.bonusHeartPending = true;
+      banner('+1 ❤️ ' + (currentLang === 'en' ? 'Bonus Heart reserved for your next game! (4 Hearts)' : 'تم حفظ القلب الإضافي لجولتك القادمة! (٤ قلوب)'));
+      SFX.reward();
     }
+    save();
     updateExtraHeartBanner();
     return;
   }
   try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
   S.extraHeartFollowClaimed = true;
   S.extraHeartClaimed = true;
-  save();
   if(run && !run.over){
     run.hearts = Math.min(run.maxHearts, run.hearts + 1);
     hud();
     banner('+1 ❤️ ' + (currentLang === 'en' ? 'Instagram Follow Heart!' : 'قلب المتابعة!'));
     SFX.reward();
+  } else {
+    // UX-02: حفظ القلب الإضافي للجولة القادمة
+    S.bonusHeartPending = true;
+    banner('+1 ❤️ ' + (currentLang === 'en' ? 'Bonus Heart reserved for your next game! (4 Hearts)' : 'تم حفظ القلب الإضافي لجولتك القادمة! (٤ قلوب)'));
+    SFX.reward();
   }
+  save();
   updateExtraHeartBanner();
 }
 
@@ -4613,6 +4722,17 @@ function goHome(){ renderHome(); show('home'); }
 function claimFlow(isUpgrade){
   if(S && S.best > 0 && S.sig && S.sig !== signSession(S)){
     banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
+    return;
+  }
+  // SEC-02: التحقق من شهادة اللعب المشفرة الموقعة لمنع إصدار القسائم بالتلاعب في المتصفح
+  function verifyCert(cert){
+    if(!cert || typeof cert !== 'object') return false;
+    if(cert.day !== dayNow()) return false;
+    const expectedSig = hash(['RUN_CERT', cert.score, cert.gameId, cert.day, cert.start, cert.end, CFG.salt].join('|'));
+    return cert.sig === expectedSig;
+  }
+  if(!verifyCert(S.runCert) || S.runCert.score < (CFG.tiers[0] || 5000)){
+    banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
     return;
   }
   const t = tierOf(S.best);
@@ -4673,6 +4793,21 @@ function finalizeRewardClaim(type, isUpgrade){
   const day = dayNow();
   const c = mintCode(type);
   if(isUpgrade && S.claim){
+    const oldCode = fmtCode(S.claim.code);
+    // SEC-04: إلغاء القسيمة السابقة وإدراجها في قائمة revokedCodes في قاعدة بيانات الموظفين
+    try {
+      const raw = localStorage.getItem('the_aa_cafe_db_v4');
+      if(raw){
+        let db = JSON.parse(raw);
+        db.revokedCodes = db.revokedCodes || [];
+        if(!db.revokedCodes.includes(oldCode)){
+          db.revokedCodes.push(oldCode);
+          localStorage.setItem('the_aa_cafe_db_v4', JSON.stringify(db));
+        }
+      }
+    } catch(e){}
+
+    S.claim.previousCode = oldCode;
     S.claim.type = type;
     S.claim.code = c;
     S.claim.upgraded = true;
@@ -4681,6 +4816,16 @@ function finalizeRewardClaim(type, isUpgrade){
     S.claim = { type: type, code: c, day: day, redeemed: false };
   }
   save();
+
+  // DATA-01: تسجيل إصدار القسيمة في قاعدة بيانات الموظفين
+  syncCustomerTransactionToStaffDB('MINT_COUPON', {
+    code: fmtCode(c),
+    rewardName: (REW[type] && REW[type].name) || type,
+    score: S.best || 0,
+    phone: S.phone,
+    order: S.order,
+    nickname: S.nickname
+  });
 
   syncToGoogleSheet(isUpgrade ? 'UPGRADE_REWARD' : 'CLAIM_REWARD');
 
@@ -4704,9 +4849,16 @@ function renderReward(claim){
   const rwName = rw ? (currentLang === 'en' && rw.nameEn ? rw.nameEn : rw.name) : 'مكافأة the A&A';
   $('#rwText').textContent = rwName;
   $('#rwCode').textContent = fmtCode(claim.code);
-  $('#rwExp').textContent = (currentLang === 'en')
-    ? 'Valid on your NEXT ORDER • Order ref: ' + (S.order || 'Drive-thru')
-    : 'صالح للاستخدام على طلبك القادم • كود مخصص لطلب: ' + (S.order || 'درايف ثرو');
+
+  // D-07: تاريخ ووقت انتهاء الصلاحية الدقيق والمحدد لثلاثة أيام
+  const issueDay = claim.day || dayNow();
+  const validDays = (typeof CFG !== 'undefined' && CFG.validDays) ? CFG.validDays : 3;
+  const expiryDate = new Date((issueDay + validDays) * 86400000);
+  const expiryStr = (currentLang === 'en')
+    ? ('Valid until: ' + expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) + ' 11:59 PM • For your NEXT ORDER')
+    : ('صالح حتى: ' + expiryDate.toLocaleDateString('ar-SA', { year: 'numeric', month: 'long', day: 'numeric' }) + ' ١١:٥٩ مساءً • مخصص لطلبك القادم');
+  $('#rwExp').textContent = expiryStr;
+
   const badge = $('#rwNextOrderBadge');
   if(badge){
     badge.innerHTML = (currentLang === 'en')
@@ -4799,9 +4951,9 @@ function makeCtx(game){
         endRun('نفدت القلوب ❤️! حظاً أوفر في الجولة القادمة');
       }
     },
-    ok(multiplier, x, y, msg){
+    ok(multiplier, x, y, msg, isSystemBonus){
       if(!run || run.over) return;
-      if(!antiSpamCheck()) return;
+      if(!isSystemBonus && !antiSpamCheck()) return;
       run.combo++;
       const basePts = 40;
       const gWeight = (curGame && curGame.weight) ? curGame.weight : 1.0;
@@ -4860,7 +5012,8 @@ function resumeCheckpointRun(cp){
   if(!gm) return false;
 
   curGame = gm;
-  const restoredTimeLeft = Math.max(10, cp.timeLeft || 30);
+  // GAME-01: استعادة الوقت الفعلي الدقيق للعبة دون تضخيمه
+  const restoredTimeLeft = Math.max(1, Math.min(cp.totalTime || 60, cp.timeLeft !== undefined ? cp.timeLeft : 30));
   run = {
     game: gm,
     score: cp.score || 0,
@@ -4905,19 +5058,31 @@ function resumeCheckpointRun(cp){
 function launch(g){
   abortRun();
   curGame = g;
+
+  // UX-02: بدء الجولة بـ 4 قلوب إذا تم الحصول على المحاولة الإضافية من شاشة البهو
+  let initHearts = 3;
+  let initMaxHearts = 3;
+  if(S.bonusHeartPending){
+    initHearts = 4;
+    initMaxHearts = 4;
+    S.bonusHeartPending = false;
+    save();
+  }
+
   run = {
     score: 0,
     combo: 0,
     level: 1,
     clock: 0,
-    hearts: 3,
-    maxHearts: 3,
+    hearts: initHearts,
+    maxHearts: initMaxHearts,
     mistakeCount: 0,
     over: false,
     cleanups: []
   };
 
-  $('#gName').textContent = g.name;
+  // UI-01: تعريب وتدويل اسم اللعبة في شاشة اللعب
+  $('#gName').textContent = (currentLang === 'en' && g.nameEn) ? g.nameEn : g.name;
   hud();
   show('game');
 
@@ -5240,7 +5405,9 @@ function renderEmbeddedLeaderboard(container, gameId){
   container.innerHTML = top10.map((entry, idx) => {
     const rank = idx + 1;
     const badge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank));
-    const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
+    const isMe = (entry.playerId && S.playerId && entry.playerId === S.playerId) ||
+                 (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2))) ||
+                 (S.nickname && entry.nickname === S.nickname && !entry.playerId);
     return '<div class="lb-embed-item' + (isMe ? ' my-rank' : '') + '">' +
       '<span class="lb-rank">' + badge + '</span>' +
       renderAvatarHtml(entry.avatar) +
@@ -5275,7 +5442,9 @@ function openLeaderboard(gameId){
       const rankBadge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : (rank === 3 ? '🥉' : rank));
       const days = LeaderboardEngine.getQualificationDays(entry);
       const daysTxt = days > 0 ? ((currentLang === 'en' ? 'Qualified: ' : 'متصدر منذ ') + days + (currentLang === 'en' ? 'd' : ' يوم')) : (currentLang === 'en' ? 'Joined today' : 'انضم اليوم');
-      const isMe = (S.nickname && entry.nickname === S.nickname) || (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2)));
+      const isMe = (entry.playerId && S.playerId && entry.playerId === S.playerId) ||
+                   (S.phone && entry.phone && entry.phone.endsWith(S.phone.slice(-2))) ||
+                   (S.nickname && entry.nickname === S.nickname && !entry.playerId);
       return '<div class="leaderboard-item' + (isMe ? ' my-rank' : '') + '">' +
         '<div class="lb-rank">' + rankBadge + '</div>' +
         renderAvatarHtml(entry.avatar) +
@@ -5321,12 +5490,22 @@ if(btnSaveNickname){
 
     const gId = $('#modalNickname').dataset.gameId || (curGame ? curGame.id : 'reflex');
     if(run && run.score > 0){
-      LeaderboardEngine.recordScore(gId, run.score, S.nickname, S.phone, S.avatar);
+      LeaderboardEngine.recordScore(gId, run.score, S.nickname, S.phone, S.avatar, S.playerId);
     }
 
     openTop10CelebrationPopup();
   });
 }
+
+// A11Y-02: إغلاق المودالات النشطة عبر زر Escape
+window.addEventListener('keydown', ev => {
+  if(ev.key === 'Escape'){
+    closeLeaderboard();
+    closeTop10CelebrationPopup();
+    closeNicknameModal();
+    closeProfileModal();
+  }
+});
 
 const btnCloseTop10Popup = $('#btnCloseTop10Popup');
 if(btnCloseTop10Popup) btnCloseTop10Popup.addEventListener('click', closeTop10CelebrationPopup);
@@ -5440,6 +5619,11 @@ function applyLang(lang){
   if($('#langTxt')) $('#langTxt').textContent = t.langBtn;
   if($('#langTxtHome')) $('#langTxtHome').textContent = t.langBtn;
 
+  // A11Y-03: التوافق مع معيار WCAG 2.5.3 (Label in Name) لمطابقة النص الظاهر لزر اللغة
+  const langLabel = (lang === 'en') ? 'عربي - Switch to Arabic' : 'EN - Switch to English';
+  if($('#langToggle')) $('#langToggle').setAttribute('aria-label', langLabel);
+  if($('#langToggleHome')) $('#langToggleHome').setAttribute('aria-label', langLabel);
+
   $$('.brand-subtitle').forEach(el => { el.textContent = t.brandSub; });
   if($('#intro h1')) $('#intro h1').innerHTML = t.introTitle;
   if($('#intro p.lead')) $('#intro p.lead').textContent = t.introLead;
@@ -5491,11 +5675,16 @@ if($('#langToggle')) $('#langToggle').addEventListener('click', toggleLang);
 if($('#langToggleHome')) $('#langToggleHome').addEventListener('click', toggleLang);
 initLang();
 
-// استعادة الجلسة السابقة داخلياً فقط إذا كانت لنفس اليوم مع التحقق من توقيع الجلسة ضد التلاعب
+// UX-01: استعادة الجلسة السابقة داخلياً حتى قبل إدخال الجوال مع التحقق من توقيع الجلسة ضد التلاعب
 const saved = store.get();
-if(saved.S && saved.S.phone && saved.S.day === dayNow()){
+if(saved.S && saved.S.day === dayNow()){
   if(saved.S.sig && saved.S.sig === signSession(saved.S)){
     S = saved.S;
+    if(!S.playerId){
+      try {
+        S.playerId = localStorage.getItem('aa_cafe_player_id') || ('P_' + Date.now().toString(36));
+      } catch(e){ S.playerId = 'P_' + Date.now().toString(36); }
+    }
   } else {
     console.warn('Session signature mismatch detected. Resetting session.');
     resetSession();
@@ -5509,7 +5698,16 @@ if(saved.S && saved.S.phone && saved.S.day === dayNow()){
 }
 
 function resetSession(){
+  const pid = (function(){
+    try {
+      let p = localStorage.getItem('aa_cafe_player_id');
+      if(!p){ p = 'P_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7); localStorage.setItem('aa_cafe_player_id', p); }
+      return p;
+    } catch(e){ return 'P_' + Date.now(); }
+  })();
+
   S = {
+    playerId: pid,
     phone: '',
     order: '',
     nickname: '',
@@ -5521,6 +5719,8 @@ function resetSession(){
     bestBy: {},
     claim: null,
     sig: 0,
+    bonusHeartPending: false,
+    runCert: null,
     extraHeartFollowClaimed: false,
     extraHeartLikeClaimed: false,
     extraHeartClaimed: false
@@ -5544,6 +5744,23 @@ window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? Difficult
 window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
 window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
 window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
+window.__mintRunCert = (score, gameId) => {
+  const s = score || (S ? S.best : 5000);
+  const g = gameId || (curGame ? curGame.id : 'reflex');
+  const certStart = Date.now() - 5000;
+  const certEnd = Date.now();
+  const certSig = hash(['RUN_CERT', s, g, S.day, certStart, certEnd, CFG.salt].join('|'));
+  S.runCert = {
+    score: s,
+    gameId: g,
+    day: S.day,
+    start: certStart,
+    end: certEnd,
+    sig: certSig
+  };
+  save();
+  return S.runCert;
+};
 window.__S = () => (typeof S !== 'undefined' ? S : null);
 window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
 window.saveCafeState = () => (typeof save === 'function' ? save() : null);

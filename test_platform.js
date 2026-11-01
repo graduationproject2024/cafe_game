@@ -572,6 +572,83 @@ assert(scriptCode.includes('curGame.weight'), 'Score increment factors curGame.w
 // 10. Checkpoint Time Capping (No 15-second inflation)
 assert(!scriptCode.includes('Math.max(15,') && scriptCode.includes('Math.max(1,'), 'Checkpoint time does not award 15 free seconds on heart exhaustion');
 
+console.log('\n--- Suite 29: Comprehensive Audit Fixes (SEC-01 to SEC-05, DATA, UX, GAME, A11Y) ---');
+
+// SEC-01: No plaintext PIN fallback login
+assert(!staffScriptCode.includes("pin === '1001'") && !staffScriptCode.includes("pin === '2024'"), 'SEC-01: staff.html strictly removed plaintext PIN fallback logins');
+assert(staffScriptCode.includes("sessionToken:"), 'SEC-01: staff.html generates secure signed session token');
+
+// SEC-02: Cryptographically signed run certificate
+assert(scriptCode.includes('S.runCert') && scriptCode.includes("'RUN_CERT'"), 'SEC-02: index.html endRun generates signed runCertificate');
+assert(scriptCode.includes('verifyCert(S.runCert)'), 'SEC-02: index.html verifies runCertificate before allowing voucher issuance');
+
+// SEC-03: Central redeemed register to block multi-browser replay
+assert(staffScriptCode.includes('the_aa_cafe_redeemed_register'), 'SEC-03: staff.html checks and writes to the_aa_cafe_redeemed_register');
+
+// SEC-04: Old voucher revocation on upgrade
+assert(scriptCode.includes('revokedCodes') && staffScriptCode.includes('revokedCodes'), 'SEC-04: Old voucher code added to revokedCodes on upgrade and checked by staff');
+
+// SEC-05: XSS mitigation in staff.html
+assert(staffScriptCode.includes('escapeHtml(rawCode)'), 'SEC-05: staff.html escapes raw code input in DOM error display');
+assert(staffScriptCode.includes('escapeHtml(h.code)') && staffScriptCode.includes('escapeHtml(c.phone'), 'SEC-05: staff.html escapes table data in renderCashierHistory and renderCustomersTable');
+
+// DATA-01: Mint coupon sync to staff DB
+assert(scriptCode.includes("syncCustomerTransactionToStaffDB('MINT_COUPON'"), 'DATA-01: finalizeRewardClaim synchronizes coupon minting to staff database');
+
+// DATA-02: Leaderboard sync to staff DB
+assert(scriptCode.includes('db.leaderboards = b'), 'DATA-02: LeaderboardEngine synchronizes ranking boards to staff database');
+
+// DATA-03 & DATA-04: Google Sheets outbox pattern & idempotencyKey
+assert(scriptCode.includes('idempotencyKey:') && scriptCode.includes('sheetOutbox'), 'DATA-03 & DATA-04: Google Sheets sync implements idempotencyKey and outbox pattern');
+
+// DATA-05: Unique coupon codes in redemption rate & colorshift retired from GAME_TITLES
+assert(staffScriptCode.includes('new Set(') && !staffScriptCode.includes("colorshift:"), 'DATA-05: staff.html counts unique coupon codes in redemption rate and excludes colorshift');
+
+// DATA-06: Strict schema validation on backup restore
+assert(staffScriptCode.includes('Array.isArray(p.customers)') && staffScriptCode.includes('pre_restore_backup'), 'DATA-06: staff.html strictly validates database schema before restore and saves rollback snapshot');
+
+// DATA-07: Customer CSV export includes visits and dates
+assert(staffScriptCode.includes("'Visits'") && staffScriptCode.includes("'First_Visit'"), 'DATA-07: staff.html CSV export includes Visits, First_Visit, and Last_Visit');
+
+// UX-01: Preserve profile across reloads before phone entry
+assert(scriptCode.includes('saved.S && saved.S.day === dayNow()'), 'UX-01: Session progress and profile preserved before phone number is entered');
+
+// UX-02: Lobby bonus heart applies to next round
+assert(scriptCode.includes('S.bonusHeartPending') && scriptCode.includes('initHearts = 4'), 'UX-02: Bonus heart claimed in lobby starts next round with 4 hearts');
+
+// GAME-01: Checkpoint time restore without free time inflation
+assert(scriptCode.includes('Math.max(1, Math.min(cp.totalTime'), 'GAME-01: Checkpoint time restored with exact remaining time without inflation');
+
+// GAME-02: Basketball shot resolved only on basket made + rim bounce + watchdog
+assert(scriptCode.includes('Math.abs(bCenterX - hoopX) <= 22') && scriptCode.includes('shotSeq') && scriptCode.includes('Rim Bounce'), 'GAME-02: Basketball physics resolves only on made shot, bounces on rim, and has watchdog timer');
+
+// GAME-03: Pair Hunt completion bonus bypasses rate limiter
+assert(scriptCode.includes('isSystemBonus') && scriptCode.includes('Board Cleared!'), 'GAME-03: Pair Hunt completion bonus passes isSystemBonus flag bypassing anti-spam limiter');
+
+// GAME-04: Rhythm delta time note generation
+assert(scriptCode.includes('noteTimer -= dt * 1000'), 'GAME-04: Rhythm game note timer updates with frame delta time');
+
+// GAME-05: Dynamic BPM audio clock
+assert(scriptCode.includes('SFX.startRhythmBgm(RHYTHM_TRACKS[activeTrackIdx].bpm)'), 'GAME-05: Rhythm game passes active track BPM to SFX engine on track change');
+
+// LB-01: Player ID separation
+assert(scriptCode.includes('S.playerId') && scriptCode.includes('e.playerId === myPid'), 'LB-01: LeaderboardEngine tracks S.playerId to prevent player collision');
+
+// UI-01: Game HUD localization
+assert(scriptCode.includes("g.nameEn : g.name"), 'UI-01: Game name in HUD displays English translation when active');
+
+// UI-02: Responsive header
+assert(staffHtml.includes('@media (max-width: 600px)') && staffHtml.includes('.header'), 'UI-02: staff.html header has responsive styling for mobile 390px viewports');
+
+// A11Y-01 to A11Y-03: Keyboard support & dialog roles & WCAG 2.5.3 label
+assert(html.includes('role="dialog"') && html.includes('aria-modal="true"'), 'A11Y-02: Modals have role="dialog" and aria-modal="true"');
+assert(scriptCode.includes("ev.key === 'Escape'"), 'A11Y-02: Escape key listener closes active modals');
+assert(scriptCode.includes('EN - Switch to English') && scriptCode.includes('عربي - Switch to Arabic'), 'A11Y-03: Language toggle aria-label conforms to WCAG 2.5.3 label-in-name');
+
+// D-07 & D-10: Expiry date display & persisted mute
+assert(scriptCode.includes('Valid until:') && scriptCode.includes('صالح حتى:'), 'D-07: Voucher renders explicit expiry date and time');
+assert(scriptCode.includes('aa_cafe_sfx_muted'), 'D-10: Sound mute preference is persisted in localStorage');
+
 console.log('\n========================================================');
 console.log(`Test Execution Complete: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);
 console.log('========================================================\n');
