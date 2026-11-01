@@ -1041,13 +1041,25 @@ btnVerifyCode.addEventListener('click', () => {
   cashierResult.innerHTML = `
     <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
     <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${escapeHtml(code)}</span> • المكافأة المعتمدة: <b>${escapeHtml(rewardName)}</b></div>
-    <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:12px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
+    <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:8px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
+    <div style="background:rgba(217,83,79,0.12);border:1px dashed #d9534f;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#c9302c">
+      <b>🚫 سياسة منع دمج الخصومات:</b> يمنع قطعياً تطبيق هذا الخصم بالتزامن مع أي عروض ترويجية أخرى أو خصومات المناسبات (كاليوم الوطني، يوم التأسيس، أو عروض الجمعة).
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;cursor:pointer">
+      <input type="checkbox" id="chkNoStacking" style="accent-color:var(--primary);width:16px;height:16px">
+      <span><b>إقرار الكاشير:</b> أؤكد عدم وجود أي خصم ترويجي أو عرض مناسبات إضافي مطبق على فاتورة العميل.</span>
+    </label>
     <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
   `;
 
   document.getElementById('btnConfirmRedeemAction').onclick = () => {
     if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
       alert('غير مصرح لك بإجراء صرف المكافآت.');
+      return;
+    }
+    const chk = document.getElementById('chkNoStacking');
+    if(chk && !chk.checked){
+      alert('⚠️ تنبيه نظام: يجب التأكيد على إقرار عدم دمج الخصم مع عروض المناسبات كاليوم الوطني قبل إتمام الصرف.');
       return;
     }
     const redeemStamp = Date.now();

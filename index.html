@@ -1966,6 +1966,10 @@ h2 {
         <button id="themeToggle" class="icon-action-btn" type="button" aria-label="تبديل المظهر النهاري والليلي" title="تبديل المظهر">
           <span class="theme-icon">🌙</span>
         </button>
+        <!-- زر تبديل النمط الصوتي (دفوف إسلامية / ألحان) -->
+        <button id="audioThemeToggle" class="icon-action-btn" type="button" aria-label="تبديل النمط الصوتي (دفوف إسلامية / ألحان)" title="الدفوف الإسلامية">
+          <span id="audioThemeIcon" style="font-size:16px">🥁</span>
+        </button>
         <!-- زر كتم وتشغيل الصوت -->
         <button id="sndToggle" class="icon-action-btn" type="button" aria-label="تبديل الصوت" title="الصوت">
           <svg class="snd-icon snd-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
@@ -1981,11 +1985,28 @@ h2 {
 
     <div id="ladderIntro"></div>
 
-    <div class="card intro-action-card" style="text-align:center;padding:22px 18px">
-      <div style="font-size:36px;margin-bottom:8px">☕✨</div>
-      <h3 style="font-size:18px;font-weight:900;color:var(--primary);margin-bottom:6px">جاهز للتحدي؟</h3>
-      <p style="font-size:14px;color:var(--text-muted);margin-bottom:18px">اختر من ألعاب the A&A الحصرية، سجّل أعلى سكور، واكسب خصومات فورية حتى 7% وترقية مشروب مجانية!</p>
-      <button id="goBtn" class="btn" type="button" style="font-size:16px;padding:14px 24px">ابدأ اللعب الآن ☕✨</button>
+    <div class="card intro-action-card" style="padding:22px 18px;text-align:start">
+      <div style="text-align:center;font-size:32px;margin-bottom:6px">☕👑</div>
+      <h3 id="loginCardTitle" style="font-size:18px;font-weight:900;color:var(--primary);margin-bottom:6px;text-align:center">تسجيل الدخول وحفظ التقدم</h3>
+      <p id="loginCardSub" style="font-size:13px;color:var(--text-muted);margin-bottom:14px;text-align:center">سجّل برقم جوالك واسمك المستعار للاحتفاظ بتقدمك وجوائزك ومنافسة أفضل 10 لاعبين (يظهر للجمهور الاسم المستعار فقط).</p>
+
+      <div class="field" style="margin-bottom:12px">
+        <label for="introPhone" id="lblIntroPhone" style="font-weight:700;font-size:13px;display:block;margin-bottom:4px">رقم الجوال السعودي 📱</label>
+        <input id="introPhone" type="tel" dir="ltr" placeholder="05XXXXXXXX أو 5XXXXXXXX" style="width:100%">
+        <small id="introPhoneHint" class="field-hint" style="font-size:11px">الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX</small>
+      </div>
+
+      <div class="field" style="margin-bottom:14px">
+        <label for="introNick" id="lblIntroNick" style="font-weight:700;font-size:13px;display:block;margin-bottom:4px">الاسم المستعار (يظهر في قائمة المتصدرين) ☕</label>
+        <div style="display:flex;gap:8px">
+          <input id="introNick" type="text" maxlength="25" placeholder="مثال: باريستا المدينة، عاشق الكورتادو..." style="flex:1">
+          <button type="button" id="btnPickIntroAvatar" class="btn alt" style="width:auto;padding:8px 14px;font-size:18px" title="تغيير الأفاتار">☕</button>
+        </div>
+        <small id="introNickHint" class="field-hint" style="font-size:11px">اختر اسماً لائقاً ومميزاً لتمثيلك في قائمة أفضل 10 لاعبين</small>
+      </div>
+
+      <button id="goBtn" class="btn" type="button" style="font-size:15px;padding:12px 20px;width:100%;margin-bottom:8px">حفظ البيانات والبدء في اللعب ☕✨</button>
+      <button id="btnGuestGo" class="btn ghost" type="button" style="font-size:13px;padding:8px 14px;width:100%">متابعة كضيف سريع (بدون حفظ)</button>
     </div>
 
     <div class="social-footer">
@@ -2019,6 +2040,9 @@ h2 {
         </button>
         <button id="themeToggleHome" class="icon-action-btn" type="button" aria-label="تبديل المظهر" title="المظهر">
           <span class="theme-icon">🌙</span>
+        </button>
+        <button id="audioThemeToggleHome" class="icon-action-btn" type="button" aria-label="تبديل النمط الصوتي (دفوف إسلامية / ألحان)" title="الدفوف الإسلامية">
+          <span id="audioThemeIconHome" style="font-size:16px">🥁</span>
         </button>
         <button id="sndToggleHome" class="icon-action-btn" type="button" aria-label="تبديل الصوت" title="الصوت">
           <svg class="snd-icon snd-on" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
@@ -2332,6 +2356,28 @@ h2 {
   </div>
 </div>
 
+<!-- مودال مشاهدة إعلان the A&A للحصول على قلب إضافي (Req 5) -->
+<div id="modalAdVideo" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="adVideoTitle">
+  <div class="modal-dialog" style="max-width:360px;text-align:center">
+    <div style="font-size:36px;animation:floatBounce 1.5s infinite alternate">🎬☕</div>
+    <h3 id="adVideoTitle" style="color:var(--primary);margin:4px 0 6px">إعلان قصير من the A&A</h3>
+    <p id="adVideoDesc" style="font-size:12px;color:var(--text-muted);margin-bottom:12px">شاهد هذا المقطع الترويجي القصير لاستعادة محاولة إضافية (+1 ❤️)!</p>
+    
+    <div class="ad-video-player" style="background:#0f0b08;border:2px solid var(--border);border-radius:12px;padding:24px 16px;margin-bottom:14px;position:relative;overflow:hidden">
+      <div style="font-size:42px;margin-bottom:8px">☕✨🥐</div>
+      <div style="font-size:15px;font-weight:900;color:var(--primary)">the A&A Specialty Cafe</div>
+      <div style="font-size:12px;color:var(--text);margin-top:4px">قهوة مختصة محضرة بعناية وحلويات فاخرة في المدينة المنورة</div>
+      <div class="ad-progress-bar" style="width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:3px;margin-top:16px;overflow:hidden">
+        <div id="adProgressFill" style="width:0%;height:100%;background:linear-gradient(90deg, var(--primary), #e6c875);transition:width 0.2s linear"></div>
+      </div>
+      <div id="adTimerText" style="font-size:12px;color:#d4a62a;margin-top:8px;font-weight:800">متبقي: ٥ ثوانٍ...</div>
+    </div>
+
+    <button id="btnCloseAdVideo" class="btn ghost" disabled style="opacity:0.5;font-size:13px">انتظر حتى يكتمل الإعلان...</button>
+  </div>
+</div>
+
+
 <!-- Staff management platform separated into staff.html -->
 
 <script>
@@ -2351,9 +2397,16 @@ var I18N = {
     brandSub: 'قهوة مختصة وحلويات • المدينة المنورة',
     introTitle: 'تحديات <bdi class="brand-en">the A&A</bdi> درايف ثرو',
     introLead: 'العب واكسب جوائز وخصومات فورية أثناء انتظار تحضير قهوتك المختصة وحلوياتك في مسار السيارات!',
-    phoneLabel: 'رقم الجوال السعودي',
+    loginTitle: 'تسجيل الدخول وحفظ التقدم ☕👑',
+    loginSub: 'سجّل برقم جوالك واسمك المستعار للاحتفاظ بتقدمك وجوائزك ومنافسة أفضل 10 لاعبين (يظهر للجمهور الاسم المستعار فقط).',
+    phoneLabel: 'رقم الجوال السعودي 📱',
     phoneHint: 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX',
-    phonePh: 'مثال: 05XXXXXXXX أو 5XXXXXXXX',
+    phonePh: '05XXXXXXXX أو 5XXXXXXXX',
+    nickLabel: 'الاسم المستعار (يظهر في قائمة المتصدرين) ☕',
+    nickPh: 'مثال: باريستا المدينة، عاشق الكورتادو...',
+    nickHint: 'اختر اسماً لائقاً ومميزاً لتمثيلك في قائمة أفضل 10 لاعبين',
+    loginBtn: 'حفظ البيانات والبدء في اللعب ☕✨',
+    guestBtn: 'متابعة كضيف سريع (بدون حفظ)',
     orderLabel: 'رقم الطلب (من الفاتورة أو شاشة المسار)',
     orderPh: 'مثال: 128 أو AA-482',
     agree: 'أوافق على استلام عروض the A&A ومفاجآت المدينة المنورة على رقمي (اختياري).',
@@ -2362,25 +2415,41 @@ var I18N = {
     homeTitle: 'ألعاب كافيه the A&A الحصرية',
     homeNote: 'تم ضبط الصعوبة التكيفية بدقة لحفظ المنافسة. أعلى نتيجة في جولة واحدة هي التي تُعتمد.',
     playBtn: 'العب الآن',
-    startBtn: 'ابدأ التحدي',
+    startBtn: 'ابدأ التحدي (٦٠ ثانية)',
     langBtn: 'EN',
     followHeart: '❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!',
     likeHeart: '👍 ضع لايك على آخر منشور في إنستغرام the A&A لتحصل على قلب إضافي ثانٍ!',
+    videoAdHeart: '🎬 شاهد إعلاناً قصيراً للحصول على +1 ❤️ قلب إضافي!',
     claimBtn: 'استلام +1 ❤️',
     likeClaimBtn: 'لايك واستلام ❤️',
     resAgain: 'العب مرة أخرى وحسّن نتيجتك 🔥',
     resClaim: 'استلم مكافأتك الآن 🎁',
     resHome: 'اختر لعبة ثانية',
     resScoreLbl: 'مجموع نقاط الجولة',
-    resScorePts: 'نقطة ☕✨'
+    resScorePts: 'نقطة ☕✨',
+    lbBtn: 'لوحة أفضل 10 لاعبين 🏆',
+    lbModalTitle: '🏆 أفضل 10 لاعبين',
+    lbModalSub: 'أعلى النتائج المسجلة في the A&A (يظهر الاسم المستعار فقط)',
+    nonStackNotice: '⚠️ شروط الاستخدام: لا يمكن دمج هذه القسيمة مع أي عروض أخرى أو خصومات المناسبات (مثل اليوم الوطني). قسيمة واحدة لكل عملية شراء على طلبك القادم.',
+    chTitle: 'اختر جائزتك المعتمدة 🎁',
+    rwTitle: 'قسيمتك المعتمدة جاهزة! 🎟️',
+    rwCopy: 'نسخ الكود المشفر 📋',
+    rwBack: 'العودة للرئيسية ☕'
   },
   en: {
     brandSub: 'Specialty Cafe & Sweets • Al-Madinah',
     introTitle: '<bdi class="brand-en">the A&A</bdi> Drive-Thru Challenges',
     introLead: 'Play and win instant prizes & discounts while waiting for your specialty coffee in the drive-thru!',
-    phoneLabel: 'Saudi Mobile Number',
+    loginTitle: 'Player Login & Progress Save ☕👑',
+    loginSub: 'Sign in with your phone and nickname to preserve progress and compete in the Top 10 (only nickname is public).',
+    phoneLabel: 'Saudi Mobile Number 📱',
     phoneHint: 'Accepted formats: 05XXXXXXXX, 5XXXXXXXX or +9665XXXXXXXX',
-    phonePh: 'e.g. 05XXXXXXXX or 5XXXXXXXX',
+    phonePh: '05XXXXXXXX or 5XXXXXXXX',
+    nickLabel: 'Player Nickname (Shown on Leaderboard) ☕',
+    nickPh: 'e.g. Barista Champ, Cortado Lover...',
+    nickHint: 'Choose a respectful nickname for the A&A Hall of Fame',
+    loginBtn: 'Save Profile & Start Playing ☕✨',
+    guestBtn: 'Continue as Guest (No Save)',
     orderLabel: 'Order Number (from receipt or screen)',
     orderPh: 'e.g. 128 or AA-482',
     agree: 'I agree to receive the A&A offers and Madinah perks (optional).',
@@ -2389,17 +2458,26 @@ var I18N = {
     homeTitle: 'Exclusive the A&A Cafe Games',
     homeNote: 'Unified adaptive difficulty calibrated. Highest round score qualifies for rewards.',
     playBtn: 'Play Now',
-    startBtn: 'Start Challenge',
-    langBtn: 'AR',
+    startBtn: 'Start Challenge (60s)',
+    langBtn: 'عربي',
     followHeart: '❤️ Follow the A&A Instagram for +1 Extra Heart!',
     likeHeart: '👍 Like our latest Instagram post for a 2nd Extra Heart!',
+    videoAdHeart: '🎬 Watch a short ad for +1 ❤️ Extra Heart!',
     claimBtn: 'Claim +1 ❤️',
     likeClaimBtn: 'Like & Claim ❤️',
     resAgain: 'Play Again & Beat Score 🔥',
     resClaim: 'Claim Your Reward 🎁',
     resHome: 'Choose Another Game',
     resScoreLbl: 'Round Score',
-    resScorePts: 'Points ☕✨'
+    resScorePts: 'Points ☕✨',
+    lbBtn: 'Top 10 Leaderboard 🏆',
+    lbModalTitle: '🏆 Top 10 Leaderboard',
+    lbModalSub: 'Highest confirmed scores at the A&A (only nicknames visible)',
+    nonStackNotice: '⚠️ Terms: Cannot be combined with other offers or holiday discounts (such as National Day). Valid for single use on next order.',
+    chTitle: 'Choose Your Reward 🎁',
+    rwTitle: 'Your Verified Voucher is Ready! 🎟️',
+    rwCopy: 'Copy Token Code 📋',
+    rwBack: 'Back to Home ☕'
   }
 };
 
@@ -2461,6 +2539,48 @@ const SaudiPhone = {
   }
 };
 
+/* ============ فلتر الألفاظ والرموز المسيئة والطعن في البراند (Req 2) ============ */
+const ProfanityFilter = {
+  offensiveEmojis: [
+    '🖕', '🖕🏻', '🖕🏼', '🖕🏽', '🖕🏾', '🖕🏿',
+    '💩', '🤮', '🤢', '🍆', '🍑', '🐽', '🐷', '🐖', '🤡', '🤬'
+  ],
+  badWords: [
+    'كلب', 'حمار', 'حيوان', 'زق', 'قذر', 'خايس', 'وسخ', 'تفه', 'عرص', 'شرموط', 'منيك', 'متخلف',
+    'منحط', 'سافل', 'حقير', 'لعنة', 'يلعن', 'طيز', 'كس', 'زب', 'fuck', 'shit', 'bitch', 'asshole',
+    'dick', 'pussy', 'bastard', 'cunt', 'nigger', 'nigga', 'whore', 'slut'
+  ],
+  brandDefamation: [
+    'a&a سيء', 'a&a خايس', 'a&a مقرف', 'a&a فاشل', 'a&a زبالة', 'a&a نصابين', 'a&a حرامية',
+    'the a&a سيء', 'the a&a خايس', 'the a&a فاشل', 'the a&a زبالة', 'the a&a نصابين',
+    'كافيه خايس', 'كافيه فاشل', 'كافيه مقرف', 'كافيه زبالة', 'مقهى خايس', 'مقهى فاشل',
+    'قهوة خايسة', 'قهوة مقرفة', 'قهوة معفنة', 'قهوة سيئة', 'اسوأ قهوة', 'أسوأ قهوة',
+    'bad cafe', 'worst cafe', 'bad coffee', 'worst coffee', 'aa scam', 'fake cafe'
+  ],
+  check(text){
+    if(!text || typeof text !== 'string') return { clean: true };
+    const raw = text.trim();
+    for(const emoji of this.offensiveEmojis){
+      if(raw.includes(emoji)){
+        return { clean: false, reason: 'emoji', error: 'الاسم يحتوي على رمز تعبيري غير لائق. يرجى اختيار رمز مناسب.' };
+      }
+    }
+    const lower = raw.toLowerCase().replace(/[\s\-_.]+/g, ' ');
+    for(const def of this.brandDefamation){
+      if(lower.includes(def)){
+        return { clean: false, reason: 'brand', error: 'الاسم يحتوي على عبارات مسيئة لعلامة the A&A. يرجى اختيار اسم مستعار لائق.' };
+      }
+    }
+    for(const word of this.badWords){
+      const regex = new RegExp('(?:^|\\s|[\\-_.,!])' + word + '(?:$|\\s|[\\-_.,!])', 'i');
+      if(regex.test(lower) || lower.split(/\s+/).includes(word)){
+        return { clean: false, reason: 'profanity', error: 'الاسم يحتوي على ألفاظ غير لائقة. يرجى اختيار اسم مستعار محترم.' };
+      }
+    }
+    return { clean: true };
+  }
+};
+
 /* ============ مساعدات التجزئة والتشفير ============ */
 function hash(s){
   let h = 0x811c9dc5;
@@ -2477,11 +2597,15 @@ function signSession(s){
   return acc;
 }
 
-/* ============ محرك الصوت الموحد مع كتم اختياري ============ */
+/* ============ محرك الصوت الموحد مع خيار الدفوف الإسلامية وكتم اختياري (Req 4) ============ */
 const SFX = (function(){
   let ctx = null;
   let muted = (function(){
     try { return localStorage.getItem('aa_cafe_sfx_muted') === '1'; } catch(e){ return false; }
+  })();
+
+  let audioTheme = (function(){
+    try { return localStorage.getItem('aa_cafe_audio_theme') || 'duff'; } catch(e){ return 'duff'; }
   })();
 
   function init(){
@@ -2511,6 +2635,47 @@ const SFX = (function(){
     } catch(e){}
   }
 
+  // مولدات صوت الدفوف المتوافقة مع الضوابط الإسلامية (Req 4)
+  function playDuffDum(time){
+    if(muted) return;
+    try {
+      init();
+      if(!ctx) return;
+      const t = time || ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(92, t);
+      osc.frequency.exponentialRampToValueAtTime(42, t + 0.22);
+      g.gain.setValueAtTime(0.24, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.25);
+    } catch(e){}
+  }
+
+  function playDuffTak(time){
+    if(muted) return;
+    try {
+      init();
+      if(!ctx) return;
+      const t = time || ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(360, t);
+      osc.frequency.exponentialRampToValueAtTime(140, t + 0.08);
+      g.gain.setValueAtTime(0.20, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+      osc.connect(g);
+      g.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.10);
+    } catch(e){}
+  }
+
   let bgmTimer = null;
   let bgmPlaying = false;
 
@@ -2536,66 +2701,64 @@ const SFX = (function(){
       if(!bgmPlaying || muted || !ctx) return;
       try {
         const t = ctx.currentTime;
-        const measure = Math.floor(step / 4) % chords.length;
         const beatInMeasure = step % 4;
 
-        // Kick / bass on beat 0 and 2
-        if(beatInMeasure === 0 || beatInMeasure === 2){
-          const osc = ctx.createOscillator();
-          const g = ctx.createGain();
-          osc.frequency.setValueAtTime(beatInMeasure === 0 ? 110 : 85, t);
-          osc.frequency.exponentialRampToValueAtTime(36, t + 0.16);
-          g.gain.setValueAtTime(0.18, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
-          osc.connect(g);
-          g.connect(ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.20);
-        }
-
-        // Snare / snap on beat 1 and 3
-        if(beatInMeasure === 1 || beatInMeasure === 3){
-          const osc = ctx.createOscillator();
-          const g = ctx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(320, t);
-          osc.frequency.exponentialRampToValueAtTime(140, t + 0.10);
-          g.gain.setValueAtTime(0.08, t);
-          g.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
-          osc.connect(g);
-          g.connect(ctx.destination);
-          osc.start(t);
-          osc.stop(t + 0.12);
-        }
-
-        // Electric piano / Rhodes chord strum on beat 0
-        if(beatInMeasure === 0){
-          const curChord = chords[measure];
-          curChord.forEach((freq, idx) => {
+        if(audioTheme === 'duff'){
+          // إيقاع الدفوف العربي الإسلامي (دم - تك - تك - دم تك) دون أي ألحان وترية أو نفخ
+          if(beatInMeasure === 0){
+            playDuffDum(t);
+          } else if(beatInMeasure === 1){
+            playDuffTak(t);
+          } else if(beatInMeasure === 2){
+            playDuffTak(t);
+          } else if(beatInMeasure === 3){
+            playDuffDum(t);
+            setTimeout(() => { if(bgmPlaying && !muted) playDuffTak(); }, beatMs / 2);
+          }
+        } else {
+          // النمط اللحني
+          const measure = Math.floor(step / 4) % chords.length;
+          if(beatInMeasure === 0 || beatInMeasure === 2){
             const osc = ctx.createOscillator();
             const g = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, t + idx * 0.015);
-            g.gain.setValueAtTime(0.038, t + idx * 0.015);
-            g.gain.exponentialRampToValueAtTime(0.0001, t + (beatMs * 3.4) / 1000);
+            osc.frequency.setValueAtTime(beatInMeasure === 0 ? 110 : 85, t);
+            osc.frequency.exponentialRampToValueAtTime(36, t + 0.16);
+            g.gain.setValueAtTime(0.18, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
             osc.connect(g);
             g.connect(ctx.destination);
-            osc.start(t + idx * 0.015);
-            osc.stop(t + (beatMs * 3.5) / 1000);
-          });
+            osc.start(t);
+            osc.stop(t + 0.20);
+          }
+          if(beatInMeasure === 1 || beatInMeasure === 3){
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(320, t);
+            osc.frequency.exponentialRampToValueAtTime(140, t + 0.10);
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.exponentialRampToValueAtTime(0.001, t + 0.10);
+            osc.connect(g);
+            g.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + 0.12);
+          }
+          if(beatInMeasure === 0){
+            const curChord = chords[measure];
+            curChord.forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const g = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, t + idx * 0.015);
+              g.gain.setValueAtTime(0.038, t + idx * 0.015);
+              g.gain.exponentialRampToValueAtTime(0.0001, t + (beatMs * 3.4) / 1000);
+              osc.connect(g);
+              g.connect(ctx.destination);
+              osc.start(t + idx * 0.015);
+              osc.stop(t + (beatMs * 3.5) / 1000);
+            });
+          }
         }
-
-        // Soft shaker / hi-hat
-        const hatOsc = ctx.createOscillator();
-        const hatG = ctx.createGain();
-        hatOsc.type = 'square';
-        hatOsc.frequency.setValueAtTime(1800 + (step % 2) * 400, t);
-        hatG.gain.setValueAtTime(0.02, t);
-        hatG.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
-        hatOsc.connect(hatG);
-        hatG.connect(ctx.destination);
-        hatOsc.start(t);
-        hatOsc.stop(t + 0.05);
       } catch(e){}
 
       step++;
@@ -2615,11 +2778,23 @@ const SFX = (function(){
     if(bgmTimer) clearTimeout(bgmTimer);
   }
 
+  function toggleAudioTheme(){
+    audioTheme = (audioTheme === 'duff') ? 'melodic' : 'duff';
+    try { localStorage.setItem('aa_cafe_audio_theme', audioTheme); } catch(e){}
+    updateAudioThemeButtons();
+    if(bgmPlaying) startRhythmBgm();
+    return audioTheme;
+  }
+
   return {
     playTone,
+    playDuffDum,
+    playDuffTak,
     init,
     startRhythmBgm,
     stopRhythmBgm,
+    toggleAudioTheme,
+    getAudioTheme(){ return audioTheme; },
     toggle(){
       muted = !muted;
       try { localStorage.setItem('aa_cafe_sfx_muted', muted ? '1' : '0'); } catch(e){}
@@ -2716,6 +2891,11 @@ const LeaderboardEngine = {
     if(!effectiveNick){
       return { qualified: true, requiresNickname: true };
     }
+    // Req 2: فلترة الألفاظ والرموز المسيئة والطعن في البراند
+    const pf = ProfanityFilter.check(effectiveNick);
+    if(!pf.clean){
+      return { qualified: true, requiresNickname: true, error: pf.error };
+    }
     const effectiveAvatar = avatar || (typeof S !== 'undefined' && S && S.avatar) || '☕';
     const myPid = playerId || (typeof S !== 'undefined' && S && S.playerId) || '';
     const boards = this.getBoards();
@@ -2780,6 +2960,23 @@ function updateSoundIcons(){
         onIcon.style.display = isMuted ? 'none' : 'block';
         offIcon.style.display = isMuted ? 'block' : 'none';
       }
+    }
+  });
+}
+
+function updateAudioThemeButtons(){
+  const theme = SFX.getAudioTheme();
+  const icon = (theme === 'duff') ? '🥁' : '🎵';
+  const label = (theme === 'duff') ?
+    (currentLang === 'en' ? 'Islamic Duff Beat (Active)' : 'إيقاع الدفوف الإسلامي (مفعّل)') :
+    (currentLang === 'en' ? 'Melodic Tunes (Active)' : 'النمط الموسيقي (مفعّل)');
+  ['#audioThemeToggle', '#audioThemeToggleHome'].forEach(sel => {
+    const btn = $(sel);
+    if(btn){
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
+      const span = btn.querySelector('span');
+      if(span) span.textContent = icon;
     }
   });
 }
@@ -3330,6 +3527,7 @@ const GAMES = [
     let targetSeq = 0;
     let spawnTimer = 0;
     let missedGoldCount = 0;
+    let lastHitTime = 0;
 
     c.on(st, 'pointerdown', e => {
       if(e.target === st || e.target === stageEl){
@@ -3377,7 +3575,9 @@ const GAMES = [
         if(targetObj.dead) return;
         targetObj.dead = true;
         activeTargets.delete(tId);
-        elTarget.remove();
+        if(targetObj.expireTid) clearTimeout(targetObj.expireTid);
+        if(elTarget.parentNode) elTarget.remove();
+        lastHitTime = performance.now();
 
         const elapsed = performance.now() - birthTime;
         if(type === 'gold'){
@@ -3411,13 +3611,14 @@ const GAMES = [
       c.after(Math.max(100, lifeMs - 240), () => {
         if(!targetObj.dead && elTarget.parentNode) elTarget.classList.add('expiring');
       });
-      c.after(lifeMs, () => {
+      targetObj.expireTid = c.after(lifeMs, () => {
         if(targetObj.dead) return;
         targetObj.dead = true;
         activeTargets.delete(tId);
         if(elTarget.parentNode) elTarget.remove();
-        if(type === 'gold'){
-          // Missed gold coffee target: deduct 10 points per client specification
+        // Req 13: عدم الخصم التلقائي إذا كان اللاعب قد أصاب هدفاً بنجاح مؤخراً (خلال 450ms)
+        // Missed gold coffee target: deduct 10 points per client specification
+        if(type === 'gold' && performance.now() - lastHitTime >= 450){
           run.score = Math.max(0, run.score - 10);
           run.combo = 0;
           hud();
@@ -3495,17 +3696,19 @@ const GAMES = [
       userInput = [];
       nodes.forEach(n => { n.className = 'pl-node'; });
 
-      const seqLen = Math.min(6, 2 + stageLevel);
+      const d = c.d();
+      const seqLen = Math.min(6, 2 + stageLevel + (d > 0.65 ? 1 : 0));
       currentSequence = generateSequence(seqLen);
 
       statusEl.textContent = (currentLang === 'en' ? 'Stage ' : 'المرحلة ') + stageLevel + ': ' + (currentLang === 'en' ? 'Memorize pattern (' + seqLen + ' steps)' : 'احفظ النمط (' + seqLen + ' حركات)');
       msg.textContent = (currentLang === 'en' ? '👀 Watch the brewing pattern...' : '👀 راقب النمط جيداً...');
 
+      const flashSpeed = Math.round(lerp(350, 240, d));
       let step = 0;
       function showNext(){
         if(!run || run.over) return;
         if(step >= currentSequence.length){
-          c.after(400, () => {
+          c.after(Math.round(flashSpeed * 1.1), () => {
             if(!run || run.over) return;
             gameState = 'AWAITING_INPUT';
             msg.textContent = (currentLang === 'en' ? 'Your turn! Repeat in order' : 'دورك الآن! كرر النمط بالترتيب');
@@ -3519,7 +3722,7 @@ const GAMES = [
         targetNode.classList.add('active-demo');
         SFX.playTone(320 + nodeIdx * 45, 'sine', 0.22, 0.2);
 
-        c.after(350, () => {
+        c.after(flashSpeed, () => {
           targetNode.classList.remove('active-demo');
           step++;
           c.after(160, showNext);
@@ -4053,9 +4256,9 @@ const GAMES = [
   howEn: 'Tap the rhythm button or press Space right when the golden espresso drops hit the portafilter rim!',
   start(c){
     const RHYTHM_TRACKS = [
-      { name: 'إسبريسو كلاسيك', nameEn: 'Classic Espresso', bpm: 100, travelMul: 1.0, noteInterval: 920 },
-      { name: 'درايف ثرو جاز', nameEn: 'Drive-Thru Jazz', bpm: 124, travelMul: 0.85, noteInterval: 750 },
-      { name: 'سبيد إكسبريس', nameEn: 'Speed Express', bpm: 148, travelMul: 0.72, noteInterval: 600 }
+      { name: 'سنقل شوت سبرسو', nameEn: 'Single Shot Espresso (Classic Espresso)', bpm: 98, travelMul: 1.0, noteInterval: 950 },
+      { name: 'كابتشينو', nameEn: 'Cappuccino (Drive-Thru Jazz)', bpm: 122, travelMul: 0.85, noteInterval: 760 },
+      { name: 'عربي لاتيه 🔥', nameEn: 'Arabic Latte 🔥 (Speed Express)', bpm: 148, travelMul: 0.70, noteInterval: 600 }
     ];
     let activeTrackIdx = 0;
 
@@ -4267,9 +4470,29 @@ const GAMES = [
         return btn;
       });
 
-      // مهلة معاينة عادلة ومناسبة (1.4 ثانية بدلاً من 2.2 ثانية)
+      // Req 1 & 14: مهلة معاينة مريحة وعادلة (2.8 ثانية) تتكيف مع الصعوبة الموحدة c.d()
+      const d = c.d();
+      const previewTime = Math.round(lerp(2800, 2200, d));
+      statsEl.innerHTML = (currentLang === 'en') ?
+        '<span style="color:var(--primary)">👀 Memorize the items (3s)...</span>' :
+        '<span style="color:var(--primary)">👀 احفظ أماكن الأصناف (٣ ثوانٍ)...</span>';
+
+      c.after(900, () => {
+        if(!lockBoard) return;
+        statsEl.innerHTML = (currentLang === 'en') ?
+          '<span style="color:var(--primary)">👀 Memorize (2s)...</span>' :
+          '<span style="color:var(--primary)">👀 احفظ أماكن الأصناف (٢)...</span>';
+      });
+
+      c.after(1800, () => {
+        if(!lockBoard) return;
+        statsEl.innerHTML = (currentLang === 'en') ?
+          '<span style="color:var(--primary)">👀 Memorize (1s)...</span>' :
+          '<span style="color:var(--primary)">👀 احفظ أماكن الأصناف (١)...</span>';
+      });
+
       SFX.countdown();
-      c.after(1400, () => {
+      c.after(previewTime, () => {
         cards.forEach(b => {
           b.classList.remove('revealed', 'preview');
           b.textContent = '?';
@@ -4518,11 +4741,12 @@ const GAMES = [
 
     c.loop(dt => {
       const W = c.W(), H = c.H();
+      const d = c.d();
 
-      // حركة السلة الأفقية الانسيابية وتدرج الصعوبة بعد أول تسجيل
+      // حركة السلة الأفقية الانسيابية وتدرج الصعوبة الموحد بعد أول تسجيل
       if(basketsMade >= 1){
-        const maxOsc = Math.min(80, (W - 140) / 2);
-        const oscSpeed = 1.0 + Math.min(1.8, basketsMade * 0.35);
+        const maxOsc = Math.min(80, (W - 140) / 2) * lerp(0.7, 1.0, d);
+        const oscSpeed = lerp(1.0, 2.2, d);
         hoopOscTime += dt * oscSpeed;
         hoopX = (W / 2) + Math.sin(hoopOscTime) * maxOsc;
         const boardEl = $('#bbBoard', st);
@@ -4576,18 +4800,29 @@ const GAMES = [
         }
       }
 
-      // سقوط الكرة خارج السلة
-      if(!shotResolved && (ballY > H - 35 || (ballY > hoopY + 60 && vy > 300))){
-        shotResolved = true;
-        state = STATES.SHOT_MISSED;
-        // SHOT_MISSED: رمية ضائعة تخصم قلباً واحداً فقط
-        c.loseHeart();
-        c.miss(bCenterX, Math.min(H - 45, bCenterY), 0.8, currentLang === 'en' ? 'Shot Missed! (-1 ❤️)' : 'رمية ضائعة! (-1 ❤️)');
-        msgEl.textContent = (currentLang === 'en' ? 'Missed the hoop! (-1 ❤️)' : 'أخطأت الحلقة! (-1 ❤️)');
-        c.after(900, () => {
-          state = STATES.ROUND_COMPLETE;
-          resetBall();
-        });
+      // Req 12: استمرار الكرة وسقوطها على أرضية الملعب دون تجميد في الهواء أو اختفاء
+      if(ballY >= H - 55){
+        ballY = H - 55;
+        if(Math.abs(vy) > 100){
+          vy = -vy * 0.45;
+          vx = vx * 0.7;
+          SFX.playTone(180, 'sine', 0.08, 0.12);
+        } else {
+          vy = 0;
+          vx = 0;
+        }
+
+        if(!shotResolved){
+          shotResolved = true;
+          state = STATES.SHOT_MISSED;
+          c.loseHeart();
+          c.miss(bCenterX, H - 45, 0.8, currentLang === 'en' ? 'Shot Missed! (-1 ❤️)' : 'رمية ضائعة! (-1 ❤️)');
+          msgEl.textContent = (currentLang === 'en' ? 'Missed the hoop! (-1 ❤️)' : 'أخطأت الحلقة! (-1 ❤️)');
+          c.after(750, () => {
+            state = STATES.ROUND_COMPLETE;
+            resetBall();
+          });
+        }
       }
     });
   }
@@ -4663,13 +4898,106 @@ function updateExtraHeartBanner(){
   }
 }
 
-function claimInstagramExtraHeart(){
-  if(S.extraHeartClaimed){
-    if(S.extraHeartLikeClaimed){
-      banner(currentLang === 'en' ? 'All extra hearts used!' : 'تم استخدام كافة المحاولات الإضافية المتاحة');
-      return;
+let adVideoTimer = null;
+
+function openAdVideoModal(){
+  const modal = $('#modalAdVideo');
+  if(!modal) return;
+  modal.classList.add('on');
+  const fill = $('#adProgressFill');
+  const timerTxt = $('#adTimerText');
+  const btnClose = $('#btnCloseAdVideo');
+
+  if(fill) fill.style.width = '0%';
+  if(btnClose){
+    btnClose.disabled = true;
+    btnClose.style.opacity = '0.5';
+    btnClose.textContent = (currentLang === 'en' ? 'Wait for ad to finish (5s)...' : 'انتظر حتى يكتمل الإعلان (٥ ثوانٍ)...');
+  }
+
+  let remaining = 5;
+  if(timerTxt) timerTxt.textContent = (currentLang === 'en' ? 'Remaining: 5 seconds...' : 'متبقي: ٥ ثوانٍ...');
+
+  if(adVideoTimer) clearInterval(adVideoTimer);
+  adVideoTimer = setInterval(() => {
+    remaining--;
+    const percent = Math.min(100, Math.round(((5 - remaining) / 5) * 100));
+    if(fill) fill.style.width = percent + '%';
+    if(timerTxt){
+      timerTxt.textContent = (currentLang === 'en') ?
+        ('Remaining: ' + remaining + ' seconds...') :
+        ('متبقي: ' + remaining + ' ثوانٍ...');
     }
-    try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
+
+    if(remaining <= 0){
+      clearInterval(adVideoTimer);
+      if(timerTxt){
+        timerTxt.textContent = (currentLang === 'en') ? 'Ad Completed! +1 ❤️' : 'اكتملت مشاهدة الإعلان! +1 ❤️';
+      }
+      if(btnClose){
+        btnClose.disabled = false;
+        btnClose.style.opacity = '1';
+        btnClose.className = 'btn';
+        btnClose.textContent = (currentLang === 'en') ? 'Claim Extra Heart Now (+1 ❤️)' : 'استلام القلب الإضافي الآن (+1 ❤️)';
+      }
+    }
+  }, 1000);
+}
+
+function closeAdVideoModal(grantReward){
+  const modal = $('#modalAdVideo');
+  if(!modal) return;
+  modal.classList.remove('on');
+  if(adVideoTimer) clearInterval(adVideoTimer);
+
+  if(grantReward){
+    S.extraHeartVideoClaimedCount = (S.extraHeartVideoClaimedCount || 0) + 1;
+    if(run && !run.over){
+      run.hearts = Math.min(run.maxHearts, run.hearts + 1);
+      hud();
+      banner('+1 ❤️ ' + (currentLang === 'en' ? 'Extra Heart from Ad Video!' : 'قلب إضافي بمشاهدة الإعلان!'));
+      SFX.reward();
+    } else {
+      S.bonusHeartPending = true;
+      banner('+1 ❤️ ' + (currentLang === 'en' ? 'Bonus Heart reserved for your next game! (4 Hearts)' : 'تم حفظ القلب الإضافي لجولتك القادمة! (٤ قلوب)'));
+      SFX.reward();
+    }
+    save();
+    updateExtraHeartBanner();
+  }
+}
+
+
+function openOfficialSocial(platform){
+  const urls = {
+    instagram: 'https://www.instagram.com/theaa.cafe/',
+    tiktok: 'https://www.tiktok.com/@theaa.cafe'
+  };
+  const targetUrl = urls[platform] || 'https://www.instagram.com/theaa.cafe/';
+  try {
+    const w = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    if(!w || w.closed || typeof w.closed === 'undefined'){
+      const a = document.createElement('a');
+      a.href = targetUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+  } catch(e){
+    location.href = targetUrl;
+  }
+}
+
+function claimInstagramExtraHeart(){
+  if(S.extraHeartClaimed && S.extraHeartLikeClaimed){
+    // Req 5: بعد أخذ قلوب السوشيال ميديا، فيديو إعلاني لكل قلب إضافي
+    openAdVideoModal();
+    return;
+  }
+  if(S.extraHeartClaimed){
+    openOfficialSocial('instagram');
     S.extraHeartLikeClaimed = true;
     if(run && !run.over){
       run.hearts = Math.min(run.maxHearts, run.hearts + 1);
@@ -4677,7 +5005,6 @@ function claimInstagramExtraHeart(){
       banner('+1 ❤️ ' + (currentLang === 'en' ? 'Instagram Like Heart!' : 'قلب اللايك!'));
       SFX.reward();
     } else {
-      // UX-02: حفظ القلب الإضافي للجولة القادمة
       S.bonusHeartPending = true;
       banner('+1 ❤️ ' + (currentLang === 'en' ? 'Bonus Heart reserved for your next game! (4 Hearts)' : 'تم حفظ القلب الإضافي لجولتك القادمة! (٤ قلوب)'));
       SFX.reward();
@@ -4686,7 +5013,7 @@ function claimInstagramExtraHeart(){
     updateExtraHeartBanner();
     return;
   }
-  try { window.open(CFG.social.instagram, '_blank', 'noopener,noreferrer'); } catch(e){}
+  openOfficialSocial('instagram');
   S.extraHeartFollowClaimed = true;
   S.extraHeartClaimed = true;
   if(run && !run.over){
@@ -4955,11 +5282,20 @@ function makeCtx(game){
       if(!run || run.over) return;
       if(!isSystemBonus && !antiSpamCheck()) return;
       run.combo++;
-      const basePts = 40;
-      const gWeight = (curGame && curGame.weight) ? curGame.weight : 1.0;
-      const dMul = this.diffMultiplier();
-      const comboMul = 1 + Math.min(run.combo - 1, 8) * 0.12;
-      const finalPts = Math.round(basePts * gWeight * (multiplier || 1.0) * dMul * comboMul);
+      const isFirstVisit = !S.visitCount || S.visitCount <= 1;
+      let finalPts = 0;
+      if(isFirstVisit){
+        // تجربة الزيارة الأولى: نقاط وفيرة وسهلة للتشجيع
+        const basePts = 40;
+        const gWeight = (curGame && curGame.weight) ? curGame.weight : 1.0;
+        const dMul = this.diffMultiplier();
+        const comboMul = 1 + Math.min(run.combo - 1, 8) * 0.12;
+        finalPts = Math.round(basePts * gWeight * (multiplier || 1.0) * dMul * comboMul);
+      } else {
+        // Req 6: الزيارات اللاحقة: احتساب شحيح وصارم للنقاط (+1 إلى +5 نقاط فقط لكل حركة)
+        const rawInc = Math.round((multiplier || 1.0) * 1.8);
+        finalPts = Math.min(5, Math.max(1, rawInc));
+      }
       run.score += finalPts;
       run.level = Math.min(5, 1 + Math.floor(run.score / 600));
 
@@ -5116,9 +5452,88 @@ const goBtn = $('#goBtn');
 if(goBtn){
   goBtn.addEventListener('click', () => {
     SFX.tap();
+    const phoneVal = ($('#introPhone') ? $('#introPhone').value : '').trim();
+    const nickVal = ($('#introNick') ? $('#introNick').value : '').trim();
+
+    if(phoneVal){
+      const v = SaudiPhone.validate(phoneVal);
+      if(!v.valid){
+        alert(currentLang === 'en' ? 'Please enter a valid Saudi mobile number (e.g. 05XXXXXXXX).' : (v.error || 'يرجى إدخال رقم جوال سعودي صحيح.'));
+        if($('#introPhone')) $('#introPhone').focus();
+        return;
+      }
+      S.phone = v.formatted;
+    }
+
+    if(nickVal){
+      const pf = ProfanityFilter.check(nickVal);
+      if(!pf.clean){
+        alert(currentLang === 'en' ? 'The nickname contains prohibited, offensive, or defamatory words. Please choose a suitable name.' : pf.error);
+        if($('#introNick')) $('#introNick').focus();
+        return;
+      }
+      S.nickname = nickVal;
+    }
+
+    // استرجاع تقدم اللاعب السابق المسجل برقم الجوال
+    if(S.phone){
+      try {
+        const raw = localStorage.getItem('the_aa_cafe_db_v4');
+        if(raw){
+          const db = JSON.parse(raw);
+          const existingCust = (db.customers || []).find(c => c.phone === S.phone || (c.phone && c.phone.endsWith(S.phone.slice(-9))));
+          if(existingCust){
+            if(!S.nickname && existingCust.nickname) S.nickname = existingCust.nickname;
+            if(existingCust.bestScore && existingCust.bestScore > (S.best || 0)){
+              S.best = existingCust.bestScore;
+            }
+          }
+        }
+      } catch(e){}
+      syncCustomerTransactionToStaffDB('LOGIN', { phone: S.phone, nickname: S.nickname });
+    }
+
+    save();
+    updateProfileHeaderAvatar();
     goHome();
   });
 }
+
+const btnGuestGo = $('#btnGuestGo');
+if(btnGuestGo){
+  btnGuestGo.addEventListener('click', () => {
+    SFX.tap();
+    goHome();
+  });
+}
+
+const btnPickIntroAvatar = $('#btnPickIntroAvatar');
+if(btnPickIntroAvatar){
+  btnPickIntroAvatar.addEventListener('click', () => {
+    openProfileModal();
+  });
+}
+
+const btnCloseAdVideo = $('#btnCloseAdVideo');
+if(btnCloseAdVideo){
+  btnCloseAdVideo.addEventListener('click', () => {
+    if(!btnCloseAdVideo.disabled){
+      closeAdVideoModal(true);
+    }
+  });
+}
+
+function setupAudioThemeToggle(id){
+  const btn = $(id);
+  if(btn){
+    btn.addEventListener('click', () => {
+      SFX.toggleAudioTheme();
+    });
+  }
+}
+setupAudioThemeToggle('#audioThemeToggle');
+setupAudioThemeToggle('#audioThemeToggleHome');
+
 
 // مراقبة النشاط الفعلي وإلغاء الجلسات المؤقتة بعد دقيقتين من عدم النشاط
 function recordUserActivity(){
@@ -5314,6 +5729,11 @@ if(btnSaveProfile){
       if(err) err.textContent = (currentLang === 'en') ? 'Please enter a nickname between 2 and 15 characters.' : 'يرجى إدخال اسم مستعار بين ٢ و ١٥ حرفاً.';
       return;
     }
+    const pf = ProfanityFilter.check(val);
+    if(!pf.clean){
+      if(err) err.textContent = pf.error;
+      return;
+    }
     const clean = val.replace(/[<>&"']/g, '');
     S.nickname = clean;
     S.avatar = currentProfileAvatar;
@@ -5481,6 +5901,11 @@ if(btnSaveNickname){
       if(err) err.textContent = (currentLang === 'en') ? 'Please enter a nickname between 2 and 15 characters.' : 'يرجى إدخال اسم مستعار بين ٢ و ١٥ حرفاً.';
       return;
     }
+    const pf = ProfanityFilter.check(val);
+    if(!pf.clean){
+      if(err) err.textContent = pf.error;
+      return;
+    }
     const clean = val.replace(/[<>&"']/g, '');
     S.nickname = clean;
     S.avatar = currentModalNickAvatar;
@@ -5566,6 +5991,19 @@ function setupSoundToggle(id){
 setupSoundToggle('#sndToggle');
 setupSoundToggle('#sndToggleHome');
 
+  $$('.social-icon-btn').forEach(btn => {
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const href = btn.getAttribute('href') || '';
+      const plat = href.includes('tiktok') ? 'tiktok' : 'instagram';
+      openOfficialSocial(plat);
+    });
+  });
+
+updateAudioThemeButtons();
+
 /* زر تبديل الوضع النهاري والليلي */
 function initTheme(){
   const saved = localStorage.getItem('the_aa_theme');
@@ -5647,12 +6085,43 @@ function applyLang(lang){
   if($('#resScoreLbl')) $('#resScoreLbl').textContent = t.resScoreLbl;
   if($('#resScorePts')) $('#resScorePts').textContent = t.resScorePts;
 
+  // ترجمة شاشة الدخول والملف الشخصي (Req 7)
+  if($('#loginCardTitle')) $('#loginCardTitle').textContent = t.loginTitle;
+  if($('#loginCardSub')) $('#loginCardSub').textContent = t.loginSub;
+  if($('#lblIntroPhone')) $('#lblIntroPhone').textContent = t.phoneLabel;
+  if($('#introPhoneHint')) $('#introPhoneHint').textContent = t.phoneHint;
+  if($('#introPhone')) $('#introPhone').placeholder = t.phonePh;
+  if($('#lblIntroNick')) $('#lblIntroNick').textContent = t.nickLabel;
+  if($('#introNick')) $('#introNick').placeholder = t.nickPh;
+  if($('#introNickHint')) $('#introNickHint').textContent = t.nickHint;
+  if($('#goBtn')) $('#goBtn').textContent = t.loginBtn;
+  if($('#btnGuestGo')) $('#btnGuestGo').textContent = t.guestBtn;
+
   if($('#profTitle')) $('#profTitle').textContent = (lang === 'en' ? 'Player Profile ☕👑' : 'الملف الشخصي للبطل ☕👑');
   if($('#profSub')) $('#profSub').textContent = (lang === 'en' ? 'Choose your nickname and avatar to rank in the Top 10' : 'اختر لقبك وصورتك للظهور في قائمة أفضل 10 لاعبين');
   if($('#nickModalTitle')) $('#nickModalTitle').textContent = (lang === 'en' ? 'Congratulations! You qualified for the Top 10' : 'تهانينا! تأهلت لقائمة أفضل 10 لاعبين');
   if($('#nickModalSub')) $('#nickModalSub').textContent = (lang === 'en' ? 'Set your nickname and avatar to shine in the A&A Hall of Fame:' : 'سجّل اسمك المستعار وافصل أفاتارك ليظهر في لوحة الشرف لرواد the A&A:');
 
+  if($('#lbModalTitle')) $('#lbModalTitle').textContent = t.lbModalTitle;
+  if($('#lbModalSubtitle')) $('#lbModalSubtitle').textContent = t.lbModalSub;
+  if($('#btnOpenLeaderboardHome')) $('#btnOpenLeaderboardHome').textContent = t.lbBtn;
+
+  if($('#adVideoTitle')) $('#adVideoTitle').textContent = (lang === 'en' ? 'Short Promotion from the A&A' : 'إعلان قصير من the A&A');
+  if($('#adVideoDesc')) $('#adVideoDesc').textContent = (lang === 'en' ? 'Watch this brief promo clip to restore an extra try (+1 ❤️)!' : 'شاهد هذا المقطع الترويجي القصير لاستعادة محاولة إضافية (+1 ❤️)!');
+
+  if($('#rwStackNotice')) $('#rwStackNotice').textContent = t.nonStackNotice;
+  if($('#chTitle')) $('#chTitle').textContent = t.chTitle;
+  if($('#rwTitle')) $('#rwTitle').textContent = t.rwTitle;
+  if($('#rwCopy')) $('#rwCopy').textContent = t.rwCopy;
+  if($('#rwBack')) $('#rwBack').textContent = t.rwBack;
+
+  if(curGame){
+    if($('#preTitle')) $('#preTitle').textContent = (lang === 'en' && curGame.nameEn) ? curGame.nameEn : curGame.name;
+    if($('#preHow')) $('#preHow').textContent = (lang === 'en' && curGame.howEn) ? curGame.howEn : curGame.how;
+  }
+
   updateProfileHeaderAvatar();
+  updateAudioThemeButtons();
 
   if($('#ladderIntro')) $('#ladderIntro').innerHTML = ladder(0);
   if($('#ladderHome')) $('#ladderHome').innerHTML = ladder(S.best || 0);
@@ -5674,6 +6143,12 @@ function initLang(){
 if($('#langToggle')) $('#langToggle').addEventListener('click', toggleLang);
 if($('#langToggleHome')) $('#langToggleHome').addEventListener('click', toggleLang);
 initLang();
+
+// استرجاع حقول تسجيل الدخول في الواجهة عند التحميل (Req 9)
+if($('#introPhone') && S.phone) $('#introPhone').value = S.phone;
+if($('#introNick') && S.nickname) $('#introNick').value = S.nickname;
+if($('#btnPickIntroAvatar') && S.avatar) $('#btnPickIntroAvatar').textContent = S.avatar;
+
 
 // UX-01: استعادة الجلسة السابقة داخلياً حتى قبل إدخال الجوال مع التحقق من توقيع الجلسة ضد التلاعب
 const saved = store.get();
@@ -5741,6 +6216,9 @@ window.__endRun = (msg) => (typeof endRun === 'function' ? endRun(msg) : null);
 window.__resumeCheckpointRun = (cp) => (typeof resumeCheckpointRun === 'function' ? resumeCheckpointRun(cp) : null);
 window.__GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
 window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
+window.__ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
+window.__SFX = (typeof SFX !== 'undefined' ? SFX : null);
+window.__applyLang = (typeof applyLang !== 'undefined' ? applyLang : null);
 window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
 window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
 window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
