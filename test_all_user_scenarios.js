@@ -37,7 +37,8 @@ async function runAllScenarios() {
     // 1. Reset Session Button Removed & Clean Zero Counter
     // -------------------------------------------------------------
     console.log('--- TEST 1: Session Reset Button Removal & Zero Counter ---');
-    await page.goto('http://localhost:8085/index.html', { waitUntil: 'networkidle' });
+    const indexUrl = 'file:///' + path.resolve(__dirname, 'index.html').replace(/\\/g, '/');
+    await page.goto(indexUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(500);
 
     // Click goBtn to enter #home

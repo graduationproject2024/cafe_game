@@ -533,10 +533,96 @@ function sanitizeForCsv(val){
 }
 
 // ============ مصادقة الموظفين وإدارة الصلاحيات والأدوار (RBAC) ============
+const CFG_VERIFY = {
+  salt: 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE',
+  validDays: 3
+};
+const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+const REW = {
+  T: { name: 'خصم 5% على إجمالي الفاتورة', nameEn: '5% OFF on next order', tier: 1, discount: 5 },
+  S: { name: 'خصم 7% على إجمالي الفاتورة', nameEn: '7% OFF on next order', tier: 2, discount: 7 },
+  G: { name: 'ترقية مشروب مجانية من the A&A 🏆', nameEn: 'Free drink upgrade at the A&A 🏆', tier: 3, upgrade: true }
+};
+
+function hash(s){
+  let h = 0x811c9dc5;
+  for(let i = 0; i < s.length; i++){
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (h >>> 0);
+}
+
+function enc(num, len){
+  let s = '';
+  for(let i = 0; i < len; i++){
+    s = ALPHA[num % ALPHA.length] + s;
+    num = Math.floor(num / ALPHA.length);
+  }
+  return s;
+}
+
+function dec(str){
+  let n = 0;
+  for(const c of str) n = n * ALPHA.length + ALPHA.indexOf(c);
+  return n;
+}
+
+const dayNow = () => Math.floor(Date.now() / 86400000);
+
+function parseCode(raw){
+  const s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if(!s || s.length < 9) return null;
+  for(const ch of s) if(ALPHA.indexOf(ch) < 0) return null;
+
+  let type, day, body, checksum;
+  if(s.length === 10){
+    body = s.slice(0, 8);
+    checksum = s.slice(8);
+    type = s[0];
+    day = dec(s.slice(1, 4));
+  } else if(s.length === 9){
+    body = s.slice(0, 7);
+    checksum = s.slice(7);
+    type = s[0];
+    const rawD = dec(s.slice(1, 3));
+    const cycle = Math.floor(dayNow() / 1024);
+    day = cycle * 1024 + rawD;
+    if(day > dayNow() + 10) day -= 1024;
+  } else {
+    return null;
+  }
+
+  if(!REW[type]) return null;
+  const expectedCheck1024 = enc(hash(CFG_VERIFY.salt + body) % 1024, 2);
+  const expectedCheck961 = enc(hash(CFG_VERIFY.salt + body) % 961, 2);
+  if(checksum !== expectedCheck1024 && checksum !== expectedCheck961) return null;
+
+  return { type, day, body, code: s, reward: REW[type] };
+}
+
+// قفل الموظفين المستمر عبر localStorage لمنع تخطي المحاولات بـ F5
+function getStaffLockout(){
+  try {
+    const raw = localStorage.getItem('the_aa_staff_lockout');
+    return raw ? JSON.parse(raw) : { attempts: 0, lockoutUntil: 0 };
+  } catch(e){ return { attempts: 0, lockoutUntil: 0 }; }
+}
+function setStaffLockout(attempts, lockoutUntil){
+  try {
+    localStorage.setItem('the_aa_staff_lockout', JSON.stringify({ attempts, lockoutUntil }));
+  } catch(e){}
+}
+
+const STAFF_SALT = 'AA_STAFF_PIN_AUTH_SALT_V4_SECURE';
+function hashPin(pin){
+  return hash(STAFF_SALT + '|' + pin);
+}
+
 const STAFF_ACCOUNTS = {
-  CASHIER01: { pin: '1001', role: 'cashier', name: 'كاشير the A&A', title: 'كاشير 🎟️' },
-  ADMIN01: { pin: '2024', role: 'admin', name: 'مدير العمليات', title: 'مدير النظام 🛡️' },
-  OWNER01: { pin: '9999', role: 'owner', name: 'مالك the A&A', title: 'مالك المقهى 👑' }
+  CASHIER01: { pinHash: hashPin('1001'), role: 'cashier', name: 'كاشير the A&A', title: 'كاشير 🎟️' },
+  ADMIN01: { pinHash: hashPin('2024'), role: 'admin', name: 'مدير العمليات', title: 'مدير النظام 🛡️' },
+  OWNER01: { pinHash: hashPin('9999'), role: 'owner', name: 'مالك the A&A', title: 'مالك المقهى 👑' }
 };
 
 const ROLE_PERMISSIONS = {
@@ -587,9 +673,10 @@ const authErr = document.getElementById('authErr');
 const userBadge = document.getElementById('userBadge');
 
 loginBtn.addEventListener('click', () => {
+  const lockoutState = getStaffLockout();
   const now = Date.now();
-  if(now < lockoutUntil){
-    const leftSec = Math.ceil((lockoutUntil - now) / 1000);
+  if(now < lockoutState.lockoutUntil){
+    const leftSec = Math.ceil((lockoutState.lockoutUntil - now) / 1000);
     authErr.style.display = 'block';
     authErr.textContent = 'تم حظر تسجيل الدخول مؤقتاً لتكرار الأخطاء. يرجى الانتظار ' + leftSec + ' ثانية.';
     return;
@@ -597,6 +684,7 @@ loginBtn.addEventListener('click', () => {
 
   const rawId = (empIdInput ? empIdInput.value : '').trim().toUpperCase();
   const pin = (pinInput.value || '').trim();
+  const pinHash = hashPin(pin);
 
   let account = null;
   let resolvedId = rawId;
@@ -606,12 +694,12 @@ loginBtn.addEventListener('click', () => {
   } else if(!resolvedId){
     // دعم التوافق: التعرف على الدور من خلال الرمز السري إذا ترك الحقل فارغاً
     if(pin === '1001'){ resolvedId = 'CASHIER01'; account = STAFF_ACCOUNTS.CASHIER01; }
-    else if(pin === '2024' || pin === STAFF_PIN_AUTHORITATIVE){ resolvedId = 'ADMIN01'; account = STAFF_ACCOUNTS.ADMIN01; }
+    else if(pin === '2024'){ resolvedId = 'ADMIN01'; account = STAFF_ACCOUNTS.ADMIN01; }
     else if(pin === '9999'){ resolvedId = 'OWNER01'; account = STAFF_ACCOUNTS.OWNER01; }
   }
 
-  if(account && account.pin === pin){
-    loginAttempts = 0;
+  if(account && account.pinHash === pinHash){
+    setStaffLockout(0, 0);
     currentEmployee = {
       id: resolvedId,
       role: account.role,
@@ -629,14 +717,16 @@ loginBtn.addEventListener('click', () => {
     recordAudit('STAFF_LOGIN', `تسجيل دخول ناجح بالمعرف [${currentEmployee.id}] والدور [${currentEmployee.role}]`, currentEmployee.id);
     applyRolePermissions(currentEmployee);
   } else {
-    loginAttempts++;
+    const attempts = (lockoutState.attempts || 0) + 1;
     authErr.style.display = 'block';
-    if(loginAttempts >= 5){
-      lockoutUntil = Date.now() + 60000;
+    if(attempts >= 5){
+      const lockUntil = Date.now() + 60000;
+      setStaffLockout(attempts, lockUntil);
       authErr.textContent = 'البيانات غير صحيحة. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
       recordAudit('LOGIN_LOCKOUT', `تجاوز الحد الأقصى لمحاولات تسجيل الدخول للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
     } else {
-      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - loginAttempts);
+      setStaffLockout(attempts, 0);
+      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - attempts);
       recordAudit('LOGIN_FAILED', `محاولة فاشلة برمز غير صحيح للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
     }
   }
@@ -851,7 +941,17 @@ btnVerifyCode.addEventListener('click', () => {
     return;
   }
 
-  const code = rawCode.toUpperCase();
+  // فحص الكود تشفيرياً والتحقق من التوقيع والـ Checksum
+  const parsed = parseCode(rawCode);
+  if(!parsed){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = `⚠️ <b>كود غير صالح أو مزوّر:</b> فشل التحقق الأمني من الـ Checksum وتوقيع الكود [${rawCode}].`;
+    recordAudit('REDEEM_FORGERY_BLOCKED', 'محاولة إدخال كود غير صالح أو مزور: ' + rawCode, currentEmployee.id);
+    return;
+  }
+
+  const code = parsed.code;
   const db = getDB();
   const history = db.history || [];
   const found = history.find(h => h.code === code && (!h.status || h.status.includes('تم الصرف')));
@@ -864,21 +964,27 @@ btnVerifyCode.addEventListener('click', () => {
     return;
   }
 
-  // التعرف الدقيق على نوع الجائزة ومطابقتها للقواعد المعتمدة
-  let rewardName = 'خصم 5% على إجمالي الفاتورة';
-  let rewType = 'T';
-  if(code.startsWith('S') || code.includes('-S')){
-    rewardName = 'خصم 7% على إجمالي الفاتورة';
-    rewType = 'S';
-  } else if(code.startsWith('G') || code.includes('-G')){
-    rewardName = 'ترقية مشروب مجانية من the A&A 🏆';
-    rewType = 'G';
-  } else if(code.startsWith('T') || code.includes('-T')){
-    rewardName = 'خصم 5% على إجمالي الفاتورة';
-    rewType = 'T';
+  // فحص تاريخ الصلاحية الفعلي (مدة الصلاحية المعتمدة هي 3 أيام)
+  const daysOld = dayNow() - parsed.day;
+  if(daysOld > CFG_VERIFY.validDays){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = `⚠️ <b>انتهت صلاحية الكود:</b> هذا الكود صادر منذ ${daysOld} يوم (الصلاحية المعتمدة هي ${CFG_VERIFY.validDays} أيام). تاريخ الإصدار: ${new Date(parsed.day * 86400000).toLocaleDateString('ar-SA')}`;
+    recordAudit('REDEEM_EXPIRED', `محاولة صرف كود منتهي الصلاحية (${daysOld} يوم): ` + code, currentEmployee.id);
+    return;
+  }
+  if(daysOld < 0){
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = '⚠️ <b>كود غير صالح:</b> تاريخ إصدار الكود غير صحيح في المستقبل.';
+    recordAudit('REDEEM_INVALID_DATE', 'تاريخ كود مستقبلي غير منطقي: ' + code, currentEmployee.id);
+    return;
   }
 
-  // كود صالح
+  const rewardName = parsed.reward ? parsed.reward.name : 'خصم the A&A';
+  const rewType = parsed.type;
+
+  // كود صالح ومؤكد
   cashierResult.style.display = 'block';
   cashierResult.className = 'alert success';
   cashierResult.innerHTML = `

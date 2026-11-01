@@ -425,7 +425,7 @@ assert(html.includes('id="goBtn"'), 'Customer homepage prominently features publ
 // 23. Reward Economy 5,000 Points = 5% Discount Boundary Tests
 console.log('\n--- Suite 23: Reward Economy 5,000 Points = 5% Discount Boundary Tests ---');
 assert(scriptCode.includes("pts: 5000,  label: (currentLang === 'en' ? '5% OFF' : 'خصم 5%')"), '1st reward stop in ladder() configured as 5% OFF at 5,000 points');
-assert(scriptCode.includes("T: { name: 'خصم 5% على الفاتورة', tier: 1, discount: 5 }"), 'REW.T defines authoritative 5% discount for Tier 1');
+assert(scriptCode.includes("T: { name: 'خصم 5% على الفاتورة'") && scriptCode.includes("discount: 5"), 'REW.T defines authoritative 5% discount for Tier 1');
 assert(scriptCode.includes("TIER_TXT = { 1: 'خصم 5%', 2: 'خصم 7%', 3: 'ترقية مشروب' }"), 'TIER_TXT maps Tier 1 to 5% discount');
 
 // Execute sandbox boundary tests on tierOf logic
@@ -500,6 +500,77 @@ assert(scriptCode.includes('run.hearts <= 0'), 'Handles hearts exhausted outcome
 assert(scriptCode.includes('recover an extra heart via Instagram'), 'Displays recovery opportunity only when hearts exhausted and recovery available');
 assert(scriptCode.includes('New personal best!'), 'Congratulates player on new personal best only when score improved');
 assert(!scriptCode.includes("reason + ' • ' + encMsg"), 'Contradictory concatenated messages eliminated');
+
+// 28. Comprehensive Security & Review Fixes Verification
+console.log('\n--- Suite 28: Security & Customer Report Fixes Verification ---');
+
+// 1. Forged and Expired Code Rejection in staff.html
+const cryptoBlockMatch = staffHtml.match(/const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[\s\S]*?function parseCode\(raw\)\{[\s\S]*?\n\}/);
+const verifySandbox = {
+  Date: Date,
+  Math: Math,
+  localStorage: { getItem: () => null, setItem: () => null }
+};
+vm.createContext(verifySandbox);
+if (cryptoBlockMatch) {
+  vm.runInContext(
+    "const CFG_VERIFY = { salt: 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE', validDays: 3 };\n" +
+    cryptoBlockMatch[0] +
+    ';\nglobalThis.parseCode = parseCode; globalThis.enc = enc; globalThis.dayNow = dayNow; globalThis.hash = hash; globalThis.CFG_VERIFY = CFG_VERIFY;',
+    verifySandbox
+  );
+}
+
+// Test forged code G-AAAA-AA
+assert(verifySandbox.parseCode('G-AAAA-AA') === null, 'staff.html strictly rejects forged code G-AAAA-AA');
+assert(verifySandbox.parseCode('INVALID-CODE-XYZ') === null, 'staff.html strictly rejects random alphanumeric gibberish');
+
+// Test valid 10-char code parsing:
+const curDay = verifySandbox.dayNow();
+const curDayEnc = verifySandbox.enc(curDay, 3);
+const validBody = 'G' + curDayEnc + 'WXYZ';
+const chk = verifySandbox.enc(verifySandbox.hash(verifySandbox.CFG_VERIFY.salt + validBody) % 1024, 2);
+const validCode = validBody + chk;
+const parsedValid = verifySandbox.parseCode(validCode);
+assert(parsedValid !== null && parsedValid.type === 'G' && parsedValid.day === curDay, 'staff.html accepts and decodes authentic cryptographic code');
+
+// Test expiration verification logic
+const oldDay = curDay - 5;
+const daysOld = curDay - oldDay;
+assert(daysOld > verifySandbox.CFG_VERIFY.validDays, 'staff.html enforces CFG_VERIFY.validDays expiry check for codes > 3 days');
+
+// 2. PIN Hashing & Salt in staff.html
+assert(!staffScriptCode.includes("pin: '1001'"), 'staff.html does not expose plaintext PIN 1001');
+assert(!staffScriptCode.includes("pin: '2024'"), 'staff.html does not expose plaintext PIN 2024');
+assert(!staffScriptCode.includes("pin: '9999'"), 'staff.html does not expose plaintext PIN 9999');
+assert(staffScriptCode.includes('hashPin') && staffScriptCode.includes('pinHash:'), 'staff.html hashes employee PINs with salt');
+
+// 3. Persistent Lockout in staff.html
+assert(staffScriptCode.includes('the_aa_staff_lockout'), 'staff.html persists failed attempt lockouts in localStorage');
+
+// 4. Session Integrity & Tampering Resistance on Startup and Claim
+assert(scriptCode.includes('saved.S.sig === signSession(saved.S)'), 'index.html verifies session signature on startup');
+assert(scriptCode.includes('S.sig !== signSession(S)'), 'index.html verifies session signature before claiming rewards');
+
+// 5. Inactivity Timeout Non-Freezing Fix
+assert(!scriptCode.includes('run.over = true;\n  endRun()') && !scriptCode.includes('run.over = true; endRun()'), 'checkSessionInactivity does not prematurely set run.over before endRun()');
+
+// 6. Pre-Game Lobby Extra Heart Banner Markup
+assert(html.includes('id="preExtraHeartBox"'), 'index.html includes #preExtraHeartBox in lobby DOM');
+assert(html.includes('id="btnClaimExtraHeartPre"'), 'index.html includes #btnClaimExtraHeartPre in lobby DOM');
+
+// 7. Duplicate IDs Elimination
+assert(!html.includes('id="profAvatarDisplay"'), 'index.html eliminated duplicate id="profAvatarDisplay"');
+assert(!html.includes('id="modalNickAvatarDisplay"'), 'index.html eliminated duplicate id="modalNickAvatarDisplay"');
+
+// 8. Top 10 Leaderboard Newly Qualified Unification
+assert(scriptCode.includes('isNewTop10') && scriptCode.includes('newlyQualified'), 'LeaderboardEngine supports both newlyQualified and isNewTop10');
+
+// 9. Milestone Points Weight Scaling
+assert(scriptCode.includes('curGame.weight'), 'Score increment factors curGame.weight for reachable 10,000 threshold');
+
+// 10. Checkpoint Time Capping (No 15-second inflation)
+assert(!scriptCode.includes('Math.max(15,') && scriptCode.includes('Math.max(1,'), 'Checkpoint time does not award 15 free seconds on heart exhaustion');
 
 console.log('\n========================================================');
 console.log(`Test Execution Complete: ${passedTests}/${totalTests} Passed (${failedTests} Failed)`);

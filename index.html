@@ -2076,6 +2076,10 @@ h2 {
     <p class="fine" style="color:var(--primary);margin-bottom:12px">
       🎯 الصعوبة تتصاعد تلقائياً مع أدائك. لديك ٣ قلوب ❤️!
     </p>
+    <div id="preExtraHeartBox" class="extra-heart-banner" style="display:none;margin:10px 0;width:100%">
+      <span id="preExtraHeartMsg">❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!</span>
+      <button type="button" id="btnClaimExtraHeartPre" class="btn-extra-heart">استلام +1 ❤️</button>
+    </div>
     <button id="preGo" class="btn">ابدأ الجولة (٦٠ ثانية)</button>
     <button id="preBack" class="btn ghost">رجوع لقائمة الألعاب</button>
   </div>
@@ -2222,7 +2226,7 @@ h2 {
 
     <!-- معاينة الصورة الشخصية الدائرية -->
     <div class="prof-avatar-preview" id="profAvatarPreview">
-      <span id="profAvatarDisplay" style="font-size:38px">☕</span>
+      <span class="avatar-display-emoji" style="font-size:38px">☕</span>
     </div>
 
     <div style="font-size:12px;font-weight:700;color:var(--primary);margin-bottom:6px">اختر أفاتار الباريستا أو ارفع صورتك:</div>
@@ -2269,7 +2273,7 @@ h2 {
 
     <!-- معاينة الصورة الشخصية -->
     <div class="prof-avatar-preview" id="modalNickAvatarPreview">
-      <span id="modalNickAvatarDisplay" style="font-size:38px">☕</span>
+      <span class="avatar-display-emoji" style="font-size:38px">☕</span>
     </div>
 
     <div class="prof-avatar-grid" id="modalNickAvatarGrid">
@@ -2737,12 +2741,13 @@ const LeaderboardEngine = {
     
     const rank = boards[gameId].indexOf(entry) + 1;
     const qualified = rank <= 10;
+    const isNew = isNewTop10 && qualified;
     
     // Maintain top 10 continuous eligibility
     boards[gameId] = boards[gameId].slice(0, 10);
     this.saveBoards(boards);
     
-    return { qualified: qualified, rank: rank, isNewTop10: isNewTop10 && qualified, entry: entry };
+    return { qualified: qualified, rank: rank, isNewTop10: isNew, newlyQualified: isNew, entry: entry };
   },
   getQualificationDays(entry){
     if(!entry || !entry.qualifiedAt) return 0;
@@ -2795,11 +2800,13 @@ const store = {
 /* ============ تشفير أكواد المكافآت ============ */
 const ALPHA = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const REW = {
-  T: { name: 'خصم 5% على الفاتورة', tier: 1, discount: 5 },
-  S: { name: 'خصم 7% على الفاتورة', tier: 2, discount: 7 },
-  G: { name: 'ترقية مشروب مجانية من the A&A 🏆', tier: 3, upgrade: true }
+  T: { name: 'خصم 5% على الفاتورة', tier: 1, discount: 5, nameEn: '5% OFF on next order' },
+  S: { name: 'خصم 7% على الفاتورة', tier: 2, discount: 7, nameEn: '7% OFF on next order' },
+  G: { name: 'ترقية مشروب مجانية من the A&A 🏆', tier: 3, upgrade: true, nameEn: 'Free Drink Upgrade at the A&A 🏆' }
 };
 const TIER_TXT = { 1: 'خصم 5%', 2: 'خصم 7%', 3: 'ترقية مشروب' };
+const TIER_TXT_EN = { 1: '5% OFF', 2: '7% OFF', 3: 'Drink Upgrade' };
+const tierLabel = (t) => (currentLang === 'en' ? TIER_TXT_EN[t] : TIER_TXT[t]) || '';
 
 function enc(num, len){
   let s = '';
@@ -2824,19 +2831,44 @@ function typeOfTier(t){ return t === 3 ? 'G' : (t === 2 ? 'S' : (t === 1 ? 'T' :
 
 function mintCode(type){
   const r = enc(Math.floor(Math.random() * (ALPHA.length ** 4)), 4);
-  const body = type + enc(dayNow(), 2) + r;
-  return body + enc(hash(CFG.salt + body) % 961, 2);
+  const body = type + enc(dayNow(), 3) + r;
+  return body + enc(hash(CFG.salt + body) % 1024, 2);
 }
-const fmtCode = c => c.slice(0, 3) + '-' + c.slice(3, 7) + '-' + c.slice(7);
+const fmtCode = c => {
+  const clean = String(c || '').replace(/[^A-Z0-9]/g, '');
+  if(clean.length === 10) return clean.slice(0, 4) + '-' + clean.slice(4, 7) + '-' + clean.slice(7);
+  return clean.slice(0, 3) + '-' + clean.slice(3, 7) + '-' + clean.slice(7);
+};
 
 function parseCode(raw){
   const s = String(raw || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if(s.length !== 9) return null;
+  if(!s || s.length < 9) return null;
   for(const ch of s) if(ALPHA.indexOf(ch) < 0) return null;
-  const body = s.slice(0, 7);
-  if(enc(hash(CFG.salt + body) % 961, 2) !== s.slice(7)) return null;
-  if(!REW[s[0]]) return null;
-  return { type: s[0], day: dec(s.slice(1, 3)), body: body, code: s };
+
+  let type, day, body, checksum;
+  if(s.length === 10){
+    body = s.slice(0, 8);
+    checksum = s.slice(8);
+    type = s[0];
+    day = dec(s.slice(1, 4));
+  } else if(s.length === 9){
+    body = s.slice(0, 7);
+    checksum = s.slice(7);
+    type = s[0];
+    const rawD = dec(s.slice(1, 3));
+    const cycle = Math.floor(dayNow() / 1024);
+    day = cycle * 1024 + rawD;
+    if(day > dayNow() + 10) day -= 1024;
+  } else {
+    return null;
+  }
+
+  if(!REW[type]) return null;
+  const expectedCheck1024 = enc(hash(CFG.salt + body) % 1024, 2);
+  const expectedCheck961 = enc(hash(CFG.salt + body) % 961, 2);
+  if(checksum !== expectedCheck1024 && checksum !== expectedCheck961) return null;
+
+  return { type: type, day: day, body: body, code: s, reward: REW[type] };
 }
 
 /* ============ إدارة الحالة والجلسة وانتهاء الصلاحية بعد دقيقتين ============ */
@@ -3071,7 +3103,7 @@ function hud(){
   $('#gScore').textContent = run.score;
   const cm = 1 + Math.min(run.combo - 1, 8) * 0.12;
   $('#gCombo').textContent = run.combo >= 2 ? '🔥 ×' + cm.toFixed(1) : '';
-  $('#gLevel').textContent = 'المستوى ' + run.level;
+  $('#gLevel').textContent = (currentLang === 'en' ? 'Level ' : 'المستوى ') + run.level;
   const left = Math.max(0, CFG.roundSeconds - run.clock / 1000);
   $('#gTime').textContent = Math.ceil(left);
   $('#tbar').style.transform = 'scaleX(' + (left / CFG.roundSeconds) + ')';
@@ -3128,7 +3160,7 @@ function endRun(reason){
       outcomeMsg = isEn ? '☕ Great effort, Champion! Every master barista practices. Tap "Play Again" now, your special reward is just around the corner!' : '☕ محاولة رائعة يا بطل! القهوة بتعلمنا الإصرار والمهارة.. اضغط "جرب مرة ثانية" الآن وهديتك بانتظارك!';
     }
   } else if(t > 0 && !S.claim && run.score >= (CFG.tiers[t - 1] || 5000)){
-    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (TIER_TXT[t] || 'your reward') + '. Claim your voucher now for your next order 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (TIER_TXT[t] || 'المكافأة') + '. احجز كود الخصم لطلبك القادم الآن 🎁');
+    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (tierLabel(t) || 'your reward') + '. Claim your voucher now for your next order 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (tierLabel(t) || 'المكافأة') + '. احجز كود الخصم لطلبك القادم الآن 🎁');
   } else if(run.score > prevBest && prevBest > 0){
     outcomeMsg = isEn ? ('New personal best! You scored ' + run.score + ' pts, beating your previous record (' + prevBest + ' pts) 🔥') : ('رقم قياسي جديد لك! حققت ' + run.score + ' نقطة، متجاوزاً أفضل نتيجة سابقة (' + prevBest + ' نقطة) 🔥');
   } else if(run.score > 0 && S.best < 5000){
@@ -3195,10 +3227,10 @@ function endRun(reason){
   // Phase 10: فحص قائمة أفضل 10 لاعبين وعرض التهنئة والاسم المستعار
   if(run.score > 0){
     const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone, S.avatar);
-    if(lb && (lb.newlyQualified || lb.requiresNickname)){
+    if(lb && (lb.newlyQualified || lb.isNewTop10 || lb.requiresNickname)){
       if(!S.nickname){
         openNicknameModal(gm.id);
-      } else if(lb.newlyQualified){
+      } else if(lb.newlyQualified || lb.isNewTop10){
         openTop10CelebrationPopup();
       }
     }
@@ -3206,9 +3238,9 @@ function endRun(reason){
 
   SFX.reward();
   
-  // Save checkpoint state when run ends with zero hearts
+  // Save checkpoint state when run ends with zero hearts (exact remaining time without inflation)
   if(run.hearts <= 0){
-    const remTime = Math.max(15, CFG.roundSeconds - ((run.clock || 0) / 1000));
+    const remTime = Math.max(1, CFG.roundSeconds - ((run.clock || 0) / 1000));
     window.lastRunCheckpoint = {
       gameId: gm.id,
       score: run.score,
@@ -3589,7 +3621,6 @@ const GAMES = [
     mv.style.left = '0';
     const msg = el('div', 't-msg', currentLang === 'en' ? '☕ Tap anywhere or press Space to drop the cup' : '☕ المس الشاشة في أي مكان أو اضغط مسافة لإنزال الكوب');
     st.append(msg);
-    const dropBtn = { style: {} };
 
     function createCupHTML(theme, width){
       return '<div class="cup-top-rim" style="background:' + theme.rim + '"></div>' +
@@ -4516,18 +4547,18 @@ function renderClaimBar(){
 /* إدارة المحاولات الإضافية عبر إنستغرام: خطوتان (متابعة ثم لايك) */
 function updateExtraHeartBanner(){
   const box = $('#preExtraHeartBox');
-  const msg = $('#extraHeartMsg');
+  const msg = $('#preExtraHeartMsg') || $('#extraHeartMsg');
   const btn = $('#btnClaimExtraHeartPre');
   if(!box) return;
 
   if(!S.extraHeartFollowClaimed){
     box.style.display = 'flex';
-    msg.textContent = '❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!';
-    btn.textContent = 'متابعة واستلام ❤️';
+    if(msg) msg.textContent = (currentLang === 'en') ? '❤️ Follow the A&A on Instagram for +1 Extra Heart!' : '❤️ متابعة إنستغرام the A&A تمنحك +1 قلب إضافي!';
+    if(btn) btn.textContent = (currentLang === 'en') ? 'Follow & Get +1 ❤️' : 'متابعة واستلام +1 ❤️';
   } else if(!S.extraHeartLikeClaimed){
     box.style.display = 'flex';
-    msg.textContent = '👍 أعجبك التحدي؟ ضع لايك على آخر منشور في إنستغرام لتحصل على قلب إضافي ثانٍ!';
-    btn.textContent = 'لايك واستلام ❤️';
+    if(msg) msg.textContent = (currentLang === 'en') ? '👍 Like our latest Instagram post for a 2nd Extra Heart!' : '👍 أعجبك التحدي؟ ضع لايك على آخر منشور في إنستغرام لتحصل على قلب إضافي ثانٍ!';
+    if(btn) btn.textContent = (currentLang === 'en') ? 'Like & Get ❤️' : 'لايك واستلام ❤️';
   } else {
     box.style.display = 'none';
   }
@@ -4580,6 +4611,10 @@ function goHome(){ renderHome(); show('home'); }
 
 /* ============ صرف وترقية المكافأة للطلب القادم ============ */
 function claimFlow(isUpgrade){
+  if(S && S.best > 0 && S.sig && S.sig !== signSession(S)){
+    banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
+    return;
+  }
   const t = tierOf(S.best);
   if(!t) return;
   const curTier = S.claim ? (S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1)) : 0;
@@ -4631,6 +4666,10 @@ function commitReward(type, isUpgrade){
 }
 
 function finalizeRewardClaim(type, isUpgrade){
+  if(S && S.best > 0 && S.sig && S.sig !== signSession(S)){
+    banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
+    return;
+  }
   const day = dayNow();
   const c = mintCode(type);
   if(isUpgrade && S.claim){
@@ -4684,138 +4723,7 @@ function checkStaffHash(){
   }
 }
 window.addEventListener('hashchange', checkStaffHash);
-
-const btnStGo = $('#stGo');
-if(btnStGo){
-  btnStGo.addEventListener('click', () => {
-  const pin = $('#stPin').value.trim();
-  const rawCode = $('#stCode').value.trim();
-  const out = $('#stOut');
-  const btnRedeem = $('#stRedeem');
-
-  if(pin !== CFG.staffPin){
-    out.className = 'err';
-    out.textContent = 'الرمز السري غير صحيح.';
-    btnRedeem.hidden = true;
-    return;
-  }
-
-  const parsed = parseCode(rawCode);
-  if(!parsed){
-    out.className = 'err';
-    out.textContent = 'كود المكافأة غير صالح أو مزور.';
-    btnRedeem.hidden = true;
-    return;
-  }
-
-  const o = store.get();
-  const history = o.history || [];
-  const found = history.find(h => h.code === parsed.code);
-  if(found){
-    out.className = 'err';
-    out.textContent = 'تنبيه: هذا الكود تم صرفه مسبقاً في تاريخ ' + new Date(found.time).toLocaleTimeString('ar-SA');
-    btnRedeem.hidden = true;
-    return;
-  }
-
-  out.className = 'field-hint';
-  out.style.color = 'var(--success)';
-  out.textContent = 'الكود صالح ومطابق! الجائزة: ' + REW[parsed.type].name;
-  btnRedeem.hidden = false;
-  btnRedeem.onclick = () => {
-    history.unshift({ code: parsed.code, type: parsed.type, time: Date.now() });
-    o.history = history;
-    store.set(o);
-    syncToGoogleSheet('REDEEM_REWARD', { rewardCode: parsed.code, rewardStatus: 'تم الصرف لدى الكاشير ✓' });
-    btnRedeem.hidden = true;
-    out.textContent = 'تم تأكيد وصرف المكافأة بنجاح ✓';
-    renderStaffHistory();
-    SFX.reward();
-  };
-});
-}
-
-function renderStaffHistory(){
-  const o = store.get();
-  const hist = o.history || [];
-  const hDiv = $('#stHistory');
-  if(!hist.length){ hDiv.style.display = 'none'; return; }
-  hDiv.style.display = 'block';
-  hDiv.innerHTML = '<b style="font-size:12px;color:var(--text-muted)">سجل العمليات السابقة اليوم:</b>' +
-    hist.slice(0, 5).map(h => '<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border)">' +
-      fmtCode(h.code) + ' — ' + (REW[h.type] ? REW[h.type].name : '') + ' (' + new Date(h.time).toLocaleTimeString('ar-SA') + ')' +
-    '</div>').join('');
-}
-
-/* إدارة Google Sheets وتصدير CSV في بوابة الموظفين */
-const btnStSaveSheet = $('#stSaveSheet');
-if(btnStSaveSheet){
-  btnStSaveSheet.addEventListener('click', () => {
-  const url = ($('#stSheetUrl').value || '').trim();
-  CFG.googleSheetUrl = url;
-  try { localStorage.setItem('aa_cafe_gsheet_url', url); } catch(e){}
-  const stDiv = $('#stSheetStatus');
-  stDiv.style.color = 'var(--success)';
-  stDiv.textContent = 'تم حفظ رابط Google Sheet بنجاح ✓';
-  SFX.ok();
-});
-}
-
-const btnStTestSheet = $('#stTestSheet');
-if(btnStTestSheet){
-  btnStTestSheet.addEventListener('click', () => {
-  const stDiv = $('#stSheetStatus');
-  stDiv.style.color = 'var(--primary)';
-  stDiv.textContent = 'جارٍ فحص الاتصال بـ Google Sheet...';
-  syncToGoogleSheet('TEST_CONNECTION', { phone: '+966500000000', order: 'TEST-001' }).then(res => {
-    if(res && res.error){
-      stDiv.style.color = 'var(--error)';
-      stDiv.textContent = 'تعذر الاتصال بالرابط: ' + res.error;
-    } else {
-      stDiv.style.color = 'var(--success)';
-      stDiv.textContent = 'تم إرسال سطر فحص تجريبي بنجاح! تحقق من الشيت ✓';
-      SFX.reward();
-    }
-  });
-});
-}
-
-const btnStExportCsv = $('#stExportCsv');
-if(btnStExportCsv){
-  btnStExportCsv.addEventListener('click', () => {
-  const o = store.get();
-  const log = o.sheetLog || [];
-  if(!log.length){
-    alert('لا توجد بيانات مسجلة محلياً بعد.');
-    return;
-  }
-  const headers = ['Action','Timestamp','Date_Arabic','Phone','Order','Best_Score','Qualified_Tier','Reward_Type','Reward_Code','Reward_Status','Last_Game','Last_Score'];
-  const rows = log.map(r => [
-    r.action || '',
-    r.timestamp || '',
-    r.dateTimeArabic || '',
-    r.phone || '',
-    r.order || '',
-    r.bestScore || 0,
-    r.qualifiedTier || '',
-    r.rewardType || '',
-    r.rewardCode || '',
-    r.rewardStatus || '',
-    r.lastGame || '',
-    r.lastScore || ''
-  ].map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
-
-  const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\r\n');
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'the_aa_customers_' + new Date().toISOString().slice(0, 10) + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  SFX.ok();
-});
-}
+checkStaffHash();
 
 /* ============ بيئة اللعب الموحدة (Harness) ============ */
 function makeCtx(game){
@@ -4896,9 +4804,10 @@ function makeCtx(game){
       if(!antiSpamCheck()) return;
       run.combo++;
       const basePts = 40;
+      const gWeight = (curGame && curGame.weight) ? curGame.weight : 1.0;
       const dMul = this.diffMultiplier();
       const comboMul = 1 + Math.min(run.combo - 1, 8) * 0.12;
-      const finalPts = Math.round(basePts * (multiplier || 1.0) * dMul * comboMul);
+      const finalPts = Math.round(basePts * gWeight * (multiplier || 1.0) * dMul * comboMul);
       run.score += finalPts;
       run.level = Math.min(5, 1 + Math.floor(run.score / 600));
 
@@ -5058,10 +4967,7 @@ function checkSessionInactivity(){
   if(!run || run.over) return;
   const now = Date.now();
   if(now - (S.lastActiveAt || now) >= INACTIVITY_TIMEOUT_MS){
-    run.over = true;
     run.expired = true;
-    run.cleanups.forEach(f => { try { f(); } catch(e){} });
-    run.cleanups = [];
     window.lastRunCheckpoint = null;
     endRun(currentLang === 'en' ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.');
   }
@@ -5169,19 +5075,22 @@ function handleAvatarFileUpload(file, previewEl, callback){
   reader.readAsDataURL(file);
 }
 
+function renderAvatarPreview(previewEl, avatar){
+  if(!previewEl) return;
+  if(String(avatar).startsWith('data:image/')){
+    previewEl.innerHTML = '<img src="' + avatar + '" alt="Avatar">';
+  } else {
+    previewEl.innerHTML = '<span class="avatar-display-emoji" style="font-size:38px">' + (avatar || '☕') + '</span>';
+  }
+}
+
 /* إدارة مودال الملف الشخصي المستقل */
 let currentProfileAvatar = '☕';
 function openProfileModal(){
   const modal = $('#modalProfile');
   if(!modal) return;
   currentProfileAvatar = (S && S.avatar) || '☕';
-  const display = $('#profAvatarDisplay');
-  const preview = $('#profAvatarPreview');
-  if(String(currentProfileAvatar).startsWith('data:image/')){
-    if(preview) preview.innerHTML = '<img src="' + currentProfileAvatar + '" alt="Avatar">';
-  } else {
-    if(preview) preview.innerHTML = '<span id="profAvatarDisplay" style="font-size:38px">' + currentProfileAvatar + '</span>';
-  }
+  renderAvatarPreview($('#profAvatarPreview'), currentProfileAvatar);
 
   // تحديد الزر النشط في شبكة الأفاتار
   $$('#profAvatarGrid .prof-avatar-btn').forEach(btn => {
@@ -5212,8 +5121,7 @@ $$('#profAvatarGrid .prof-avatar-btn').forEach(btn => {
     $$('#profAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentProfileAvatar = btn.dataset.avatar;
-    const preview = $('#profAvatarPreview');
-    if(preview) preview.innerHTML = '<span id="profAvatarDisplay" style="font-size:38px">' + currentProfileAvatar + '</span>';
+    renderAvatarPreview($('#profAvatarPreview'), currentProfileAvatar);
   });
 });
 
@@ -5224,6 +5132,7 @@ if(profFileInput){
     if(file){
       handleAvatarFileUpload(file, $('#profAvatarPreview'), dataUrl => {
         currentProfileAvatar = dataUrl;
+        renderAvatarPreview($('#profAvatarPreview'), currentProfileAvatar);
         $$('#profAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
       });
     }
@@ -5264,12 +5173,7 @@ function openNicknameModal(gameId){
   modal.classList.add('active');
   modal.dataset.gameId = gameId || '';
   currentModalNickAvatar = (S && S.avatar) || '☕';
-  const preview = $('#modalNickAvatarPreview');
-  if(String(currentModalNickAvatar).startsWith('data:image/')){
-    if(preview) preview.innerHTML = '<img src="' + currentModalNickAvatar + '" alt="Avatar">';
-  } else {
-    if(preview) preview.innerHTML = '<span id="modalNickAvatarDisplay" style="font-size:38px">' + currentModalNickAvatar + '</span>';
-  }
+  renderAvatarPreview($('#modalNickAvatarPreview'), currentModalNickAvatar);
   $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => {
     b.classList.toggle('selected', b.dataset.avatar === currentModalNickAvatar);
   });
@@ -5292,8 +5196,7 @@ $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(btn => {
     $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
     currentModalNickAvatar = btn.dataset.avatar;
-    const preview = $('#modalNickAvatarPreview');
-    if(preview) preview.innerHTML = '<span id="modalNickAvatarDisplay" style="font-size:38px">' + currentModalNickAvatar + '</span>';
+    renderAvatarPreview($('#modalNickAvatarPreview'), currentModalNickAvatar);
   });
 });
 
@@ -5304,6 +5207,7 @@ if(modalNickFileInput){
     if(file){
       handleAvatarFileUpload(file, $('#modalNickAvatarPreview'), dataUrl => {
         currentModalNickAvatar = dataUrl;
+        renderAvatarPreview($('#modalNickAvatarPreview'), currentModalNickAvatar);
         $$('#modalNickAvatarGrid .prof-avatar-btn').forEach(b => b.classList.remove('selected'));
       });
     }
@@ -5587,10 +5491,15 @@ if($('#langToggle')) $('#langToggle').addEventListener('click', toggleLang);
 if($('#langToggleHome')) $('#langToggleHome').addEventListener('click', toggleLang);
 initLang();
 
-// استعادة الجلسة السابقة داخلياً فقط إذا كانت لنفس اليوم
+// استعادة الجلسة السابقة داخلياً فقط إذا كانت لنفس اليوم مع التحقق من توقيع الجلسة ضد التلاعب
 const saved = store.get();
 if(saved.S && saved.S.phone && saved.S.day === dayNow()){
-  S = saved.S;
+  if(saved.S.sig && saved.S.sig === signSession(saved.S)){
+    S = saved.S;
+  } else {
+    console.warn('Session signature mismatch detected. Resetting session.');
+    resetSession();
+  }
 } else if(saved.S && saved.S.day !== dayNow()){
   S.day = dayNow();
   S.best = 0;
