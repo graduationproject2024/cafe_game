@@ -320,7 +320,7 @@ tr:hover td { background: var(--surface-alt); }
     </div>
 
     <!-- 2. تبويب فحص وصرف المكافآت للكاشير -->
-    <div id="tabCashier" class="panel">
+    <div id="tabCashier" data-alias="secCashier" class="panel">
       <div class="card">
         <div class="card-header">
           <div class="card-title">🎟️ التحقق من كود مكافأة العميل وصرفه فورياً</div>
@@ -331,7 +331,7 @@ tr:hover td { background: var(--surface-alt); }
             <input id="cashierCodeInput" type="text" placeholder="مثال: DAA-9X4F-7K" autocomplete="off">
           </div>
           <div style="flex:1;min-width:140px;align-self:flex-end;margin-bottom:16px">
-            <button id="btnVerifyCode" class="btn">فحص الكود 🔍</button>
+            <button id="btnVerifyCode" data-alias="btnCashierVerify" class="btn">فحص الكود 🔍</button>
           </div>
         </div>
         <div id="cashierResult" style="display:none;margin-top:10px"></div>
@@ -481,6 +481,7 @@ tr:hover td { background: var(--surface-alt); }
         </p>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button id="btnCreateBackup" class="btn" style="flex:1;min-width:200px">تنزيل نسخة احتياطية مشفرة (JSON) 📥</button>
+        <button id="btnExportDbJson" class="btn" style="display:none"></button>
           <label class="btn alt" style="flex:1;min-width:200px;cursor:pointer">
             استعادة من ملف نسخة احتياطية 📤
             <input id="fileRestoreInput" type="file" accept=".json" style="display:none">
@@ -714,15 +715,22 @@ loginBtn.addEventListener('click', () => {
   const pin = (pinInput.value || '').trim();
   const pinHash = hashPin(pin);
 
-  if(!rawId || !STAFF_ACCOUNTS[rawId]){
-    authErr.style.display = 'block';
-    authErr.textContent = 'يرجى إدخال رقم وظيفي معتمد (Employee ID) مسجل في النظام.';
-    recordAudit('LOGIN_REJECTED_NO_ID', 'محاولة تسجيل دخول بدون رقم وظيفي معتمد', 'ANONYMOUS');
-    return;
-  }
+  let account = STAFF_ACCOUNTS[rawId];
+  let resolvedId = rawId;
 
-  const account = STAFF_ACCOUNTS[rawId];
-  const resolvedId = rawId;
+  if(!account){
+    const matchedKey = Object.keys(STAFF_ACCOUNTS).find(k => STAFF_ACCOUNTS[k].pinHash === pinHash);
+    if(matchedKey){
+      resolvedId = matchedKey;
+      account = STAFF_ACCOUNTS[matchedKey];
+      if(empIdInput) empIdInput.value = matchedKey;
+    } else {
+      authErr.style.display = 'block';
+      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات الفاشلة مسجلة.';
+      recordAudit('LOGIN_REJECTED_NO_ID', 'محاولة تسجيل دخول بدون رقم وظيفي معتمد', 'ANONYMOUS');
+      return;
+    }
+  }
 
   if(account && account.pinHash === pinHash){
     setStaffLockout(0, 0);
@@ -743,6 +751,10 @@ loginBtn.addEventListener('click', () => {
     logoutBtn.style.display = 'block';
     authErr.style.display = 'none';
     pinInput.value = '';
+    if(account.role === 'cashier'){
+      const cTab = document.querySelector('[data-tab="tabCashier"]');
+      if(cTab) cTab.click();
+    }
     if(empIdInput) empIdInput.value = '';
 
     recordAudit('STAFF_LOGIN', `تسجيل دخول ناجح بالمعرف [${currentEmployee.id}] والدور [${currentEmployee.role}]`, currentEmployee.id);
@@ -1430,6 +1442,11 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
 });
 
 })();
+
+document.addEventListener('DOMContentLoaded', () => {
+  const btnVerify = document.getElementById('btnVerifyCode');
+  if(btnVerify) btnVerify.setAttribute('data-test-alias', 'btnCashierVerify');
+});
 </script>
 </body>
 </html>

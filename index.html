@@ -229,7 +229,7 @@ html[lang="en"] .btn, html[lang="en"] .card-name, html[lang="en"] .rp-score, htm
 
 /* ============ إطارات الشاشات والتدفق ============ */
 .screen {
-  display: none;
+  display: none !important;
   width: 100%;
   min-height: 100dvh;
   padding: 16px 16px 36px;
@@ -240,7 +240,7 @@ html[lang="en"] .btn, html[lang="en"] .card-name, html[lang="en"] .rp-score, htm
   transition: opacity 0.22s ease-out, transform 0.22s ease-out;
 }
 .screen.on {
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   opacity: 1;
   transform: translateY(0);
@@ -2001,15 +2001,11 @@ h2 {
     <div class="card intro-action-card" style="padding:22px 18px;text-align:center">
       <div style="font-size:36px;margin-bottom:8px">☕✨</div>
       <h3 id="loginCardTitle" style="font-size:19px;font-weight:900;color:var(--primary);margin-bottom:8px">مرحباً بك في تحديات the A&A</h3>
-      <p id="loginCardSub" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6">العب وتحدّ مهاراتك الآن مباشرة! عند فوزك ستحصل على قسيمة خصم فورية لطلبك القادم، ويمكنك حينها تسجيل بياناتك لحفظ القسيمة وتصدر قائمة أفضل 10 لاعبين 🏆</p>
+      <p id="loginCardSub" style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.6">العب وتحدّ مهاراتك الآن مباشرة بدون أي تسجيل مسبق! 60 ثانية لكل جولة • عند فوزك ستحصل على قسيمة خصم فورية لطلبك القادم، وتسجل اسمك في لوحة الشرف 🏆</p>
 
       <button id="goBtn" class="btn primary-pulse" type="button" style="font-size:16px;font-weight:900;padding:15px 24px;width:100%;margin-bottom:10px;border-radius:var(--radius-full);background:var(--gold-grad);color:var(--gold-ink);box-shadow:0 6px 20px rgba(212,166,42,0.35);border:none;cursor:pointer">ابدأ التحدي واللعب الآن ☕✨</button>
 
-      <div style="text-align:center;margin-top:8px">
-        <button id="btnToggleIntroLogin" type="button" class="btn ghost" style="font-size:12px;padding:6px 12px;color:var(--text-muted);width:auto" onclick="const b=document.getElementById('introOptionalLogin');if(b)b.style.display=(b.style.display==='none'?'block':'none');">تسجيل الدخول المسبق برقم الجوال (اختياري) 👤</button>
-      </div>
-
-      <!-- الحقول المسبقة اختيارية تماماً ومتاحة لمن يرغب أو للاختبارات -->
+      <!-- الحقول المسبقة مخفية تماماً وتظهر بياناتها فقط عند الفوز بالمكافأة -->
       <div id="introOptionalLogin" style="display:none;margin-top:14px;border-top:1px dashed var(--line);padding-top:14px;text-align:start">
         <div class="field" style="margin-bottom:12px">
           <label for="introPhone" id="lblIntroPhone" style="font-weight:700;font-size:13px;display:block;margin-bottom:4px">رقم الجوال السعودي 📱</label>
@@ -2109,15 +2105,6 @@ h2 {
     <h2 id="preName"></h2>
     <p class="how" id="preHow"></p>
 
-    <div class="leaderboard-card-embedded" id="preLeaderboardCard">
-      <div class="lb-embed-head">
-        <span>🏆 أفضل 10 لاعبين في اللعبة</span>
-        <small class="lb-embed-badge">مباشر</small>
-      </div>
-      <div class="lb-embed-list" id="preLeaderboardList"></div>
-    </div>
-    <button type="button" id="btnPreLeaderboard" class="btn-leaderboard-open" style="display:none">🏆 أفضل 10 لاعبين في هذه اللعبة</button>
-
     <p class="fine" style="color:var(--primary);margin-bottom:12px">
       🎯 الصعوبة تتصاعد تلقائياً مع أدائك. لديك ٣ قلوب ❤️!
     </p>
@@ -2127,6 +2114,15 @@ h2 {
     </div>
     <button id="preGo" class="btn">ابدأ الجولة (٦٠ ثانية)</button>
     <button id="preBack" class="btn ghost">رجوع لقائمة الألعاب</button>
+
+    <div class="leaderboard-card-embedded" id="preLeaderboardCard">
+      <div class="lb-embed-head">
+        <span>🏆 أفضل 10 لاعبين في اللعبة</span>
+        <small class="lb-embed-badge">🟢 مباشر • سحابي</small>
+      </div>
+      <div class="lb-embed-list" id="preLeaderboardList"></div>
+    </div>
+    <button type="button" id="btnPreLeaderboard" class="btn-leaderboard-open" style="display:none">🏆 أفضل 10 لاعبين في هذه اللعبة</button>
   </div>
 </section>
 
@@ -2169,19 +2165,19 @@ h2 {
       <button type="button" id="btnClaimExtraHeartGameOver" class="btn-extra-heart">استلام +1 ❤️ ومتابعة</button>
     </div>
 
+    <div id="ladderRes"></div>
+    <button id="resClaim" class="btn alt" style="display:none">استلم مكافأتك الآن 🎁</button>
+    <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك 🔥</button>
+    <button id="resHome" class="btn ghost">اختر لعبة ثانية</button>
+
     <div class="leaderboard-card-embedded" id="resLeaderboardCard">
       <div class="lb-embed-head">
         <span>🏆 تصنيف المتصدرين لهذه اللعبة</span>
-        <small class="lb-embed-badge">مباشر</small>
+        <small class="lb-embed-badge">🟢 مباشر • سحابي</small>
       </div>
       <div class="lb-embed-list" id="resLeaderboardList"></div>
     </div>
     <button type="button" id="btnViewLeaderboardResult" class="btn-leaderboard-open" style="display:none">🏆 لوحة أفضل 10 لاعبين في هذه اللعبة</button>
-
-    <div id="ladderRes"></div>
-    <button id="resAgain" class="btn">العب مرة أخرى وحسّن نتيجتك 🔥</button>
-    <button id="resClaim" class="btn alt">استلم مكافأتك الآن 🎁</button>
-    <button id="resHome" class="btn ghost">اختر لعبة ثانية</button>
 
     <div class="social-footer">
       <div class="social-links-minimal">
@@ -2231,7 +2227,7 @@ h2 {
     <div id="chOpts" style="width:100%;margin-bottom:14px"></div>
 
     <div class="reward-terms-note">
-      ℹ️ <b>ملاحظة الشروط والأحكام:</b> يمكنك الاختيار بين استلام المكافأة (كود الخصم الفوري) أو تحويل قيمتها كرصيد نقاط ولاء مضاف لحسابك لدى the A&A وفق سياسة المكافآت المعتمدة.
+      ℹ️ <b>شروط القسيمة:</b> القسيمة صالحة لمدة 3 أيام لطلبك القادم لدى كاشير the A&A. لا يمكن دمجها مع خصومات أخرى أو عروض المناسبات.
     </div>
 
     <p class="fine">بعد الاختيار يصدر لك كود مشفر صالح لمرة واحدة لدى الكاشير.</p>
@@ -2256,7 +2252,7 @@ h2 {
     </div>
 
     <div class="reward-terms-note">
-      ℹ️ يمكنك الاستفادة من الخصم فورياً أو طلب استبداله برصيد نقاط ولاء لدى الكاشير.
+      ℹ️ اعرض هذا الكود على كاشير the A&A في زيارتك القادمة خلال 3 أيام للاستفادة من الخصم.
     </div>
 
     <button id="rwCopy" class="btn">نسخ الكود المشفر</button>
@@ -2422,15 +2418,15 @@ var I18N = {
     brandSub: 'قهوة مختصة وحلويات • المدينة المنورة',
     introTitle: 'تحديات <bdi class="brand-en">the A&A</bdi> درايف ثرو',
     introLead: 'العب واكسب جوائز وخصومات فورية أثناء انتظار تحضير قهوتك المختصة وحلوياتك في مسار السيارات!',
-    loginTitle: 'تسجيل الدخول وحفظ التقدم ☕👑',
-    loginSub: 'سجّل برقم جوالك واسمك المستعار للاحتفاظ بتقدمك وجوائزك ومنافسة أفضل 10 لاعبين (يظهر للجمهور الاسم المستعار فقط).',
+    loginTitle: 'مرحباً بك في تحديات the A&A ☕✨',
+    loginSub: 'حوّل وقت انتظار قهوتك إلى تحدٍ ممتع! 60 ثانية لكل لعبة • العب الآن بدون تسجيل مسبق، وعند فوزك احفظ مكافأتك وسجل في لوحة الشرف 🏆',
     phoneLabel: 'رقم الجوال السعودي 📱',
     phoneHint: 'الصيغ المعتمدة: 05XXXXXXXX أو 5XXXXXXXX أو +9665XXXXXXXX',
     phonePh: '05XXXXXXXX أو 5XXXXXXXX',
     nickLabel: 'الاسم المستعار (يظهر في قائمة المتصدرين) ☕',
     nickPh: 'مثال: باريستا المدينة، عاشق الكورتادو...',
     nickHint: 'اختر اسماً لائقاً ومميزاً لتمثيلك في قائمة أفضل 10 لاعبين',
-    loginBtn: 'حفظ البيانات والبدء في اللعب ☕✨',
+    loginBtn: 'ابدأ التحدي واللعب الآن ☕✨',
     guestBtn: 'متابعة كضيف سريع (بدون حفظ)',
     orderLabel: 'رقم الطلب (من الفاتورة أو شاشة المسار)',
     orderPh: 'مثال: 128 أو AA-482',
@@ -2465,15 +2461,15 @@ var I18N = {
     brandSub: 'Specialty Cafe & Sweets • Al-Madinah',
     introTitle: '<bdi class="brand-en">the A&A</bdi> Drive-Thru Challenges',
     introLead: 'Play and win instant prizes & discounts while waiting for your specialty coffee in the drive-thru!',
-    loginTitle: 'Player Login & Progress Save ☕👑',
-    loginSub: 'Sign in with your phone and nickname to preserve progress and compete in the Top 10 (only nickname is public).',
+    loginTitle: 'Welcome to the A&A Cafe Challenges ☕✨',
+    loginSub: 'Turn your drive-thru wait into instant fun! 60s per round • Play directly without registration, claim voucher upon winning 🏆',
     phoneLabel: 'Saudi Mobile Number 📱',
     phoneHint: 'Accepted formats: 05XXXXXXXX, 5XXXXXXXX or +9665XXXXXXXX',
     phonePh: '05XXXXXXXX or 5XXXXXXXX',
     nickLabel: 'Player Nickname (Shown on Leaderboard) ☕',
     nickPh: 'e.g. Barista Champ, Cortado Lover...',
     nickHint: 'Choose a respectful nickname for the A&A Hall of Fame',
-    loginBtn: 'Save Profile & Start Playing ☕✨',
+    loginBtn: 'Start Challenge & Play Now ☕✨',
     guestBtn: 'Continue as Guest (No Save)',
     orderLabel: 'Order Number (from receipt or screen)',
     orderPh: 'e.g. 128 or AA-482',
@@ -2561,6 +2557,10 @@ const SaudiPhone = {
     const canonical = '+966' + digits;
     const masked = '+966 ' + digits.slice(0, 2) + ' *** ' + digits.slice(5);
     return { valid: true, canonical: canonical, masked: masked, localDigits: '0' + digits };
+  },
+  mask(raw){
+    const v = this.validate(raw);
+    return v.valid ? v.masked : (raw || '');
   }
 };
 
@@ -2578,6 +2578,8 @@ const ProfanityFilter = {
   brandDefamation: [
     'a&a سيء', 'a&a خايس', 'a&a مقرف', 'a&a فاشل', 'a&a زبالة', 'a&a نصابين', 'a&a حرامية',
     'the a&a سيء', 'the a&a خايس', 'the a&a فاشل', 'the a&a زبالة', 'the a&a نصابين',
+    'aa سيء', 'aa خايس', 'aa مقرف', 'aa فاشل', 'aa زبالة', 'aa نصابين', 'aa حرامية',
+    'the aa سيء', 'the aa خايس', 'the aa فاشل', 'the aa زبالة', 'the aa نصابين',
     'كافيه خايس', 'كافيه فاشل', 'كافيه مقرف', 'كافيه زبالة', 'مقهى خايس', 'مقهى فاشل',
     'قهوة خايسة', 'قهوة مقرفة', 'قهوة معفنة', 'قهوة سيئة', 'اسوأ قهوة', 'أسوأ قهوة',
     'bad cafe', 'worst cafe', 'bad coffee', 'worst coffee', 'aa scam', 'fake cafe'
@@ -2591,8 +2593,11 @@ const ProfanityFilter = {
       }
     }
     const lower = raw.toLowerCase().replace(/[\s\-_.]+/g, ' ');
+    const noAmp = lower.replace(/&/g, '').replace(/\s+/g, ' ');
     for(const def of this.brandDefamation){
-      if(lower.includes(def)){
+      const defClean = def.toLowerCase().replace(/[\s\-_.]+/g, ' ');
+      const defNoAmp = defClean.replace(/&/g, '').replace(/\s+/g, ' ');
+      if(lower.includes(defClean) || noAmp.includes(defNoAmp)){
         return { clean: false, reason: 'brand', error: 'الاسم يحتوي على عبارات مسيئة لعلامة the A&A. يرجى اختيار اسم مستعار لائق.' };
       }
     }
@@ -2660,7 +2665,7 @@ const SFX = (function(){
     } catch(e){}
   }
 
-  // مولدات صوت الدفوف المتوافقة مع الضوابط الإسلامية (Req 4)
+  // مولدات صوت الدفوف المتقنة والهادئة المتوافقة مع الضوابط الإسلامية (Acoustic Islamic Percussion)
   function playDuffDum(time){
     if(muted) return;
     try {
@@ -2668,16 +2673,25 @@ const SFX = (function(){
       if(!ctx) return;
       const t = time || ctx.currentTime;
       const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
       const g = ctx.createGain();
+
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(92, t);
-      osc.frequency.exponentialRampToValueAtTime(42, t + 0.22);
-      g.gain.setValueAtTime(0.24, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
-      osc.connect(g);
+      osc.frequency.setValueAtTime(62, t);
+      osc.frequency.exponentialRampToValueAtTime(36, t + 0.18);
+
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(130, t);
+
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.20);
+
+      osc.connect(filter);
+      filter.connect(g);
       g.connect(ctx.destination);
+
       osc.start(t);
-      osc.stop(t + 0.25);
+      osc.stop(t + 0.22);
     } catch(e){}
   }
 
@@ -2688,16 +2702,26 @@ const SFX = (function(){
       if(!ctx) return;
       const t = time || ctx.currentTime;
       const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
       const g = ctx.createGain();
+
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(360, t);
-      osc.frequency.exponentialRampToValueAtTime(140, t + 0.08);
-      g.gain.setValueAtTime(0.20, t);
-      g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
-      osc.connect(g);
+      osc.frequency.setValueAtTime(540, t);
+      osc.frequency.exponentialRampToValueAtTime(210, t + 0.05);
+
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(850, t);
+      filter.Q.setValueAtTime(2.5, t);
+
+      g.gain.setValueAtTime(0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+
+      osc.connect(filter);
+      filter.connect(g);
       g.connect(ctx.destination);
+
       osc.start(t);
-      osc.stop(t + 0.10);
+      osc.stop(t + 0.07);
     } catch(e){}
   }
 
@@ -2922,28 +2946,28 @@ const SFX = (function(){
       return !muted;
     },
     isMuted(){ return muted; },
-    tap(){ playTone(440, 'triangle', 0.06, 0.12, 620); },
-    ok(){ playTone(540, 'sine', 0.12, 0.18, 920); },
-    miss(){ playTone(240, 'sawtooth', 0.18, 0.22, 130); },
-    clink(){ playTone(820, 'sine', 0.2, 0.2, 1100); },
-    countdown(){ playTone(440, 'sine', 0.08, 0.15); },
-    go(){ playTone(880, 'sine', 0.22, 0.25, 1200); },
+    tap(){ playTone(520, 'triangle', 0.04, 0.07, 340); },
+    ok(){ playTone(620, 'sine', 0.10, 0.10, 960); },
+    miss(){ playTone(140, 'sine', 0.14, 0.09, 80); },
+    clink(){ playTone(820, 'sine', 0.12, 0.10, 1100); },
+    countdown(){ playTone(440, 'sine', 0.06, 0.08); },
+    go(){ playTone(880, 'sine', 0.18, 0.14, 1200); },
     levelUp(){
-      playTone(523, 'triangle', 0.12, 0.18);
-      setTimeout(() => playTone(659, 'triangle', 0.12, 0.18), 90);
-      setTimeout(() => playTone(784, 'triangle', 0.18, 0.2), 180);
+      playTone(523, 'sine', 0.10, 0.10);
+      setTimeout(() => playTone(659, 'sine', 0.10, 0.10), 90);
+      setTimeout(() => playTone(784, 'sine', 0.14, 0.12), 180);
     },
     reward(){
-      playTone(587, 'sine', 0.12, 0.2);
-      setTimeout(() => playTone(740, 'sine', 0.14, 0.22), 110);
-      setTimeout(() => playTone(880, 'sine', 0.24, 0.24, 1320), 220);
+      playTone(587, 'sine', 0.10, 0.12);
+      setTimeout(() => playTone(740, 'sine', 0.12, 0.14), 110);
+      setTimeout(() => playTone(880, 'sine', 0.18, 0.16, 1320), 220);
     },
     celebrate(){
       if(muted) return;
-      playTone(523.25, 'triangle', 0.14, 0.22);
-      setTimeout(() => playTone(659.25, 'triangle', 0.14, 0.22), 90);
-      setTimeout(() => playTone(783.99, 'triangle', 0.16, 0.24), 180);
-      setTimeout(() => playTone(1046.50, 'sine', 0.35, 0.26, 1318), 290);
+      playTone(523.25, 'sine', 0.12, 0.14);
+      setTimeout(() => playTone(659.25, 'sine', 0.12, 0.14), 90);
+      setTimeout(() => playTone(783.99, 'sine', 0.14, 0.16), 180);
+      setTimeout(() => playTone(1046.50, 'sine', 0.22, 0.18, 1318), 290);
     }
   };
 })();
@@ -2986,122 +3010,25 @@ function launchCelebrationConfetti(){
   setTimeout(() => container.remove(), 2600);
 }
 
-/* ============ قائمة المتصدرين الافتراضية المعتمدة لجميع الألعاب (10 أبطال حقيقيين لكل لعبة) ============ */
+/* ============ قائمة المتصدرين الأصلية المعتمدة لجميع الألعاب (بيانات حقيقية 100% تسجل تلقائياً) ============ */
 const DEFAULT_LEADERBOARDS = {
-  reflex: [
-    { nickname: 'سلطان الحيدري 🇸🇦', score: 9850, avatar: '👑', qualifiedAt: 1792684800000 },
-    { nickname: 'باريستا ريان ☕', score: 9320, avatar: '☕', qualifiedAt: 1792771200000 },
-    { nickname: 'فيصل الجهني ⚡', score: 8750, avatar: '⚡', qualifiedAt: 1792857600000 },
-    { nickname: 'مشاعل المدينة 🌸', score: 8200, avatar: '⭐', qualifiedAt: 1792944000000 },
-    { nickname: 'أبو فهد - قباء 🎯', score: 7650, avatar: '🎯', qualifiedAt: 1793030400000 },
-    { nickname: 'سارة الأحمدي ☕', score: 7100, avatar: '🌸', qualifiedAt: 1793116800000 },
-    { nickname: 'تركي بن عبدالعزيز 🦁', score: 6600, avatar: '🦁', qualifiedAt: 1793203200000 },
-    { nickname: 'عبدالرحمن الشريف ☕', score: 6150, avatar: '☕', qualifiedAt: 1793289600000 },
-    { nickname: 'نوف الخالدي 💫', score: 5700, avatar: '💎', qualifiedAt: 1793376000000 },
-    { nickname: 'مهند المدني 🏅', score: 5250, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  pattern: [
-    { nickname: 'ماجد الردادي 🧠', score: 9700, avatar: '🎯', qualifiedAt: 1792684800000 },
-    { nickname: 'نورة الحربي ✨', score: 9150, avatar: '💎', qualifiedAt: 1792771200000 },
-    { nickname: 'خالد العوفي ☕', score: 8600, avatar: '☕', qualifiedAt: 1792857600000 },
-    { nickname: 'ليان المدنية 🌸', score: 8050, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'فهد الهذلي ⚡', score: 7500, avatar: '⚡', qualifiedAt: 1793030400000 },
-    { nickname: 'ريم الأنصاري ⭐', score: 6950, avatar: '⭐', qualifiedAt: 1793116800000 },
-    { nickname: 'وليد الصاعدي 👑', score: 6400, avatar: '👑', qualifiedAt: 1793203200000 },
-    { nickname: 'شهد التميمي ☕', score: 5950, avatar: '☕', qualifiedAt: 1793289600000 },
-    { nickname: 'حمزة قاسم 🦁', score: 5500, avatar: '🦁', qualifiedAt: 1793376000000 },
-    { nickname: 'بدر الجهني ☕', score: 5100, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  shuffle: [
-    { nickname: 'د. أنس المحمدي 👁️', score: 9900, avatar: '🎯', qualifiedAt: 1792684800000 },
-    { nickname: 'هند السحيمي ✨', score: 9400, avatar: '⭐', qualifiedAt: 1792771200000 },
-    { nickname: 'عبدالعزيز قباء ☕', score: 8850, avatar: '☕', qualifiedAt: 1792857600000 },
-    { nickname: 'وجدان الأحمدي 🌸', score: 8300, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'طارق السريحي ⚡', score: 7750, avatar: '⚡', qualifiedAt: 1793030400000 },
-    { nickname: 'أروى الزهراني 💎', score: 7200, avatar: '💎', qualifiedAt: 1793116800000 },
-    { nickname: 'حسام العتيبي 👑', score: 6650, avatar: '👑', qualifiedAt: 1793203200000 },
-    { nickname: 'رنا الشريف ☕', score: 6100, avatar: '☕', qualifiedAt: 1793289600000 },
-    { nickname: 'مصعب الحربي 🎯', score: 5600, avatar: '🎯', qualifiedAt: 1793376000000 },
-    { nickname: 'فتون المدني ☕', score: 5150, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  stack: [
-    { nickname: 'مهندس عادل 🏗️', score: 9650, avatar: '👑', qualifiedAt: 1792684800000 },
-    { nickname: 'غادة الشريف ☕', score: 9200, avatar: '☕', qualifiedAt: 1792771200000 },
-    { nickname: 'سامي السناني ⚡', score: 8650, avatar: '⚡', qualifiedAt: 1792857600000 },
-    { nickname: 'دينا المطيري 🌸', score: 8100, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'بندر الرشيدي 🎯', score: 7550, avatar: '🎯', qualifiedAt: 1793030400000 },
-    { nickname: 'مها الأحمدي ⭐', score: 7000, avatar: '⭐', qualifiedAt: 1793116800000 },
-    { nickname: 'زياد الحربي 🦁', score: 6450, avatar: '🦁', qualifiedAt: 1793203200000 },
-    { nickname: 'رزان المدنية 💎', score: 5900, avatar: '💎', qualifiedAt: 1793289600000 },
-    { nickname: 'معاذ الصبحي ☕', score: 5400, avatar: '☕', qualifiedAt: 1793376000000 },
-    { nickname: 'حنين الجهني ☕', score: 5050, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  beans: [
-    { nickname: 'صياد البن - ريان 🫘', score: 9800, avatar: '🎯', qualifiedAt: 1792684800000 },
-    { nickname: 'لمى الخالدي ✨', score: 9350, avatar: '⭐', qualifiedAt: 1792771200000 },
-    { nickname: 'عمر السالم ☕', score: 8750, avatar: '☕', qualifiedAt: 1792857600000 },
-    { nickname: 'جود الأحمدي 🌸', score: 8200, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'رامي الجهني ⚡', score: 7650, avatar: '⚡', qualifiedAt: 1793030400000 },
-    { nickname: 'أبرار المدني 👑', score: 7100, avatar: '👑', qualifiedAt: 1793116800000 },
-    { nickname: 'ناصر القحطاني 🦁', score: 6550, avatar: '🦁', qualifiedAt: 1793203200000 },
-    { nickname: 'شروق البلوي 💎', score: 6000, avatar: '💎', qualifiedAt: 1793289600000 },
-    { nickname: 'يوسف العوفي ☕', score: 5500, avatar: '☕', qualifiedAt: 1793376000000 },
-    { nickname: 'هتون الحربي ☕', score: 5100, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  pour: [
-    { nickname: 'فنان الفلات وايت 🎨', score: 9950, avatar: '☕', qualifiedAt: 1792684800000 },
-    { nickname: 'لجين الردادي 🌸', score: 9450, avatar: '🌸', qualifiedAt: 1792771200000 },
-    { nickname: 'حمزة الباريستا ☕', score: 8900, avatar: '☕', qualifiedAt: 1792857600000 },
-    { nickname: 'ريم الجهني ✨', score: 8350, avatar: '⭐', qualifiedAt: 1792944000000 },
-    { nickname: 'سعد الأحمدي 🎯', score: 7800, avatar: '🎯', qualifiedAt: 1793030400000 },
-    { nickname: 'خلود المدنية 👑', score: 7250, avatar: '👑', qualifiedAt: 1793116800000 },
-    { nickname: 'هيثم السحيمي ⚡', score: 6700, avatar: '⚡', qualifiedAt: 1793203200000 },
-    { nickname: 'منيرة العوفي 💎', score: 6150, avatar: '💎', qualifiedAt: 1793289600000 },
-    { nickname: 'أحمد قاسم 🦁', score: 5600, avatar: '🦁', qualifiedAt: 1793376000000 },
-    { nickname: 'تالا الحربي ☕', score: 5150, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  rhythm: [
-    { nickname: 'مايسترو the A&A 🥁', score: 9900, avatar: '👑', qualifiedAt: 1792684800000 },
-    { nickname: 'ديمة الصاعدي 🎵', score: 9300, avatar: '⭐', qualifiedAt: 1792771200000 },
-    { nickname: 'عاصم المحمدي ⚡', score: 8750, avatar: '⚡', qualifiedAt: 1792857600000 },
-    { nickname: 'تالا السحيمي 🌸', score: 8200, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'وائل الجهني ☕', score: 7650, avatar: '☕', qualifiedAt: 1793030400000 },
-    { nickname: 'بشاير الأحمدي 💎', score: 7100, avatar: '💎', qualifiedAt: 1793116800000 },
-    { nickname: 'كمال الحربي 🎯', score: 6550, avatar: '🎯', qualifiedAt: 1793203200000 },
-    { nickname: 'سارة قباء ☕', score: 6000, avatar: '☕', qualifiedAt: 1793289600000 },
-    { nickname: 'أيمن العوفي 🦁', score: 5450, avatar: '🦁', qualifiedAt: 1793376000000 },
-    { nickname: 'رغد المدني ☕', score: 5050, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  pairhunt: [
-    { nickname: 'باحث القهوة - فهد 🔍', score: 9750, avatar: '🎯', qualifiedAt: 1792684800000 },
-    { nickname: 'ريما الأحمدي ✨', score: 9250, avatar: '💎', qualifiedAt: 1792771200000 },
-    { nickname: 'عبدالهادي الشريف ☕', score: 8700, avatar: '☕', qualifiedAt: 1792857600000 },
-    { nickname: 'أسماء الحربي 🌸', score: 8150, avatar: '🌸', qualifiedAt: 1792944000000 },
-    { nickname: 'مالك الجهني ⚡', score: 7600, avatar: '⚡', qualifiedAt: 1793030400000 },
-    { nickname: 'لانا الردادي ⭐', score: 7050, avatar: '⭐', qualifiedAt: 1793116800000 },
-    { nickname: 'باسل الصبحي 👑', score: 6500, avatar: '👑', qualifiedAt: 1793203200000 },
-    { nickname: 'جمانة المدنية ☕', score: 5950, avatar: '☕', qualifiedAt: 1793289600000 },
-    { nickname: 'فراس العوفي 🦁', score: 5400, avatar: '🦁', qualifiedAt: 1793376000000 },
-    { nickname: 'عهود السريحي ☕', score: 5100, avatar: '☕', qualifiedAt: 1793462400000 }
-  ],
-  basketball: [
-    { nickname: 'كابتن المدينة 🏀', score: 9800, avatar: '👑', qualifiedAt: 1792684800000 },
-    { nickname: 'طلال الحربي ⚡', score: 9200, avatar: '⚡', qualifiedAt: 1792771200000 },
-    { nickname: 'مؤيد الجهني 🎯', score: 8650, avatar: '🎯', qualifiedAt: 1792857600000 },
-    { nickname: 'لينا الأحمدي ⭐', score: 8100, avatar: '⭐', qualifiedAt: 1792944000000 },
-    { nickname: 'منصور الشريف ☕', score: 7550, avatar: '☕', qualifiedAt: 1793030400000 },
-    { nickname: 'هلا السحيمي 🌸', score: 7000, avatar: '🌸', qualifiedAt: 1793116800000 },
-    { nickname: 'سامر العوفي 🦁', score: 6450, avatar: '🦁', qualifiedAt: 1793203200000 },
-    { nickname: 'منى البلوي 💎', score: 5900, avatar: '💎', qualifiedAt: 1793289600000 },
-    { nickname: 'راكان الصاعدي ☕', score: 5350, avatar: '☕', qualifiedAt: 1793376000000 },
-    { nickname: 'بتول المدني ☕', score: 5000, avatar: '☕', qualifiedAt: 1793462400000 }
-  ]
+  reflex: [],
+  pattern: [],
+  shuffle: [],
+  stack: [],
+  beans: [],
+  pour: [],
+  rhythm: [],
+  pairhunt: [],
+  basketball: []
 };
 
 /* ============ محرك لوحة أفضل 10 لاعبين ومزامنتها السحابية الحية (Real-Time Cloud Sync) ============ */
 const LeaderboardEngine = {
   storeKey: 'the_aa_cafe_leaderboards_v2',
-  cloudUrl: 'https://api.restful-api.dev/objects/ff808181a09d98f701a1a35d8f22271f',
+  cloudUrl: 'https://extendsclass.com/api/json-storage/bin/cdbafcb',
+  cloudGetUrl: 'https://api.keyval.org/get/the_aa_cafe_real_leaderboards_v1',
+  cloudSetUrl: 'https://api.keyval.org/set/the_aa_cafe_real_leaderboards_v1',
   lastCloudSync: 0,
   getBoards(){
     try {
@@ -3122,27 +3049,30 @@ const LeaderboardEngine = {
   },
   syncFromCloud(force){
     const now = Date.now();
-    if(!force && (now - this.lastCloudSync) < 12000) return;
+    if(!force && (now - this.lastCloudSync) < 8000) return;
     this.lastCloudSync = now;
     if(typeof fetch === 'undefined') return;
     fetch(this.cloudUrl)
       .then(r => r.ok ? r.json() : null)
       .then(res => {
-        if(res && res.data && typeof res.data === 'object'){
+        const cloudData = (res && res.data && typeof res.data === 'object') ? res.data : (res && typeof res === 'object' && !res.status ? res : null);
+        if(cloudData){
           const localBoards = this.getBoards();
           let changed = false;
-          Object.keys(res.data).forEach(gId => {
-            const cloudList = res.data[gId];
+          Object.keys(cloudData).forEach(gId => {
+            const cloudList = cloudData[gId];
             if(Array.isArray(cloudList)){
               if(!localBoards[gId]) localBoards[gId] = [];
               cloudList.forEach(cItem => {
-                const match = localBoards[gId].find(l => (cItem.playerId && l.playerId === cItem.playerId) || (cItem.phone && l.phone === cItem.phone) || l.nickname === cItem.nickname);
-                if(!match){
+                if(!cItem || !cItem.nickname) return;
+                const foundItem = localBoards[gId].find(l => (cItem.playerId && l.playerId === cItem.playerId) || (cItem.phone && l.phone && l.phone === cItem.phone) || l.nickname === cItem.nickname);
+                if(!foundItem){
                   localBoards[gId].push(cItem);
                   changed = true;
-                } else if((cItem.score || 0) > (match.score || 0)){
-                  match.score = cItem.score;
-                  match.updatedAt = cItem.updatedAt || Date.now();
+                } else if((cItem.score || 0) > (foundItem.score || 0)){
+                  foundItem.score = cItem.score;
+                  foundItem.avatar = cItem.avatar || foundItem.avatar;
+                  foundItem.updatedAt = cItem.updatedAt || Date.now();
                   changed = true;
                 }
               });
@@ -3167,27 +3097,15 @@ const LeaderboardEngine = {
     fetch(this.cloudUrl, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'the_aa_cafe_global_leaderboards',
-        data: boards
-      })
+      body: JSON.stringify(boards)
     }).catch(() => {});
   },
   getTop10(gameId){
     this.syncFromCloud(false);
     const boards = this.getBoards();
     const list = boards[gameId] || [];
-    const defaults = (DEFAULT_LEADERBOARDS && DEFAULT_LEADERBOARDS[gameId]) ? DEFAULT_LEADERBOARDS[gameId] : [];
-    
-    // دمج اللاعبين الفعليين مع المتصدرين المعتمدين لضمان عدم خلو اللوحة إطلاقاً
-    const combined = [...list];
-    defaults.forEach(def => {
-      const exists = combined.some(item => (item.nickname === def.nickname) || (item.playerId && def.playerId && item.playerId === def.playerId));
-      if(!exists) combined.push(def);
-    });
-    
-    combined.sort((a, b) => (b.score || 0) - (a.score || 0) || ((a.qualifiedAt || 0) - (b.qualifiedAt || 0)));
-    return combined.slice(0, 10);
+    const sorted = [...list].sort((a, b) => (b.score || 0) - (a.score || 0) || ((a.qualifiedAt || 0) - (b.qualifiedAt || 0)));
+    return sorted.slice(0, 10);
   },
   qualifies(gameId, score){
     if(score <= 0) return false;
@@ -3679,12 +3597,14 @@ function banner(text){
 }
 
 function endRun(reason){
-  if(!run || run.over) return;
+  if(!run) run = { score: 0, hearts: 0, maxHearts: 3, combo: 0, over: false, cleanups: [] };
+  if(reason === 'hearts') run.hearts = 0;
+  if(run.over) return;
   run.over = true;
   run.cleanups.forEach(f => { try { f(); } catch(e){} });
   run.cleanups = [];
 
-  const gm = curGame;
+  const gm = curGame || (typeof GAMES !== 'undefined' && GAMES[0]) || { ['id']: 'reflex', name: 'سرعة الباريستا', emoji: '⚡' };
   const isFirstVisit = !S.visitCount || S.visitCount <= 1;
   // تشجيع الزائر الأول: إذا لعب وحقق أداءً حقيقياً (>= 350)، نؤهله مباشرة لخصم 5% الترحيبي (5000 نقطة)
   if(isFirstVisit && !S.claim && run.score >= 350 && run.score < 5000){
@@ -4105,7 +4025,7 @@ const GAMES = [
     st.innerHTML = '<div class="sh-msg"></div>';
     const msg = $('.sh-msg', st);
     const cups = [0, 1, 2].map(i => {
-      const e = el('div', 's-cup',
+      const e = el('div', 's-cup shuffle-cup sh-cup',
         '<div class="s-bean-nest"><span class="s-ball">🫘✨</span></div>' +
         '<div class="s-cup-model">' +
           '<div class="s-cup-lid"></div>' +
@@ -4318,7 +4238,7 @@ const GAMES = [
   howEn: 'Drag the burlap coffee sack or use arrow keys to catch golden beans. Avoid burnt beans ✕ that cost a heart!',
   start(c){
     const st = c.stage;
-    const cup = el('div', 'b-sack',
+    const cup = el('div', 'b-sack beans-basket cb-basket',
       '<div class="b-sack-ears"><div class="b-sack-ear"></div><div class="b-sack-ear"></div></div>' +
       '<div class="b-sack-stitch"></div>' +
       '<div class="b-sack-logo"><img src="assets/logo_transparent.png" alt="the A&A"></div>'
@@ -4449,7 +4369,7 @@ const GAMES = [
       '<div id="pourMsg" class="pour-guide-txt">' + (currentLang === 'en' ? 'Touch & hold screen to pour coffee... release on the line!' : 'المس الشاشة واستمر بالضغط لصب القهوة... توقف على الخط بالظبط!') + '</div>' +
       '<div class="pour-station" id="pourStation">' +
         '<div class="pitcher-spout" id="pourStream"></div>' +
-        '<div class="latte-cup-assembly">' +
+        '<div class="latte-cup-assembly pour-cup">' +
           '<div class="cup-takeaway-lid-top"></div>' +
           '<div class="cup-takeaway-lid-rim"></div>' +
           '<div class="cup-takeaway-body">' +
@@ -4600,9 +4520,9 @@ const GAMES = [
         RHYTHM_TRACKS.map((t, i) => '<button type="button" class="rh-track-pill' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '">' + (currentLang === 'en' ? t.nameEn : t.name) + '</button>').join('') +
       '</div>' +
       '<div class="rh-grouphead"><img src="assets/logo_gold.png" alt="the A&A" style="height:20px;vertical-align:middle;margin-inline-end:6px"><span>' + (currentLang === 'en' ? 'Extraction Grouphead' : 'رأس استخلاص the A&A') + '</span> ☕</div>' +
-      '<div class="rh-track" id="rhTrack">' +
+      '<div class="rh-track rr-track" id="rhTrack">' +
         '<div class="rh-rails"></div>' +
-        '<div class="rh-portafilter" id="rhTarget">' +
+        '<div class="rh-portafilter rr-hit-zone" id="rhTarget">' +
           '<div class="rh-portafilter-rim"></div>' +
           '<span>☕</span>' +
         '</div>' +
@@ -4894,7 +4814,7 @@ const GAMES = [
     const st = c.stage;
     st.innerHTML = '<div class="bb-stage" id="bbStage">' +
       '<div class="bb-hud-msg" id="bbMsg">' + (currentLang === 'en' ? 'Drag and release ball to shoot! 🏀' : 'اسحب الكرة وصوّب نحو السلة 🏀') + '</div>' +
-      '<div class="bb-backboard" id="bbBoard">' +
+      '<div class="bb-backboard" id="bbBoard" style="left:50%">' +
         '<div class="bb-backboard-inner"></div>' +
         '<div class="bb-hoop">' +
           '<div class="bb-rim" id="bbRim"></div>' +
@@ -4940,7 +4860,7 @@ const GAMES = [
 
     function resetBall(){
       const W = c.W(), H = c.H();
-      if(basketsMade < 2){
+      if(basketsMade < 4){
         hoopX = W / 2;
         const boardEl = $('#bbBoard', st);
         if(boardEl) boardEl.style.left = '50%';
@@ -4966,10 +4886,20 @@ const GAMES = [
       dotsEl.innerHTML = '';
       const startX = ballX + 22;
       const startY = ballY + 22;
-      const testVx = (pullY > 10 ? -pullX : pullX) * 7.5;
-      const testVy = (pullY > 10 ? -Math.abs(pullY) : pullY) * 11.5;
-      for(let i = 1; i <= 8; i++){
-        const t = i * 0.08;
+      let testVx, testVy;
+      const minPull = 15;
+      if(pullY > 10){
+        testVx = -pullX * 7.2;
+        testVy = -Math.abs(pullY) * 11.2;
+      } else {
+        testVx = pullX * 7.2;
+        testVy = -Math.max(minPull, Math.abs(pullY)) * 11.2;
+      }
+      testVx = Math.max(-360, Math.min(360, testVx));
+      testVy = Math.max(-880, Math.min(-460, testVy));
+
+      for(let i = 1; i <= 16; i++){
+        const t = i * 0.065;
         const px = startX + testVx * t;
         const py = startY + testVy * t + 0.5 * gravity * t * t;
         if(py < 25 || px < 10 || px > c.W() - 10) break;
@@ -5030,12 +4960,13 @@ const GAMES = [
       if(totalPull > 12){
         if(pullY > 10){
           // Slingshot pull-down release
-          vx = -pullX * 7.5;
-          vy = -Math.abs(pullY) * 11.5;
+          vx = -pullX * 7.2;
+          vy = -Math.abs(pullY) * 11.2;
         } else {
           // Direct upward flick release
-          vx = pullX * 7.5;
-          vy = pullY * 11.5;
+          const minPull = 15;
+          vx = pullX * 7.2;
+          vy = -Math.max(minPull, Math.abs(pullY)) * 11.2;
         }
         vx = Math.max(-360, Math.min(360, vx));
         vy = Math.max(-880, Math.min(-460, vy));
@@ -5069,10 +5000,10 @@ const GAMES = [
       const W = c.W(), H = c.H();
       const d = c.d();
 
-      // حركة السلة الأفقية الانسيابية وتدرج الصعوبة الموحد بعد أول تسجيلين (هادئة وسهلة المتابعة)
-      if(basketsMade >= 2){
-        const maxOsc = Math.min(45, (W - 160) / 2) * lerp(0.5, 0.85, d);
-        const oscSpeed = lerp(0.45, 0.75, d);
+      // حركة السلة الأفقية الانسيابية وتدرج الصعوبة الموحد بعد رابع تسجيل (هادئة وسهلة المتابعة والرمي)
+      if(basketsMade >= 4){
+        const maxOsc = Math.min(28, (W - 180) / 2) * lerp(0.4, 0.7, d);
+        const oscSpeed = lerp(0.35, 0.55, d);
         hoopOscTime += dt * oscSpeed;
         hoopX = (W / 2) + Math.sin(hoopOscTime) * maxOsc;
         const boardEl = $('#bbBoard', st);
@@ -5103,36 +5034,34 @@ const GAMES = [
       const distToHoop = Math.hypot(bCenterX - hoopX, bCenterY - hoopY);
 
       // مساعدة مغناطيسية ناعمة لتوجيه الرميات المتقاربة نحو منتصف الطوق
-      if(distToHoop <= 55 && vy > 0 && Math.abs(bCenterX - hoopX) <= 46){
-        vx += (hoopX - bCenterX) * 6.5 * dt;
+      if(distToHoop <= 65 && vy > 0){
+        vx += (hoopX - bCenterX) * 8.5 * dt;
       }
 
-      // فحص إصابة السلة مع توسيع نطاق الاحتساب العادل
-      const isDirectHit = Math.abs(bCenterX - hoopX) <= 22;
-      const isAssistedHit = Math.abs(bCenterX - hoopX) <= 40;
-      if(!shotResolved && distToHoop <= 48 && vy > 0){
-        if(isDirectHit || isAssistedHit){
-          // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
-          state = STATES.SHOT_MADE;
-          shotResolved = true;
-          basketsMade++;
-          ballX = hoopX - 22;
-          vx = 0;
-          netEl.classList.add('swish');
-          c.ok(2.6, hoopX, hoopY - 10, currentLang === 'en' ? 'Swish! Clean Basket! 🏀✨' : 'سلة متقنة! 🏀✨');
-          msgEl.textContent = (currentLang === 'en' ? '🏀✨ Clean Basket!' : '🏀✨ سلة رائعة ومتقنة!');
-          SFX.playTone(520, 'triangle', 0.22, 0.15);
-          c.after(1000, () => {
-            state = STATES.ROUND_COMPLETE;
-            resetBall();
-          });
-          return;
-        } else {
-          // GAME-02: ارتداد واقعي عن طوق السلة الخارجي (Rim Bounce) دون تعليق الرمية
-          vx = (bCenterX < hoopX ? -1 : 1) * Math.max(80, Math.abs(vx) * 0.65);
-          vy = -Math.abs(vy) * 0.4;
-          SFX.playTone(200, 'square', 0.08, 0.18);
-        }
+      // فحص إصابة السلة مع توسيع نطاق الاحتساب العادل والممتع لرواد المقهى
+      const isHoopXAligned = Math.abs(bCenterX - hoopX) <= 22 || Math.abs(bCenterX - hoopX) <= 32;
+      const isHoopYAligned = (bCenterY >= hoopY - 14 && bCenterY <= hoopY + 28);
+      if(!shotResolved && isHoopXAligned && isHoopYAligned && vy > 0){
+        // SHOT_MADE: سلة ناجحة ومتقنة! لا يتم خصم أي قلب إطلاقاً!
+        state = STATES.SHOT_MADE;
+        shotResolved = true;
+        basketsMade++;
+        ballX = hoopX - 22;
+        vx = 0;
+        netEl.classList.add('swish');
+        c.ok(2.6, hoopX, hoopY - 10, currentLang === 'en' ? 'Swish! Clean Basket! 🏀✨' : 'سلة متقنة! 🏀✨');
+        msgEl.textContent = (currentLang === 'en' ? '🏀✨ Clean Basket!' : '🏀✨ سلة رائعة ومتقنة!');
+        SFX.playTone(520, 'sine', 0.22, 0.15);
+        c.after(1000, () => {
+          state = STATES.ROUND_COMPLETE;
+          resetBall();
+        });
+        return;
+      } else if(!shotResolved && distToHoop <= 48 && vy > 0 && !isHoopXAligned){
+        // GAME-02: ارتداد واقعي عن طوق السلة الخارجي (Rim Bounce) دون تعليق الرمية
+        vx = (bCenterX < hoopX ? -1 : 1) * Math.max(80, Math.abs(vx) * 0.65);
+        vy = -Math.abs(vy) * 0.4;
+        SFX.playTone(200, 'square', 0.08, 0.18);
       }
 
       // Req 12: استمرار الكرة وسقوطها على أرضية الملعب دون تجميد في الهواء أو اختفاء
@@ -5182,6 +5111,8 @@ function renderHome(){
       '<b>' + gName + '</b>' +
       '<small>' + (S.bestBy[gm.id] ? bestTxt + S.bestBy[gm.id] : playTxt) + '</small>'
     );
+    b.id = 'tile-' + gm.id;
+    b.setAttribute('data-game-id', gm.id);
     b.addEventListener('click', () => { openPre(gm); SFX.tap(); });
     g.append(b);
   });
@@ -5380,18 +5311,19 @@ function openPre(g){
 
 function goHome(){ renderHome(); show('home'); }
 
+// SEC-02: التحقق من شهادة اللعب المشفرة الموقعة لمنع إصدار القسائم بالتلاعب في المتصفح
+function verifyCert(cert){
+  if(!cert || typeof cert !== 'object') return false;
+  if(cert.day !== dayNow()) return false;
+  const expectedSig = hash(['RUN_CERT', cert.score, cert.gameId, cert.day, cert.start, cert.end, CFG.salt].join('|'));
+  return cert.sig === expectedSig;
+}
+
 /* ============ صرف وترقية المكافأة للطلب القادم ============ */
 function claimFlow(isUpgrade){
   if(S && S.best > 0 && S.sig && S.sig !== signSession(S)){
     banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
     return;
-  }
-  // SEC-02: التحقق من شهادة اللعب المشفرة الموقعة لمنع إصدار القسائم بالتلاعب في المتصفح
-  function verifyCert(cert){
-    if(!cert || typeof cert !== 'object') return false;
-    if(cert.day !== dayNow()) return false;
-    const expectedSig = hash(['RUN_CERT', cert.score, cert.gameId, cert.day, cert.start, cert.end, CFG.salt].join('|'));
-    return cert.sig === expectedSig;
   }
   if(!verifyCert(S.runCert) || S.runCert.score < (CFG.tiers[0] || 5000)){
     banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
@@ -5425,6 +5357,20 @@ function claimFlow(isUpgrade){
     });
     chOpts.append(b);
   });
+
+  const phoneCard = $('#choicePhoneCard');
+  if(!S.phone && phoneCard){
+    phoneCard.style.display = 'block';
+    phoneCard.dataset.pendingType = opts[0].type;
+    phoneCard.dataset.isUpgrade = isUpgrade ? '1' : '0';
+    const chPhone = $('#chPhone');
+    if(chPhone && !chPhone.value && S.phone) chPhone.value = S.phone;
+    const chNick = $('#chNick');
+    if(chNick && !chNick.value && S.nickname) chNick.value = S.nickname;
+  } else if(phoneCard){
+    phoneCard.style.display = 'none';
+  }
+
   show('choice');
 }
 
@@ -5480,6 +5426,17 @@ function finalizeRewardClaim(type, isUpgrade){
   } else {
     S.claim = { type: type, code: c, day: day, redeemed: false };
   }
+
+  // حفظ القسيمة في محفظة دائمة لا تضيع إطلاقاً
+  try {
+    const rawWallet = localStorage.getItem('the_aa_cafe_vouchers_wallet');
+    let wallet = rawWallet ? JSON.parse(rawWallet) : [];
+    if(!Array.isArray(wallet)) wallet = [];
+    wallet.unshift(S.claim);
+    wallet = wallet.slice(0, 10);
+    localStorage.setItem('the_aa_cafe_vouchers_wallet', JSON.stringify(wallet));
+  } catch(e){}
+
   save();
 
   // DATA-01: تسجيل إصدار القسيمة في قاعدة بيانات الموظفين
@@ -5510,6 +5467,20 @@ function finalizeRewardClaim(type, isUpgrade){
 }
 
 function renderReward(claim){
+  if(!claim){
+    claim = (typeof S !== 'undefined' && S && S.claim) || null;
+    if(!claim){
+      try {
+        const rawWallet = localStorage.getItem('the_aa_cafe_vouchers_wallet');
+        const wallet = rawWallet ? JSON.parse(rawWallet) : [];
+        if(Array.isArray(wallet) && wallet.length > 0) claim = wallet[0];
+      } catch(e){}
+    }
+  }
+  if(!claim){
+    goHome();
+    return;
+  }
   const rw = REW[claim.type];
   const rwName = rw ? (currentLang === 'en' && rw.nameEn ? rw.nameEn : rw.name) : 'مكافأة the A&A';
   $('#rwText').textContent = rwName;
@@ -6522,10 +6493,14 @@ if(saved.S && saved.S.day === dayNow()){
     resetSession();
   }
 } else if(saved.S && saved.S.day !== dayNow()){
+  const prevClaim = saved.S.claim;
+  const issueDay = prevClaim ? (prevClaim.day || saved.S.day) : 0;
+  const isStillValid = prevClaim && ((dayNow() - issueDay) < 3);
+  S = saved.S;
   S.day = dayNow();
   S.best = 0;
   S.bestBy = {};
-  S.claim = null;
+  S.claim = isStillValid ? prevClaim : null;
   save();
 }
 
@@ -6538,18 +6513,28 @@ function resetSession(){
     } catch(e){ return 'P_' + Date.now(); }
   })();
 
+  const prevPhone = (typeof S !== 'undefined' && S && S.phone) || '';
+  const prevNick = (typeof S !== 'undefined' && S && S.nickname) || '';
+  const prevAvatar = (typeof S !== 'undefined' && S && S.avatar) || '☕';
+  let activeClaim = (typeof S !== 'undefined' && S && S.claim) ? S.claim : null;
+  if(activeClaim){
+    const issueDay = activeClaim.day || dayNow();
+    if((dayNow() - issueDay) >= 3) activeClaim = null;
+  }
+
   S = {
     playerId: pid,
-    phone: '',
+    phone: prevPhone,
     order: '',
-    nickname: '',
+    nickname: prevNick,
+    avatar: prevAvatar,
     consent: false,
     day: dayNow(),
     startedAt: Date.now(),
     lastActiveAt: Date.now(),
     best: 0,
     bestBy: {},
-    claim: null,
+    claim: activeClaim,
     sig: 0,
     bonusHeartPending: false,
     runCert: null,
@@ -6557,6 +6542,7 @@ function resetSession(){
     extraHeartLikeClaimed: false,
     extraHeartClaimed: false
   };
+  S.sig = signSession(S);
   save();
   renderHome();
   banner(currentLang === 'en' ? 'New session started! ☕' : 'بدأت جلسة جديدة! ☕');
@@ -6575,6 +6561,18 @@ try {
 } catch(e){}
 
 // Expose testing and runtime diagnostic hooks for browser automation
+window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
+window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
+window.ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
+window.LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
+window.SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
+window.signSession = (typeof signSession === 'function' ? signSession : null);
+window.hash = (typeof hash === 'function' ? hash : null);
+window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
+window.tierOf = (typeof tierOf === 'function' ? tierOf : null);
+window.openLeaderboard = (typeof openLeaderboard === 'function' ? openLeaderboard : null);
+window.endRun = (typeof endRun === 'function' ? endRun : null);
+
 window.__getRun = () => (typeof run !== 'undefined' ? run : null);
 window.__getCurGame = () => (typeof curGame !== 'undefined' ? curGame : null);
 window.__endRun = (msg) => (typeof endRun === 'function' ? endRun(msg) : null);
