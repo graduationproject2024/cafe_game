@@ -2556,7 +2556,7 @@ const SaudiPhone = {
 
     const canonical = '+966' + digits;
     const masked = '+966 ' + digits.slice(0, 2) + ' *** ' + digits.slice(5);
-    return { valid: true, canonical: canonical, masked: masked, localDigits: '0' + digits };
+    return { valid: true, canonical: canonical, formatted: canonical, masked: masked, localDigits: '0' + digits };
   },
   mask(raw){
     const v = this.validate(raw);
@@ -3339,6 +3339,12 @@ let S = {
   nickname: '',
   consent: false,
   day: dayNow(),
+  visitCount: (function(){
+    try {
+      let v = parseInt(localStorage.getItem('aa_cafe_visit_count') || '1', 10);
+      return (isNaN(v) || v < 1) ? 1 : v;
+    } catch(e){ return 1; }
+  })(),
   startedAt: 0,
   lastActiveAt: Date.now(),
   best: 0,
@@ -3605,6 +3611,8 @@ function endRun(reason){
   run.cleanups = [];
 
   const gm = curGame || (typeof GAMES !== 'undefined' && GAMES[0]) || { ['id']: 'reflex', name: 'سرعة الباريستا', emoji: '⚡' };
+  const rawScore = run.score;
+  run.rawScore = rawScore;
   const isFirstVisit = !S.visitCount || S.visitCount <= 1;
   // تشجيع الزائر الأول: إذا لعب وحقق أداءً حقيقياً (>= 350)، نؤهله مباشرة لخصم 5% الترحيبي (5000 نقطة)
   if(isFirstVisit && !S.claim && run.score >= 350 && run.score < 5000){
@@ -3676,8 +3684,9 @@ function endRun(reason){
 
   $('#resMsg').textContent = outcomeMsg;
   $('#ladderRes').innerHTML = ladder(S.best);
+  const lbScore = (run.rawScore !== undefined) ? run.rawScore : run.score;
   renderEmbeddedLeaderboard($('#resLeaderboardList'), gm.id);
-  syncCustomerTransactionToStaffDB('GAME_SESSION', { gameId: gm.id, score: run.score, mistakeCount: run.mistakeCount });
+  syncCustomerTransactionToStaffDB('GAME_SESSION', { gameId: gm.id, score: lbScore, mistakeCount: run.mistakeCount });
 
   const claimBtn = $('#resClaim');
   if(claimBtn){
@@ -3721,8 +3730,8 @@ function endRun(reason){
   }
 
   // Phase 10: فحص قائمة أفضل 10 لاعبين وعرض التهنئة والاسم المستعار
-  if(run.score > 0){
-    const lb = LeaderboardEngine.recordScore(gm.id, run.score, S.nickname, S.phone, S.avatar, S.playerId);
+  if(lbScore > 0){
+    const lb = LeaderboardEngine.recordScore(gm.id, lbScore, S.nickname, S.phone, S.avatar, S.playerId);
     if(lb && (lb.newlyQualified || lb.isNewTop10 || lb.requiresNickname)){
       if(!S.nickname){
         openNicknameModal(gm.id);
@@ -4279,42 +4288,47 @@ const GAMES = [
       else if(e.key === 'ArrowRight'){ playerMoved = true; setPos(cx + 28); }
     });
 
-    let items = [], timer = 0;
+    let items = [], timer = 0, lastSpawnX = c.W() / 2;
     c.loop(dt => {
+      const safeDt = Math.min(dt, 0.05);
       const W = c.W(), H = c.H(), d = c.d();
       const diffMul = c.diffMultiplier ? c.diffMultiplier() : 1.0;
-      timer -= dt * 1000;
+      timer -= safeDt * 1000;
 
       if(timer <= 0){
-        timer = lerp(700, 320, d) / diffMul * rnd(0.85, 1.15);
+        timer = Math.max(380, lerp(720, 400, d) / Math.min(diffMul, 1.2) * rnd(0.9, 1.1));
         const roll = Math.random();
         const burnt = roll < lerp(0.18, 0.35, d);
         const bonus = !burnt && roll > 0.82;
         const icon = burnt ? '✕' : (bonus ? '✨' : '☕');
         const itCls = burnt ? 'burnt' : (bonus ? 'bonus' : 'gold');
         const e = el('div', 'b-bean ' + itCls, icon);
-        let ix = rnd(24, W - 24);
+        const maxReach = 190;
+        const minX = Math.max(24, lastSpawnX - maxReach);
+        const maxX = Math.min(W - 24, lastSpawnX + maxReach);
+        let ix = rnd(minX, maxX);
         if(burnt && !playerMoved && Math.abs(ix - cx) < 65){
           ix = (cx > W / 2) ? ix - 75 : ix + 75;
           ix = Math.max(24, Math.min(W - 24, ix));
         }
+        lastSpawnX = ix;
         e.style.left = (ix - 17) + 'px';
         st.append(e);
         items.push({ e: e, x: ix, y: -20, burnt: burnt, bonus: bonus, resolved: false });
       }
 
-      const vy = lerp(160, 340, d) * diffMul;
+      const vy = Math.min(360, lerp(160, 320, d) * Math.min(diffMul, 1.25));
       const cupTop = H - 65;
       const half = cupW / 2;
 
       items = items.filter(it => {
         if(it.resolved) return false;
-        it.y += vy * dt;
+        it.y += vy * safeDt;
         it.e.style.transform = 'translateY(' + it.y + 'px)';
 
         // Continuous swept catchment:
         // Bean caught if within the vertical collision band and horizontally above basket
-        const inCatchY = (it.y + 24 >= cupTop) && (it.y - (vy * dt) <= cupTop + 45);
+        const inCatchY = (it.y + 24 >= cupTop) && (it.y - (vy * safeDt) <= cupTop + 45);
         const inCatchX = Math.abs(it.x - cx) <= (half + 12);
 
         if(inCatchY && inCatchX){
@@ -4339,10 +4353,12 @@ const GAMES = [
             // Burnt bean safely fell away: no score change
           } else {
             // Missed good coffee bean: deduct 10 points per client specification
-            run.score = Math.max(0, run.score - 10);
-            run.combo = 0;
-            hud();
-            c.miss(it.x, H - 40, 0, currentLang === 'en' ? 'Missed Bean! -10' : 'فاتتك حبة البن! -10');
+            if(playerMoved && dt < 0.12){
+              run.score = Math.max(0, run.score - 10);
+              run.combo = 0;
+              hud();
+              c.miss(it.x, H - 40, 0, currentLang === 'en' ? 'Missed Bean! -10' : 'فاتتك حبة البن! -10');
+            }
           }
           return false;
         }
@@ -4782,8 +4798,7 @@ const GAMES = [
             c.after(900, buildBoard);
           }
         } else {
-          c.loseHeart();
-          c.miss(c.W() / 2, c.H() * 0.45, 0.5, currentLang === 'en' ? 'No Match! (-1 ❤️)' : 'غير متطابق! (-1 ❤️)');
+          c.miss(c.W() / 2, c.H() * 0.45, 0.4, currentLang === 'en' ? 'No Match! Try Again' : 'غير متطابق! حاول ثانية');
           c.after(650, () => {
             firstCard.classList.remove('revealed');
             firstCard.textContent = '?';
@@ -4857,6 +4872,7 @@ const GAMES = [
     let shotResolved = false;
     let basketsMade = 0;
     let hoopOscTime = 0;
+    let shotSeq = 0;
 
     function resetBall(){
       const W = c.W(), H = c.H();
@@ -5011,6 +5027,11 @@ const GAMES = [
       }
 
       if(state !== STATES.SHOT_IN_PROGRESS && state !== STATES.VALIDATING_SHOT) return;
+
+      if(isNaN(ballX) || isNaN(ballY) || !isFinite(ballX) || !isFinite(ballY)){
+        resetBall();
+        return;
+      }
 
       ballX += vx * dt;
       ballY += vy * dt;
@@ -5580,6 +5601,7 @@ function makeCtx(game){
       r.hearts = Math.max(0, r.hearts - 1);
       r.mistakeCount = (r.mistakeCount || 0) + 1;
       r.combo = 0;
+      r.lastHeartLossAt = Date.now();
       hud();
       SFX.miss();
       if(navigator.vibrate) navigator.vibrate([40, 60, 40]);
@@ -5622,19 +5644,29 @@ function makeCtx(game){
     miss(x, y, penaltyMul, msg){
       if(!run || run.over) return;
       run.combo = 0;
-      run.mistakeCount = (run.mistakeCount || 0) + 1;
-      const penPts = Math.round(25 * (penaltyMul !== undefined ? penaltyMul : 1.0));
-      run.score = Math.max(0, run.score - penPts);
-
-      hud();
-      SFX.miss();
-
-      if(x !== undefined && y !== undefined){
-        const popEl = el('div', 'pop miss', (msg ? msg + ' ' : '') + '-' + penPts);
-        popEl.style.left = x + 'px';
-        popEl.style.top = y + 'px';
-        st.append(popEl);
-        setTimeout(() => popEl.remove(), 820);
+      const justLostHeart = (Date.now() - (run.lastHeartLossAt || 0)) < 80;
+      if(!justLostHeart){
+        run.mistakeCount = (run.mistakeCount || 0) + 1;
+        const penPts = Math.round(25 * (penaltyMul !== undefined ? penaltyMul : 1.0));
+        run.score = Math.max(0, run.score - penPts);
+        hud();
+        SFX.miss();
+        if(x !== undefined && y !== undefined){
+          const popEl = el('div', 'pop miss', (msg ? msg + ' ' : '') + '-' + penPts);
+          popEl.style.left = x + 'px';
+          popEl.style.top = y + 'px';
+          st.append(popEl);
+          setTimeout(() => popEl.remove(), 820);
+        }
+      } else {
+        hud();
+        if(x !== undefined && y !== undefined){
+          const popEl = el('div', 'pop miss', (msg || '-1 ❤️'));
+          popEl.style.left = x + 'px';
+          popEl.style.top = y + 'px';
+          st.append(popEl);
+          setTimeout(() => popEl.remove(), 820);
+        }
       }
     }
   };
@@ -5771,7 +5803,7 @@ if(goBtn){
         if($('#introPhone')) $('#introPhone').focus();
         return;
       }
-      S.phone = v.formatted;
+      S.phone = v.canonical || v.formatted;
     }
 
     if(nickVal){
@@ -5853,12 +5885,21 @@ function recordUserActivity(){
 });
 
 function checkSessionInactivity(){
-  if(!run || run.over) return;
   const now = Date.now();
-  if(now - (S.lastActiveAt || now) >= INACTIVITY_TIMEOUT_MS){
-    run.expired = true;
-    window.lastRunCheckpoint = null;
-    endRun(currentLang === 'en' ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.');
+  const idle = now - (S.lastActiveAt || now);
+  if(idle >= INACTIVITY_TIMEOUT_MS){
+    if(run && !run.over){
+      run.expired = true;
+      window.lastRunCheckpoint = null;
+      endRun(currentLang === 'en' ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.');
+    } else if(!run || run.over){
+      if(S.best > 0 && !S.claim){
+        S.best = 0;
+        S.bestBy = {};
+        save();
+        renderHome();
+      }
+    }
   }
 }
 setInterval(checkSessionInactivity, 4000);
@@ -6498,6 +6539,8 @@ if(saved.S && saved.S.day === dayNow()){
   const isStillValid = prevClaim && ((dayNow() - issueDay) < 3);
   S = saved.S;
   S.day = dayNow();
+  S.visitCount = (S.visitCount || 1) + 1;
+  try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
   S.best = 0;
   S.bestBy = {};
   S.claim = isStillValid ? prevClaim : null;
@@ -6513,6 +6556,12 @@ function resetSession(){
     } catch(e){ return 'P_' + Date.now(); }
   })();
 
+  const prevVisits = (typeof S !== 'undefined' && S && S.visitCount) ? S.visitCount : (function(){
+    try {
+      let v = parseInt(localStorage.getItem('aa_cafe_visit_count') || '1', 10);
+      return (isNaN(v) || v < 1) ? 1 : v;
+    } catch(e){ return 1; }
+  })();
   const prevPhone = (typeof S !== 'undefined' && S && S.phone) || '';
   const prevNick = (typeof S !== 'undefined' && S && S.nickname) || '';
   const prevAvatar = (typeof S !== 'undefined' && S && S.avatar) || '☕';
@@ -6524,6 +6573,7 @@ function resetSession(){
 
   S = {
     playerId: pid,
+    visitCount: prevVisits,
     phone: prevPhone,
     order: '',
     nickname: prevNick,
@@ -6585,23 +6635,26 @@ window.__applyLang = (typeof applyLang !== 'undefined' ? applyLang : null);
 window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
 window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
 window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
-window.__mintRunCert = (score, gameId) => {
-  const s = score || (S ? S.best : 5000);
-  const g = gameId || (curGame ? curGame.id : 'reflex');
-  const certStart = Date.now() - 5000;
-  const certEnd = Date.now();
-  const certSig = hash(['RUN_CERT', s, g, S.day, certStart, certEnd, CFG.salt].join('|'));
-  S.runCert = {
-    score: s,
-    gameId: g,
-    day: S.day,
-    start: certStart,
-    end: certEnd,
-    sig: certSig
+const isTestEnv = (typeof location !== 'undefined' && (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) || (typeof window !== 'undefined' && !!window.__TEST_MODE__);
+if(isTestEnv){
+  window.__mintRunCert = (score, gameId) => {
+    const s = score || (S ? S.best : 5000);
+    const g = gameId || (curGame ? curGame.id : 'reflex');
+    const certStart = Date.now() - 5000;
+    const certEnd = Date.now();
+    const certSig = hash(['RUN_CERT', s, g, S.day, certStart, certEnd, CFG.salt].join('|'));
+    S.runCert = {
+      score: s,
+      gameId: g,
+      day: S.day,
+      start: certStart,
+      end: certEnd,
+      sig: certSig
+    };
+    save();
+    return S.runCert;
   };
-  save();
-  return S.runCert;
-};
+}
 window.__S = () => (typeof S !== 'undefined' ? S : null);
 window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
 window.saveCafeState = () => (typeof save === 'function' ? save() : null);

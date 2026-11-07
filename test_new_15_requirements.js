@@ -8,8 +8,10 @@ async function runTests(){
   console.log('  the A&A Cafe Games — 15 Requirements Verification     ');
   console.log('========================================================\n');
 
-  const indexHtml = fs.readFileSync('c:/Users/sam20/cafe_game/index.html', 'utf8');
-  const staffHtml = fs.readFileSync('c:/Users/sam20/cafe_game/staff.html', 'utf8');
+  const indexPath = path.join(__dirname, 'index.html');
+  const staffPath = path.join(__dirname, 'staff.html');
+  const indexHtml = fs.readFileSync(indexPath, 'utf8');
+  const staffHtml = fs.readFileSync(staffPath, 'utf8');
 
   // Req 1: Unified difficulty across all 9 games
   console.log('--- Req 1: Unified Difficulty Progression Across All 9 Games ---');
@@ -28,7 +30,7 @@ async function runTests(){
   assert(indexHtml.includes('ProfanityFilter = {'), 'ProfanityFilter must be defined');
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage();
-  await page.goto('file://' + path.resolve('c:/Users/sam20/cafe_game/index.html').replace(/\\/g, '/'), { waitUntil: 'load' });
+  await page.goto('file://' + path.resolve(indexPath).replace(/\\/g, '/'), { waitUntil: 'load' });
 
   const pfTest1 = await page.evaluate(() => window.__ProfanityFilter ? window.__ProfanityFilter.check('باريستا المدينة') : null);
   const pfTest2 = await page.evaluate(() => window.__ProfanityFilter ? window.__ProfanityFilter.check('لاعب 🖕') : null);

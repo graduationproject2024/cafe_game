@@ -1,6 +1,17 @@
-const { chromium } = require('c:/Users/sam20/.agents/skills/playwright-skill/node_modules/playwright');
 const path = require('path');
 const fs = require('fs');
+
+let playwright;
+try {
+  playwright = require('playwright');
+} catch(e) {
+  try {
+    playwright = require(path.join(process.env.USERPROFILE || process.env.HOME || '', '.agents/skills/playwright-skill/node_modules/playwright'));
+  } catch(e2) {
+    playwright = require('c:/Users/sam20/.agents/skills/playwright-skill/node_modules/playwright');
+  }
+}
+const { chromium } = playwright;
 
 async function runAllScenarios() {
   console.log('================================================================');
