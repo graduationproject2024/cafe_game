@@ -81,3 +81,4 @@ Phase 2 transitions the platform from a standalone client-side application to a 
 - [x] GitHub Actions CI workflow implemented and verified.
 - [x] Complete documentation and test matrices published in `docs/upgrade/`.
 - [x] Handoff sign-off approved for Phase 2 commencement.
+
