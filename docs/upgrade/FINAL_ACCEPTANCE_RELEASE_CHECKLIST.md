@@ -40,3 +40,4 @@ $$\mathbf{FINAL\ ACCEPTANCE\ GATE\ PASSED\ —\ VERIFIED\ WITH\ DEFINED\ SCOPE}$
 
 **Recommended Next Step:**  
 Deploy `upgrade/aa-professional-hardening` to customer staging / kiosk pilot in Al-Madinah, and review the Phase 2 proposal for backend authorization and cashier multi-terminal synchronization.
+

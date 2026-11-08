@@ -74,3 +74,4 @@ All nine client-approved authentic games were individually verified in headless 
 | User Scenarios E2E | `node test_all_user_scenarios.js` | 10 | 10 | 0 | ~4s |
 | 40 Comprehensive Scenarios | `node test_40_comprehensive_scenarios.js` | 40 | 40 | 0 | ~30s |
 | **TOTAL** | — | **366** | **366** | **0** | **~114s** |
+
