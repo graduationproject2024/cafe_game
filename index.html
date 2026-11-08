@@ -5641,8 +5641,14 @@ function makeCtx(game){
       const token = eventId || ('hz_seq_' + r._hazardSeq);
       r._lastHazardToken = token;
       r._processedHeartEvents.add(token);
+      r._companionPendingToken = token;
       r._syncHeartLossActive = true;
-      queueMicrotask(() => { if(run) run._syncHeartLossActive = false; });
+      queueMicrotask(() => {
+        if(run){
+          run._syncHeartLossActive = false;
+          run._companionPendingToken = null;
+        }
+      });
       hud();
       SFX.miss();
       if(navigator.vibrate) navigator.vibrate([40, 60, 40]);
@@ -5701,8 +5707,11 @@ function makeCtx(game){
       // Companion check: is this miss explicitly paired with a heart loss for the exact same event token, OR synchronous anonymous companion?
       const isCompanionHazard = !!(
         (eventId && run._processedHeartEvents && run._processedHeartEvents.has(eventId)) ||
-        (!eventId && run._syncHeartLossActive)
+        (!eventId && run._companionPendingToken && run._syncHeartLossActive)
       );
+      if(!eventId && run._companionPendingToken){
+        run._companionPendingToken = null; // consume immediately so subsequent independent misses aren't suppressed
+      }
 
       if(!isCompanionHazard){
         run.mistakeCount = (run.mistakeCount || 0) + 1;
@@ -6649,17 +6658,33 @@ if(saved.S && saved.S.day === dayNow()){
   const prevClaim = saved.S.claim;
   const issueDay = prevClaim ? (prevClaim.day || saved.S.day) : 0;
   const isStillValid = prevClaim && ((dayNow() - issueDay) < 3);
+  // Target B: التحقق من استحقاق الترحيب المكتسب في اليوم السابق دون صرفه بعد
+  const wasQualifiedUnclaimed = (saved.S.welcomePromoStatus === 'QUALIFIED' || saved.S.welcomePromoQualified) && !prevClaim && !!saved.S.welcomePromoCert;
   S = saved.S;
   S.day = dayNow();
   S.visitCount = (S.visitCount || 1) + 1;
-  S.firstPromoAwarded = true;
-  S.welcomePromoQualified = false;
-  S.welcomePromoStatus = prevClaim ? 'CLAIMED' : 'INELIGIBLE';
-  S.welcomePromoCert = null;
   try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
   S.best = 0;
   S.bestBy = {};
   S.claim = isStillValid ? prevClaim : null;
+  if(prevClaim){
+    S.welcomePromoStatus = 'CLAIMED';
+    S.firstPromoAwarded = true;
+    S.welcomePromoQualified = false;
+    S.welcomePromoCert = null;
+  } else if(wasQualifiedUnclaimed){
+    // الحفاظ على استحقاق الترحيب المكتسب لتمكين العميل من صرفه حتى بعد منتصف الليل
+    S.welcomePromoStatus = 'QUALIFIED';
+    S.firstPromoAwarded = false;
+    S.welcomePromoQualified = true;
+    S.welcomePromoCert = saved.S.welcomePromoCert;
+  } else {
+    // زائر لم يحقق التأهل في زيارته الأولى: تصبح الترقية الترحيبية غير متاحة في الزيارات اللاحقة
+    S.welcomePromoStatus = 'INELIGIBLE';
+    S.firstPromoAwarded = true;
+    S.welcomePromoQualified = false;
+    S.welcomePromoCert = null;
+  }
   S.sig = signSession(S);
   save();
 }
@@ -6731,17 +6756,16 @@ try {
   }, 25000);
 } catch(e){}
 
-// Target 7 & Phase 1.1.1: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار الآمنة وعزلها تماماً عن أي دومين إنتاجي
-const isProdOrigin = (typeof location !== 'undefined' && (
-  location.hostname === 'theaacafe.com' ||
-  (location.hostname && location.hostname.endsWith('.theaacafe.com')) ||
-  location.hostname === 'graduationproject2024.github.io' ||
-  (typeof window !== 'undefined' && !!window.__SIMULATE_PROD__)
+// Target 7 & Critical Target F: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار المحلية حصراً
+// في أي سيرفر أو دومين إنتاجي أو خارجي، تُعزل الخطافات تماماً ولا يمكن تفعيلها عبر أي متغير في الكونسول
+const isLocalHost = (typeof location !== 'undefined' && (
+  location.protocol === 'file:' ||
+  location.hostname === 'localhost' ||
+  location.hostname === '127.0.0.1' ||
+  location.hostname === '0.0.0.0'
 ));
-const isTestEnv = !isProdOrigin && (
-  (typeof location !== 'undefined' && (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) ||
-  (typeof window !== 'undefined' && !!window.__TEST_MODE__)
-);
+const isSimulatedProd = (typeof window !== 'undefined' && !!window.__SIMULATE_PROD__);
+const isTestEnv = isLocalHost && !isSimulatedProd;
 if(isTestEnv){
   window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
   window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
