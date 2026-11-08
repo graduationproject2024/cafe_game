@@ -250,3 +250,4 @@ When Cashier 1 touches "Redeem", the discount is applied to the active ticket on
 - **Sprint 2.2 (Cryptographic Voucher Engine):** Wire `index.html` API client to fetch session nonces and submit scores to `/api/v1/voucher/claim`.
 - **Sprint 2.3 (Cashier Real-time Sync):** Upgrade `staff.html` with WebSocket client for instantaneous cross-terminal redemption alerts.
 - **Sprint 2.4 (Foodics POS Integration):** Connect Foodics sandbox, verify automatic ticket discount application, and conduct live drive-thru field trial.
+
