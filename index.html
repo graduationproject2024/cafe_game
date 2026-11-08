@@ -5354,7 +5354,14 @@ function goHome(){ renderHome(); show('home'); }
 // SEC-02: التحقق من شهادة اللعب المشفرة الموقعة لمنع إصدار القسائم بالتلاعب في المتصفح
 function verifyCert(cert){
   if(!cert || typeof cert !== 'object') return false;
-  if(cert.day !== dayNow()) return false;
+  const currentDay = dayNow();
+  if(cert.isWelcomePromo){
+    // استحقاق الترحيب صالح في يوم الاستحقاق واليوم التالي (ضمن نافذة الصرف الترحيبية المعتمدة)
+    if(typeof cert.day !== 'number' || cert.day > currentDay || (currentDay - cert.day) > 2) return false;
+  } else {
+    // شهادات الجولات العادية مقيدة بنفس اليوم حصراً لمنع إعادة استخدام الجلسات عبر الأيام
+    if(cert.day !== currentDay) return false;
+  }
   const expectedSig = hash(['RUN_CERT', cert.score, cert.gameId, cert.day, cert.start, cert.end, CFG.salt].join('|'));
   return cert.sig === expectedSig;
 }
@@ -5419,6 +5426,12 @@ function claimFlow(isUpgrade){
 }
 
 function commitReward(type, isUpgrade){
+  if(S.claim && !isUpgrade){
+    banner(currentLang === 'en' ? 'Voucher already claimed for this session.' : 'تم صرف القسيمة مسبقاً لهذه الجلسة.');
+    renderReward(S.claim);
+    show('reward');
+    return;
+  }
   // Phase 1, Req 2: طلب رقم الجوال السعودي والاسم المستعار قبل إصدار الكود المشفر
   if(!S.phone){
     const phoneCard = $('#choicePhoneCard');
@@ -5441,8 +5454,21 @@ function commitReward(type, isUpgrade){
 }
 
 function finalizeRewardClaim(type, isUpgrade){
+  if(S.claim && !isUpgrade){
+    banner(currentLang === 'en' ? 'Voucher already claimed for this session.' : 'تم صرف القسيمة مسبقاً لهذه الجلسة.');
+    renderReward(S.claim);
+    show('reward');
+    return;
+  }
   if(S && S.best > 0 && S.sig && S.sig !== signSession(S)){
     banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
+    return;
+  }
+  const activeCert = (S.welcomePromoStatus === 'QUALIFIED' && S.welcomePromoCert && verifyCert(S.welcomePromoCert)) 
+    ? S.welcomePromoCert 
+    : (verifyCert(S.runCert) ? S.runCert : null);
+  if(!activeCert || activeCert.score < (CFG.tiers[0] || 5000)){
+    banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
     return;
   }
   const day = dayNow();
@@ -5484,9 +5510,12 @@ function finalizeRewardClaim(type, isUpgrade){
     const rawWallet = localStorage.getItem('the_aa_cafe_vouchers_wallet');
     let wallet = rawWallet ? JSON.parse(rawWallet) : [];
     if(!Array.isArray(wallet)) wallet = [];
-    wallet.unshift(S.claim);
-    wallet = wallet.slice(0, 10);
-    localStorage.setItem('the_aa_cafe_vouchers_wallet', JSON.stringify(wallet));
+    const formatted = fmtCode(c);
+    if(!wallet.some(v => fmtCode(v.code) === formatted)){
+      wallet.unshift(S.claim);
+      wallet = wallet.slice(0, 10);
+      localStorage.setItem('the_aa_cafe_vouchers_wallet', JSON.stringify(wallet));
+    }
   } catch(e){}
 
   save();
@@ -6782,7 +6811,9 @@ if(isTestEnv){
   window.openLeaderboard = (typeof openLeaderboard === 'function' ? openLeaderboard : null);
   window.endRun = (typeof endRun === 'function' ? endRun : null);
   window.claimFlow = (typeof claimFlow === 'function' ? claimFlow : null);
+  window.commitReward = (typeof commitReward === 'function' ? commitReward : null);
   window.finalizeRewardClaim = (typeof finalizeRewardClaim === 'function' ? finalizeRewardClaim : null);
+  window.verifyCert = (typeof verifyCert === 'function' ? verifyCert : null);
   window.makeCtx = (typeof makeCtx === 'function' ? makeCtx : null);
   window.dayNow = (typeof dayNow === 'function' ? dayNow : null);
 

@@ -1,0 +1,18 @@
+{
+  "name": "aa-cafe-games",
+  "version": "1.1.2",
+  "description": "the A&A Specialty Cafe & Sweets - Gaming & Reward Platform - Al-Madinah Al-Munawwarah",
+  "main": "index.html",
+  "scripts": {
+    "test": "node test_final_acceptance_gate.js",
+    "test:gate": "node test_final_acceptance_gate.js",
+    "test:hotfix": "node test_phase_1_1_1_hotfix.js",
+    "test:platform": "node test_platform.js",
+    "test:all": "node test_platform.js && node test_phase_1_1_1_hotfix.js && node test_final_acceptance_gate.js",
+    "check:syntax": "node -e \"const fs=require('fs'); const html=fs.readFileSync('index.html','utf8'); const start=html.indexOf('<script>')+8; const end=html.lastIndexOf('</script>'); new Function(html.slice(start, end)); console.log('Syntax check passed.');\""
+  },
+  "devDependencies": {
+    "playwright": "^1.40.0"
+  },
+  "private": true
+}

@@ -1,0 +1,54 @@
+name: A&A Cafe Games — Quality Gate & Regression Release Verification
+
+on:
+  push:
+    branches:
+      - 'upgrade/**'
+      - 'feature/**'
+      - 'fix/**'
+  pull_request:
+    branches:
+      - main
+      - 'upgrade/**'
+  workflow_dispatch:
+
+jobs:
+  quality-gate:
+    name: Final Acceptance Gate & Regression Verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install Playwright Chromium with System Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify JavaScript Syntax & HTML Structure
+        run: npm run check:syntax
+
+      - name: Run Core Platform Regression Suite (244 Assertions)
+        run: node test_platform.js
+
+      - name: Run Phase 1.1.1 Hotfix Verification Suite (20 Assertions)
+        run: node test_phase_1_1_1_hotfix.js
+
+      - name: Run Final Acceptance Gate Verification Suite (36 Assertions)
+        run: node test_final_acceptance_gate.js
+
+      - name: Upload Test Artifacts & Screenshots on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-gate-failure-screenshots
+          path: test_screenshots/
+          retention-days: 7
