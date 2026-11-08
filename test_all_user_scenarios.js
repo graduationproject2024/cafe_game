@@ -2,14 +2,20 @@ const path = require('path');
 const fs = require('fs');
 
 let playwright;
-try {
-  playwright = require('playwright');
-} catch(e) {
+const candidatePaths = [
+  'playwright',
+  path.join(__dirname, 'node_modules', 'playwright'),
+  path.join(process.env.USERPROFILE || process.env.HOME || '', '.agents', 'skills', 'playwright-skill', 'node_modules', 'playwright'),
+  path.join(process.cwd(), 'node_modules', 'playwright')
+];
+for(const p of candidatePaths){
   try {
-    playwright = require(path.join(process.env.USERPROFILE || process.env.HOME || '', '.agents/skills/playwright-skill/node_modules/playwright'));
-  } catch(e2) {
-    playwright = require('c:/Users/sam20/.agents/skills/playwright-skill/node_modules/playwright');
-  }
+    playwright = require(p);
+    if(playwright) break;
+  } catch(e){}
+}
+if(!playwright){
+  throw new Error('Playwright could not be resolved from standard search paths.');
 }
 const { chromium } = playwright;
 

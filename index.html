@@ -3345,6 +3345,8 @@ let S = {
       return (isNaN(v) || v < 1) ? 1 : v;
     } catch(e){ return 1; }
   })(),
+  firstPromoAwarded: false,
+  welcomePromoQualified: false,
   startedAt: 0,
   lastActiveAt: Date.now(),
   best: 0,
@@ -3433,7 +3435,7 @@ function show(id){
 }
 
 /* ============ مسار جوائز الدرايف ثرو المتطور (يبدأ بعد المنتصف) ============ */
-function ladder(score){
+function ladder(score, promoQualified){
   score = Number(score) || 0;
   const STOPS = [
     { pts: 0,     label: (currentLang === 'en' ? 'Start' : 'البداية'), start: true },
@@ -3443,7 +3445,8 @@ function ladder(score){
   ];
   const n = STOPS.length - 1;
   const max = STOPS[n].pts;
-  const clampedScore = Math.max(0, Math.min(score, max));
+  const effectiveScore = (promoQualified && score < 5000) ? 5000 : score;
+  const clampedScore = Math.max(0, Math.min(effectiveScore, max));
 
   // Map score to percentage piecewise (matching reward-progress.html)
   let pct = 0;
@@ -3458,15 +3461,17 @@ function ladder(score){
   }
   if(clampedScore >= max) pct = 100;
 
-  const nextStop = STOPS.find(s => s.pts > score);
-  const nextTxt = nextStop
-    ? (currentLang === 'en' ? ('Remaining <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> pts to ' + nextStop.label) : ('باقي <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> نقطة على ' + nextStop.label))
-    : (currentLang === 'en' ? 'Unlocked all rewards 🎉' : 'فتحت كل الجوائز 🎉');
+  const nextStop = STOPS.find(s => s.pts > effectiveScore);
+  const nextTxt = (promoQualified && score < 5000)
+    ? (currentLang === 'en' ? '🎉 Unlocked 5% OFF (1st Visit Welcome Bonus)' : '🎉 تم تفعيل خصم 5% (هدية ترحيبية للزيارة الأولى)')
+    : (nextStop
+      ? (currentLang === 'en' ? ('Remaining <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> pts to ' + nextStop.label) : ('باقي <b>' + (nextStop.pts - score).toLocaleString('en') + '</b> نقطة على ' + nextStop.label))
+      : (currentLang === 'en' ? 'Unlocked all rewards 🎉' : 'فتحت كل الجوائز 🎉'));
 
   let stopsHTML = '';
   STOPS.forEach((s, i) => {
     const pos = (i / n) * 100;
-    const isDone = (!s.start && score >= s.pts) ? ' is-done' : '';
+    const isDone = (!s.start && effectiveScore >= s.pts) ? ' is-done' : '';
     const isStart = s.start ? ' is-start' : '';
     const isPrize = s.prize ? ' is-prize' : '';
     const dotContent = s.start ? '' : (s.icon || '%');
@@ -3613,23 +3618,29 @@ function endRun(reason){
   const gm = curGame || (typeof GAMES !== 'undefined' && GAMES[0]) || { ['id']: 'reflex', name: 'سرعة الباريستا', emoji: '⚡' };
   const rawScore = run.score;
   run.rawScore = rawScore;
-  const isFirstVisit = !S.visitCount || S.visitCount <= 1;
-  // تشجيع الزائر الأول: إذا لعب وحقق أداءً حقيقياً (>= 350)، نؤهله مباشرة لخصم 5% الترحيبي (5000 نقطة)
-  if(isFirstVisit && !S.claim && run.score >= 350 && run.score < 5000){
-    run.score = 5000;
+  const isFirstVisit = (!S.firstPromoAwarded) && (!S.visitCount || S.visitCount <= 1);
+  let welcomeQualified = false;
+  // تشجيع الزائر الأول: إذا حقق أداءً حقيقياً (>= 350)، نؤهله لخصم 5% الترحيبي دون تزييف سكور اللعب الأصلي
+  if(isFirstVisit && !S.claim && rawScore >= 350){
+    welcomeQualified = true;
+    S.firstPromoAwarded = true;
+    S.welcomePromoQualified = true;
   }
 
   const prevBest = S.bestBy[gm.id] || 0;
-  if(run.score > prevBest) S.bestBy[gm.id] = run.score;
-  if(run.score > S.best) S.best = run.score;
+  if(rawScore > prevBest) S.bestBy[gm.id] = rawScore;
+  if(rawScore > S.best) S.best = rawScore;
   S.completedAt = Date.now();
 
   // SEC-02: شهادة تشفيرية تؤكد اللعب الفعلي للجولة وتمنع تزوير السكور من الطرفية
+  const certScore = welcomeQualified ? 5000 : rawScore;
   const certStart = run.startedAt || (Date.now() - 5000);
   const certEnd = Date.now();
-  const certSig = hash(['RUN_CERT', run.score, gm.id, S.day, certStart, certEnd, CFG.salt].join('|'));
+  const certSig = hash(['RUN_CERT', certScore, gm.id, S.day, certStart, certEnd, CFG.salt].join('|'));
   S.runCert = {
-    score: run.score,
+    score: certScore,
+    rawScore: rawScore,
+    isWelcomePromo: welcomeQualified,
     gameId: gm.id,
     day: S.day,
     start: certStart,
@@ -3639,14 +3650,15 @@ function endRun(reason){
 
   save();
 
-  syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: run.score });
+  syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: rawScore });
 
   $('#resEm').textContent = gm.emoji;
   $('#resTitle').textContent = (currentLang === 'en') ? ('Round Over: ' + (gm.nameEn || gm.name)) : ('انتهت جولة ' + gm.name);
-  $('#resScore').textContent = run.score;
+  $('#resScore').textContent = rawScore;
 
   // نظام رسائل ما بعد اللعبة المتناسق والمبني على النتيجة الفعلية دون أي تناقض
-  const t = tierOf(S.best);
+  let t = tierOf(S.best);
+  if(welcomeQualified && t < 1) t = 1;
   let outcomeMsg = '';
   const isEn = (currentLang === 'en');
 
@@ -3663,28 +3675,30 @@ function endRun(reason){
     } else {
       outcomeMsg = isEn ? '☕ Great effort, Champion! Every master barista practices. Tap "Play Again" now, your special reward is just around the corner!' : '☕ محاولة رائعة يا بطل! القهوة بتعلمنا الإصرار والمهارة.. اضغط "جرب مرة ثانية" الآن وهديتك بانتظارك!';
     }
-  } else if(t > 0 && !S.claim && run.score >= (CFG.tiers[t - 1] || 5000)){
-    outcomeMsg = isEn ? ('Congratulations! You scored ' + run.score + ' pts and unlocked ' + (tierLabel(t) || 'your reward') + '. Claim your voucher now for your next order 🎁') : ('مبارك! حققت ' + run.score + ' نقطة وتأهلت لـ ' + (tierLabel(t) || 'المكافأة') + '. احجز كود الخصم لطلبك القادم الآن 🎁');
-  } else if(run.score > prevBest && prevBest > 0){
-    outcomeMsg = isEn ? ('New personal best! You scored ' + run.score + ' pts, beating your previous record (' + prevBest + ' pts) 🔥') : ('رقم قياسي جديد لك! حققت ' + run.score + ' نقطة، متجاوزاً أفضل نتيجة سابقة (' + prevBest + ' نقطة) 🔥');
-  } else if(run.score > 0 && S.best < 5000){
+  } else if(welcomeQualified && rawScore < 5000){
+    outcomeMsg = isEn ? ('Congratulations! You scored ' + rawScore + ' pts and unlocked 5% OFF (1st Visit Welcome Bonus) 🎁 Claim your voucher below!') : ('مبارك! حققت ' + rawScore + ' نقطة وتأهلت لـ خصم 5% (هدية ترحيبية لأول زيارة) 🎁 احجز قسيمتك بالأسفل!');
+  } else if(t > 0 && !S.claim && S.best >= (CFG.tiers[t - 1] || 5000)){
+    outcomeMsg = isEn ? ('Congratulations! You scored ' + rawScore + ' pts and unlocked ' + (tierLabel(t) || 'your reward') + '. Claim your voucher now for your next order 🎁') : ('مبارك! حققت ' + rawScore + ' نقطة وتأهلت لـ ' + (tierLabel(t) || 'المكافأة') + '. احجز كود الخصم لطلبك القادم الآن 🎁');
+  } else if(rawScore > prevBest && prevBest > 0){
+    outcomeMsg = isEn ? ('New personal best! You scored ' + rawScore + ' pts, beating your previous record (' + prevBest + ' pts) 🔥') : ('رقم قياسي جديد لك! حققت ' + rawScore + ' نقطة، متجاوزاً أفضل نتيجة سابقة (' + prevBest + ' نقطة) 🔥');
+  } else if(rawScore > 0 && S.best < 5000){
     const remaining = 5000 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts to unlock 5% OFF on your next order. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لفتح خصم 5% على طلبك القادم. العب جولة ثانية الآن ☕');
-  } else if(run.score > 0 && S.best < 7500){
+    outcomeMsg = isEn ? ('You scored ' + rawScore + ' pts! Only ' + remaining + ' more pts to unlock 5% OFF on your next order. Play again!') : ('جمعت ' + rawScore + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لفتح خصم 5% على طلبك القادم. العب جولة ثانية الآن ☕');
+  } else if(rawScore > 0 && S.best < 7500){
     const remaining = 7500 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts to reach 7% OFF on your next order. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية خصمك إلى 7% على طلبك القادم. العب جولة ثانية الآن ☕');
-  } else if(run.score > 0 && S.best < 10000){
+    outcomeMsg = isEn ? ('You scored ' + rawScore + ' pts! Only ' + remaining + ' more pts to reach 7% OFF on your next order. Play again!') : ('جمعت ' + rawScore + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية خصمك إلى 7% على طلبك القادم. العب جولة ثانية الآن ☕');
+  } else if(rawScore > 0 && S.best < 10000){
     const remaining = 10000 - S.best;
-    outcomeMsg = isEn ? ('You scored ' + run.score + ' pts! Only ' + remaining + ' more pts for Free Drink Upgrade 🏆. Play again!') : ('جمعت ' + run.score + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية المشروب المجانية 🏆. العب جولة ثانية الآن ☕');
-  } else if(run.score === 0){
+    outcomeMsg = isEn ? ('You scored ' + rawScore + ' pts! Only ' + remaining + ' more pts for Free Drink Upgrade 🏆. Play again!') : ('جمعت ' + rawScore + ' نقطة! باقي لك فقط ' + remaining + ' نقطة لترقية المشروب المجانية 🏆. العب جولة ثانية الآن ☕');
+  } else if(rawScore === 0){
     outcomeMsg = isEn ? '☕ Don\'t give up, Champion! Every great barista starts with practice. Hit "Play Again" now, your special A&A reward is waiting!' : '☕ لا تستسلم يا بطل! بداية كل باريستا محترف محاولة وتجربة.. اضغط "العب مرة أخرى" وورجينا مهارتك، هديتك بانتظارك!';
   } else {
-    outcomeMsg = isEn ? ('Awesome game! You finished the round with ' + run.score + ' pts. Keep the momentum going!') : ('أداء رائع يا بطل! أنهيت الجولة بـ ' + run.score + ' نقطة. واصل التحدي واللعب ☕✨');
+    outcomeMsg = isEn ? ('Awesome game! You finished the round with ' + rawScore + ' pts. Keep the momentum going!') : ('أداء رائع يا بطل! أنهيت الجولة بـ ' + rawScore + ' نقطة. واصل التحدي واللعب ☕✨');
   }
 
   $('#resMsg').textContent = outcomeMsg;
-  $('#ladderRes').innerHTML = ladder(S.best);
-  const lbScore = (run.rawScore !== undefined) ? run.rawScore : run.score;
+  $('#ladderRes').innerHTML = ladder(S.best, S.welcomePromoQualified);
+  const lbScore = rawScore;
   renderEmbeddedLeaderboard($('#resLeaderboardList'), gm.id);
   syncCustomerTransactionToStaffDB('GAME_SESSION', { gameId: gm.id, score: lbScore, mistakeCount: run.mistakeCount });
 
@@ -4353,12 +4367,10 @@ const GAMES = [
             // Burnt bean safely fell away: no score change
           } else {
             // Missed good coffee bean: deduct 10 points per client specification
-            if(playerMoved && dt < 0.12){
-              run.score = Math.max(0, run.score - 10);
-              run.combo = 0;
-              hud();
-              c.miss(it.x, H - 40, 0, currentLang === 'en' ? 'Missed Bean! -10' : 'فاتتك حبة البن! -10');
-            }
+            run.score = Math.max(0, run.score - 10);
+            run.combo = 0;
+            hud();
+            c.miss(it.x, H - 40, 0, currentLang === 'en' ? 'Missed Bean! -10' : 'فاتتك حبة البن! -10');
           }
           return false;
         }
@@ -5116,7 +5128,7 @@ const GAMES = [
 
 /* ============ التدفق والشاشات ============ */
 function renderHome(){
-  $('#ladderHome').innerHTML = ladder(S.best);
+  $('#ladderHome').innerHTML = ladder(S.best, S.welcomePromoQualified);
   const bestPrefix = (currentLang === 'en') ? 'Best Score: ' : 'أفضل سكور: ';
   const bestSuffix = (currentLang === 'en') ? ' pts' : ' نقطة';
   $('#bestTxt').textContent = S.best ? (bestPrefix + S.best + bestSuffix) : '';
@@ -5144,7 +5156,9 @@ function renderHome(){
 }
 
 function renderClaimBar(){
-  const t = tierOf(S.best), bar = $('#claimBar');
+  let t = tierOf(S.best);
+  if(S.welcomePromoQualified && t < 1) t = 1;
+  const bar = $('#claimBar');
   if(!bar) return;
   if(S.claim){
     const curTier = S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1);
@@ -5350,7 +5364,8 @@ function claimFlow(isUpgrade){
     banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
     return;
   }
-  const t = tierOf(S.best);
+  let t = tierOf(S.best);
+  if(S.welcomePromoQualified && t < 1) t = 1;
   if(!t) return;
   const curTier = S.claim ? (S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1)) : 0;
   if(S.claim && !isUpgrade && t <= curTier){ renderReward(S.claim); show('reward'); return; }
@@ -5595,16 +5610,26 @@ function makeCtx(game){
     diffMultiplier(){
       return DifficultyEngine.getScoreMultiplier(this.d());
     },
-    loseHeart(){
+    loseHeart(x, y, msg, eventId){
       if(!run || run.over) return;
       const r = run;
       r.hearts = Math.max(0, r.hearts - 1);
       r.mistakeCount = (r.mistakeCount || 0) + 1;
       r.combo = 0;
-      r.lastHeartLossAt = Date.now();
+      r._hazardSeq = (r._hazardSeq || 0) + 1;
+      r._lastHazardToken = eventId || r._hazardSeq;
+      r._syncHeartLossActive = true;
+      queueMicrotask(() => { if(run) run._syncHeartLossActive = false; });
       hud();
       SFX.miss();
       if(navigator.vibrate) navigator.vibrate([40, 60, 40]);
+      if(x !== undefined && y !== undefined){
+        const popEl = el('div', 'pop miss', (msg || '-1 ❤️'));
+        popEl.style.left = x + 'px';
+        popEl.style.top = y + 'px';
+        st.append(popEl);
+        setTimeout(() => popEl.remove(), 820);
+      }
       if(r.hearts <= 0){
         endRun('نفدت القلوب ❤️! حظاً أوفر في الجولة القادمة');
       }
@@ -5613,7 +5638,7 @@ function makeCtx(game){
       if(!run || run.over) return;
       if(!isSystemBonus && !antiSpamCheck()) return;
       run.combo++;
-      const isFirstVisit = !S.visitCount || S.visitCount <= 1;
+      const isFirstVisit = (!S.firstPromoAwarded) && (!S.visitCount || S.visitCount <= 1);
       let finalPts = 0;
       if(isFirstVisit){
         // تجربة الزيارة الأولى: نقاط وفيرة وسهلة للتشجيع لتمكين كل زبون من كسب قسيمته
@@ -5641,11 +5666,11 @@ function makeCtx(game){
         setTimeout(() => popEl.remove(), 820);
       }
     },
-    miss(x, y, penaltyMul, msg){
+    miss(x, y, penaltyMul, msg, eventId){
       if(!run || run.over) return;
       run.combo = 0;
-      const justLostHeart = (Date.now() - (run.lastHeartLossAt || 0)) < 80;
-      if(!justLostHeart){
+      const isCompanionHazard = run._syncHeartLossActive || (eventId && eventId === run._lastHazardToken);
+      if(!isCompanionHazard){
         run.mistakeCount = (run.mistakeCount || 0) + 1;
         const penPts = Math.round(25 * (penaltyMul !== undefined ? penaltyMul : 1.0));
         run.score = Math.max(0, run.score - penPts);
@@ -5660,7 +5685,7 @@ function makeCtx(game){
         }
       } else {
         hud();
-        if(x !== undefined && y !== undefined){
+        if(x !== undefined && y !== undefined && !st.querySelector('.pop.miss')){
           const popEl = el('div', 'pop miss', (msg || '-1 ❤️'));
           popEl.style.left = x + 'px';
           popEl.style.top = y + 'px';
@@ -5668,6 +5693,12 @@ function makeCtx(game){
           setTimeout(() => popEl.remove(), 820);
         }
       }
+    },
+    hazard(opts){
+      if(!opts) return;
+      const token = opts.id || ('hz_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+      if(opts.heart) this.loseHeart(opts.x, opts.y, opts.msg, token);
+      if(opts.miss !== false) this.miss(opts.x, opts.y, opts.penaltyMul, opts.msg, token);
     }
   };
 
@@ -5893,9 +5924,11 @@ function checkSessionInactivity(){
       window.lastRunCheckpoint = null;
       endRun(currentLang === 'en' ? 'Game session expired due to inactivity. Start a new round to continue playing.' : 'انتهت صلاحية الجولة بسبب عدم النشاط. ابدأ جولة جديدة لمواصلة اللعب.');
     } else if(!run || run.over){
-      if(S.best > 0 && !S.claim){
+      if(S.best > 0){
         S.best = 0;
         S.bestBy = {};
+        S.welcomePromoQualified = false;
+        S.runCert = null;
         save();
         renderHome();
       }
@@ -6529,6 +6562,35 @@ if(saved.S && saved.S.day === dayNow()){
         S.playerId = localStorage.getItem('aa_cafe_player_id') || ('P_' + Date.now().toString(36));
       } catch(e){ S.playerId = 'P_' + Date.now().toString(36); }
     }
+    // Target 1: هجرة الحالات القديمة التي تفتقر لحقل عداد الزيارات لمنع التكرار اللانهائي للحافز الترحيبي
+    if(S.visitCount === undefined || S.visitCount === null){
+      if(S.best > 0 || S.claim){
+        S.visitCount = 2;
+        S.firstPromoAwarded = true;
+      } else {
+        S.visitCount = 1;
+        S.firstPromoAwarded = false;
+      }
+      try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
+    }
+    if(S.firstPromoAwarded === undefined){
+      S.firstPromoAwarded = (S.claim !== null || S.visitCount > 1);
+    }
+    if(S.welcomePromoQualified === undefined){
+      S.welcomePromoQualified = false;
+    }
+    // Target 6: فحص الخمول التلقائي عند إعادة فتح الصفحة لتصفير السكور غير المحجوز بعد دقيقتين دون مساس بالقسائم المحجوزة
+    const idleSinceActive = Date.now() - (S.lastActiveAt || S.startedAt || Date.now());
+    if(idleSinceActive >= INACTIVITY_TIMEOUT_MS && S.best > 0){
+      S.best = 0;
+      S.bestBy = {};
+      S.welcomePromoQualified = false;
+      S.runCert = null;
+      S.startedAt = Date.now();
+      S.lastActiveAt = Date.now();
+      S.sig = signSession(S);
+      save();
+    }
   } else {
     console.warn('Session signature mismatch detected. Resetting session.');
     resetSession();
@@ -6540,10 +6602,13 @@ if(saved.S && saved.S.day === dayNow()){
   S = saved.S;
   S.day = dayNow();
   S.visitCount = (S.visitCount || 1) + 1;
+  S.firstPromoAwarded = true;
+  S.welcomePromoQualified = false;
   try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
   S.best = 0;
   S.bestBy = {};
   S.claim = isStillValid ? prevClaim : null;
+  S.sig = signSession(S);
   save();
 }
 
@@ -6574,6 +6639,8 @@ function resetSession(){
   S = {
     playerId: pid,
     visitCount: prevVisits,
+    firstPromoAwarded: (prevVisits > 1 || activeClaim !== null),
+    welcomePromoQualified: false,
     phone: prevPhone,
     order: '',
     nickname: prevNick,
@@ -6610,33 +6677,44 @@ try {
   }, 25000);
 } catch(e){}
 
-// Expose testing and runtime diagnostic hooks for browser automation
-window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
-window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
-window.ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
-window.LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
-window.SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
-window.signSession = (typeof signSession === 'function' ? signSession : null);
-window.hash = (typeof hash === 'function' ? hash : null);
-window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
-window.tierOf = (typeof tierOf === 'function' ? tierOf : null);
-window.openLeaderboard = (typeof openLeaderboard === 'function' ? openLeaderboard : null);
-window.endRun = (typeof endRun === 'function' ? endRun : null);
-
-window.__getRun = () => (typeof run !== 'undefined' ? run : null);
-window.__getCurGame = () => (typeof curGame !== 'undefined' ? curGame : null);
-window.__endRun = (msg) => (typeof endRun === 'function' ? endRun(msg) : null);
-window.__resumeCheckpointRun = (cp) => (typeof resumeCheckpointRun === 'function' ? resumeCheckpointRun(cp) : null);
-window.__GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
-window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
-window.__ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
-window.__SFX = (typeof SFX !== 'undefined' ? SFX : null);
-window.__applyLang = (typeof applyLang !== 'undefined' ? applyLang : null);
-window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
-window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
-window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
+// Target 7: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار الآمنة فقط
 const isTestEnv = (typeof location !== 'undefined' && (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) || (typeof window !== 'undefined' && !!window.__TEST_MODE__);
 if(isTestEnv){
+  window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
+  window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
+  window.ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
+  window.LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
+  window.SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
+  window.signSession = (typeof signSession === 'function' ? signSession : null);
+  window.hash = (typeof hash === 'function' ? hash : null);
+  window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
+  window.saveCafeState = () => (typeof save === 'function' ? save() : null);
+  window.renderHomeView = () => (typeof renderHome === 'function' ? renderHome() : null);
+  window.tierOf = (typeof tierOf === 'function' ? tierOf : null);
+  window.openLeaderboard = (typeof openLeaderboard === 'function' ? openLeaderboard : null);
+  window.endRun = (typeof endRun === 'function' ? endRun : null);
+  window.claimFlow = (typeof claimFlow === 'function' ? claimFlow : null);
+  window.finalizeRewardClaim = (typeof finalizeRewardClaim === 'function' ? finalizeRewardClaim : null);
+  window.makeCtx = (typeof makeCtx === 'function' ? makeCtx : null);
+  window.dayNow = (typeof dayNow === 'function' ? dayNow : null);
+
+  window.__getRun = () => (typeof run !== 'undefined' ? run : null);
+  window.__setRun = (r) => { run = r; };
+  window.__getCurGame = () => (typeof curGame !== 'undefined' ? curGame : null);
+  window.__setCurGame = (g) => { curGame = g; };
+  window.__endRun = (msg) => (typeof endRun === 'function' ? endRun(msg) : null);
+  window.__resumeCheckpointRun = (cp) => (typeof resumeCheckpointRun === 'function' ? resumeCheckpointRun(cp) : null);
+  window.__GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
+  window.__DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
+  window.__ProfanityFilter = (typeof ProfanityFilter !== 'undefined' ? ProfanityFilter : null);
+  window.__SFX = (typeof SFX !== 'undefined' ? SFX : null);
+  window.__applyLang = (typeof applyLang !== 'undefined' ? applyLang : null);
+  window.__LeaderboardEngine = (typeof LeaderboardEngine !== 'undefined' ? LeaderboardEngine : null);
+  window.__SaudiPhone = (typeof SaudiPhone !== 'undefined' ? SaudiPhone : null);
+  window.__checkSessionInactivity = () => (typeof checkSessionInactivity === 'function' ? checkSessionInactivity() : null);
+  window.__S = () => (typeof S !== 'undefined' ? S : null);
+  window.__resetSession = resetSession;
+
   window.__mintRunCert = (score, gameId) => {
     const s = score || (S ? S.best : 5000);
     const g = gameId || (curGame ? curGame.id : 'reflex');
@@ -6655,11 +6733,6 @@ if(isTestEnv){
     return S.runCert;
   };
 }
-window.__S = () => (typeof S !== 'undefined' ? S : null);
-window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
-window.saveCafeState = () => (typeof save === 'function' ? save() : null);
-window.renderHomeView = () => (typeof renderHome === 'function' ? renderHome() : null);
-window.__resetSession = resetSession;
 
 })();
 </script>
