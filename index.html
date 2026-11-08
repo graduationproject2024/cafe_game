@@ -3345,8 +3345,10 @@ let S = {
       return (isNaN(v) || v < 1) ? 1 : v;
     } catch(e){ return 1; }
   })(),
+  welcomePromoStatus: 'ELIGIBLE',
   firstPromoAwarded: false,
   welcomePromoQualified: false,
+  welcomePromoCert: null,
   startedAt: 0,
   lastActiveAt: Date.now(),
   best: 0,
@@ -3618,12 +3620,12 @@ function endRun(reason){
   const gm = curGame || (typeof GAMES !== 'undefined' && GAMES[0]) || { ['id']: 'reflex', name: 'سرعة الباريستا', emoji: '⚡' };
   const rawScore = run.score;
   run.rawScore = rawScore;
-  const isFirstVisit = (!S.firstPromoAwarded) && (!S.visitCount || S.visitCount <= 1);
+  const isEligibleForWelcome = (S.welcomePromoStatus === 'ELIGIBLE' || S.welcomePromoStatus === 'QUALIFIED' || (!S.firstPromoAwarded && (!S.visitCount || S.visitCount <= 1))) && !S.claim;
   let welcomeQualified = false;
-  // تشجيع الزائر الأول: إذا حقق أداءً حقيقياً (>= 350)، نؤهله لخصم 5% الترحيبي دون تزييف سكور اللعب الأصلي
-  if(isFirstVisit && !S.claim && rawScore >= 350){
+  // تشجيع الزائر الأول: إذا حقق أداءً حقيقياً (>= 350)، نؤهله لخصم 5% الترحيبي دون تزييف سكور اللعب الأصلي ودون إحراق الاستحقاق قبل الصرف
+  if(isEligibleForWelcome && (rawScore >= 350 || S.welcomePromoStatus === 'QUALIFIED' || S.welcomePromoQualified)){
     welcomeQualified = true;
-    S.firstPromoAwarded = true;
+    S.welcomePromoStatus = 'QUALIFIED';
     S.welcomePromoQualified = true;
   }
 
@@ -3647,6 +3649,9 @@ function endRun(reason){
     end: certEnd,
     sig: certSig
   };
+  if(welcomeQualified){
+    S.welcomePromoCert = S.runCert;
+  }
 
   save();
 
@@ -5128,7 +5133,7 @@ const GAMES = [
 
 /* ============ التدفق والشاشات ============ */
 function renderHome(){
-  $('#ladderHome').innerHTML = ladder(S.best, S.welcomePromoQualified);
+  $('#ladderHome').innerHTML = ladder(S.best, S.welcomePromoQualified || S.welcomePromoStatus === 'QUALIFIED');
   const bestPrefix = (currentLang === 'en') ? 'Best Score: ' : 'أفضل سكور: ';
   const bestSuffix = (currentLang === 'en') ? ' pts' : ' نقطة';
   $('#bestTxt').textContent = S.best ? (bestPrefix + S.best + bestSuffix) : '';
@@ -5157,7 +5162,7 @@ function renderHome(){
 
 function renderClaimBar(){
   let t = tierOf(S.best);
-  if(S.welcomePromoQualified && t < 1) t = 1;
+  if((S.welcomePromoQualified || S.welcomePromoStatus === 'QUALIFIED') && t < 1) t = 1;
   const bar = $('#claimBar');
   if(!bar) return;
   if(S.claim){
@@ -5360,12 +5365,15 @@ function claimFlow(isUpgrade){
     banner(currentLang === 'en' ? 'Session data tampered. Cannot claim reward.' : 'تم اكتشاف تلاعب في بيانات الجلسة! لا يمكن صرف المكافأة.');
     return;
   }
-  if(!verifyCert(S.runCert) || S.runCert.score < (CFG.tiers[0] || 5000)){
+  const activeCert = (S.welcomePromoStatus === 'QUALIFIED' && S.welcomePromoCert && verifyCert(S.welcomePromoCert)) 
+    ? S.welcomePromoCert 
+    : (verifyCert(S.runCert) ? S.runCert : null);
+  if(!activeCert || activeCert.score < (CFG.tiers[0] || 5000)){
     banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
     return;
   }
   let t = tierOf(S.best);
-  if(S.welcomePromoQualified && t < 1) t = 1;
+  if((S.welcomePromoQualified || S.welcomePromoStatus === 'QUALIFIED') && t < 1) t = 1;
   if(!t) return;
   const curTier = S.claim ? (S.claim.type === 'G' ? 3 : (S.claim.type === 'S' ? 2 : 1)) : 0;
   if(S.claim && !isUpgrade && t <= curTier){ renderReward(S.claim); show('reward'); return; }
@@ -5461,6 +5469,14 @@ function finalizeRewardClaim(type, isUpgrade){
     S.claim.redeemed = false;
   } else {
     S.claim = { type: type, code: c, day: day, redeemed: false };
+  }
+
+  // تحديث حالة الحافز الترحيبي وإغلاق دورة الاستحقاق رسمياً بعد الصرف الفعلي
+  if(S.welcomePromoStatus === 'QUALIFIED' || S.welcomePromoQualified){
+    S.welcomePromoStatus = 'CLAIMED';
+    S.firstPromoAwarded = true;
+    S.welcomePromoQualified = true;
+    S.welcomePromoCert = null;
   }
 
   // حفظ القسيمة في محفظة دائمة لا تضيع إطلاقاً
@@ -5613,11 +5629,18 @@ function makeCtx(game){
     loseHeart(x, y, msg, eventId){
       if(!run || run.over) return;
       const r = run;
+      r._processedHeartEvents = r._processedHeartEvents || new Set();
+      if(eventId && r._processedHeartEvents.has(eventId)){
+        return; // Idempotent: same hazard already consumed a heart
+      }
+      if(eventId) r._processedHeartEvents.add(eventId);
       r.hearts = Math.max(0, r.hearts - 1);
       r.mistakeCount = (r.mistakeCount || 0) + 1;
       r.combo = 0;
       r._hazardSeq = (r._hazardSeq || 0) + 1;
-      r._lastHazardToken = eventId || r._hazardSeq;
+      const token = eventId || ('hz_seq_' + r._hazardSeq);
+      r._lastHazardToken = token;
+      r._processedHeartEvents.add(token);
       r._syncHeartLossActive = true;
       queueMicrotask(() => { if(run) run._syncHeartLossActive = false; });
       hud();
@@ -5669,7 +5692,18 @@ function makeCtx(game){
     miss(x, y, penaltyMul, msg, eventId){
       if(!run || run.over) return;
       run.combo = 0;
-      const isCompanionHazard = run._syncHeartLossActive || (eventId && eventId === run._lastHazardToken);
+      run._processedMissEvents = run._processedMissEvents || new Set();
+      if(eventId && run._processedMissEvents.has(eventId)){
+        return; // Idempotent: same miss event already processed
+      }
+      if(eventId) run._processedMissEvents.add(eventId);
+
+      // Companion check: is this miss explicitly paired with a heart loss for the exact same event token, OR synchronous anonymous companion?
+      const isCompanionHazard = !!(
+        (eventId && run._processedHeartEvents && run._processedHeartEvents.has(eventId)) ||
+        (!eventId && run._syncHeartLossActive)
+      );
+
       if(!isCompanionHazard){
         run.mistakeCount = (run.mistakeCount || 0) + 1;
         const penPts = Math.round(25 * (penaltyMul !== undefined ? penaltyMul : 1.0));
@@ -5927,7 +5961,9 @@ function checkSessionInactivity(){
       if(S.best > 0){
         S.best = 0;
         S.bestBy = {};
-        S.welcomePromoQualified = false;
+        if(S.welcomePromoStatus !== 'QUALIFIED'){
+          S.welcomePromoQualified = false;
+        }
         S.runCert = null;
         save();
         renderHome();
@@ -6573,18 +6609,32 @@ if(saved.S && saved.S.day === dayNow()){
       }
       try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
     }
+    if(!S.welcomePromoStatus){
+      if(S.claim || S.firstPromoAwarded || (S.visitCount && S.visitCount > 1)){
+        S.welcomePromoStatus = S.claim ? 'CLAIMED' : 'INELIGIBLE';
+        S.firstPromoAwarded = true;
+      } else if(S.welcomePromoQualified){
+        S.welcomePromoStatus = 'QUALIFIED';
+        S.firstPromoAwarded = false;
+      } else {
+        S.welcomePromoStatus = 'ELIGIBLE';
+        S.firstPromoAwarded = false;
+      }
+    }
     if(S.firstPromoAwarded === undefined){
-      S.firstPromoAwarded = (S.claim !== null || S.visitCount > 1);
+      S.firstPromoAwarded = (S.claim !== null || S.welcomePromoStatus === 'CLAIMED' || S.visitCount > 1);
     }
     if(S.welcomePromoQualified === undefined){
-      S.welcomePromoQualified = false;
+      S.welcomePromoQualified = (S.welcomePromoStatus === 'QUALIFIED');
     }
     // Target 6: فحص الخمول التلقائي عند إعادة فتح الصفحة لتصفير السكور غير المحجوز بعد دقيقتين دون مساس بالقسائم المحجوزة
     const idleSinceActive = Date.now() - (S.lastActiveAt || S.startedAt || Date.now());
     if(idleSinceActive >= INACTIVITY_TIMEOUT_MS && S.best > 0){
       S.best = 0;
       S.bestBy = {};
-      S.welcomePromoQualified = false;
+      if(S.welcomePromoStatus !== 'QUALIFIED'){
+        S.welcomePromoQualified = false;
+      }
       S.runCert = null;
       S.startedAt = Date.now();
       S.lastActiveAt = Date.now();
@@ -6604,6 +6654,8 @@ if(saved.S && saved.S.day === dayNow()){
   S.visitCount = (S.visitCount || 1) + 1;
   S.firstPromoAwarded = true;
   S.welcomePromoQualified = false;
+  S.welcomePromoStatus = prevClaim ? 'CLAIMED' : 'INELIGIBLE';
+  S.welcomePromoCert = null;
   try { localStorage.setItem('aa_cafe_visit_count', String(S.visitCount)); } catch(e){}
   S.best = 0;
   S.bestBy = {};
@@ -6639,8 +6691,10 @@ function resetSession(){
   S = {
     playerId: pid,
     visitCount: prevVisits,
+    welcomePromoStatus: (activeClaim !== null ? 'CLAIMED' : (prevVisits > 1 ? 'INELIGIBLE' : 'ELIGIBLE')),
     firstPromoAwarded: (prevVisits > 1 || activeClaim !== null),
     welcomePromoQualified: false,
+    welcomePromoCert: null,
     phone: prevPhone,
     order: '',
     nickname: prevNick,
@@ -6677,8 +6731,17 @@ try {
   }, 25000);
 } catch(e){}
 
-// Target 7: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار الآمنة فقط
-const isTestEnv = (typeof location !== 'undefined' && (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) || (typeof window !== 'undefined' && !!window.__TEST_MODE__);
+// Target 7 & Phase 1.1.1: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار الآمنة وعزلها تماماً عن أي دومين إنتاجي
+const isProdOrigin = (typeof location !== 'undefined' && (
+  location.hostname === 'theaacafe.com' ||
+  (location.hostname && location.hostname.endsWith('.theaacafe.com')) ||
+  location.hostname === 'graduationproject2024.github.io' ||
+  (typeof window !== 'undefined' && !!window.__SIMULATE_PROD__)
+));
+const isTestEnv = !isProdOrigin && (
+  (typeof location !== 'undefined' && (location.protocol === 'file:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) ||
+  (typeof window !== 'undefined' && !!window.__TEST_MODE__)
+);
 if(isTestEnv){
   window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
   window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);
@@ -6690,6 +6753,7 @@ if(isTestEnv){
   window.getCafeState = () => (typeof S !== 'undefined' ? S : null);
   window.saveCafeState = () => (typeof save === 'function' ? save() : null);
   window.renderHomeView = () => (typeof renderHome === 'function' ? renderHome() : null);
+  window.renderReward = (typeof renderReward === 'function' ? renderReward : null);
   window.tierOf = (typeof tierOf === 'function' ? tierOf : null);
   window.openLeaderboard = (typeof openLeaderboard === 'function' ? openLeaderboard : null);
   window.endRun = (typeof endRun === 'function' ? endRun : null);
