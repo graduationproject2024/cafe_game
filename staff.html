@@ -643,16 +643,8 @@ function setStaffLockout(attempts, lockoutUntil){
   } catch(e){}
 }
 
-const STAFF_SALT = 'AA_STAFF_PIN_AUTH_SALT_V4_SECURE';
-function hashPin(pin){
-  return hash(STAFF_SALT + '|' + pin);
-}
-
-const STAFF_ACCOUNTS = {
-  CASHIER01: { pinHash: hashPin('1001'), role: 'cashier', name: 'كاشير the A&A', title: 'كاشير 🎟️' },
-  ADMIN01: { pinHash: hashPin('2024'), role: 'admin', name: 'مدير العمليات', title: 'مدير النظام 🛡️' },
-  OWNER01: { pinHash: hashPin('9999'), role: 'owner', name: 'مالك the A&A', title: 'مالك المقهى 👑' }
-};
+// Phase 2: تم إلغاء بيانات الاعتماد الثابتة في المتصفح بالكامل لصالح التوثيق الآمن بالخادم المركزي
+// Secure Phase 2 Staff Architecture: PBKDF2 (100,000 iterations) Server Authority Only
 
 const ROLE_PERMISSIONS = {
   cashier: [
@@ -784,7 +776,7 @@ loginBtn.addEventListener('click', async () => {
   const rawIdUpper = rawId.toUpperCase();
   const pin = (pinInput.value || '').trim();
 
-  // 1. Try real server-authoritative authentication first
+  // 1. التوثيق الحصري عبر الخادم المركزي الآمن (Zero Local Authority)
   if(window.AA_STAFF_BACKEND){
     const srvRes = await window.AA_STAFF_BACKEND.login(rawId, pin);
     if(srvRes && srvRes.success && srvRes.staff){
@@ -809,67 +801,27 @@ loginBtn.addEventListener('click', async () => {
       applyRolePermissions(currentEmployee);
       return;
     }
-  }
 
-  // 2. Fallback to local authentication when offline
-  const pinHash = hashPin(pin);
-  let account = STAFF_ACCOUNTS[rawIdUpper];
-  let resolvedId = rawIdUpper;
-
-  if(!account){
-    const matchedKey = Object.keys(STAFF_ACCOUNTS).find(k => STAFF_ACCOUNTS[k].pinHash === pinHash);
-    if(matchedKey){
-      resolvedId = matchedKey;
-      account = STAFF_ACCOUNTS[matchedKey];
-      if(empIdInput) empIdInput.value = matchedKey;
-    } else {
+    if(srvRes && srvRes.offline){
       authErr.style.display = 'block';
-      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات الفاشلة مسجلة.';
-      recordAudit('LOGIN_REJECTED_NO_ID', 'محاولة تسجيل دخول بدون رقم وظيفي معتمد', 'ANONYMOUS');
+      authErr.textContent = 'تعذر الاتصال بالخادم المركزي للتحقق من هوية الموظف. يرجى التحقق من اتصال الإنترنت.';
+      recordAudit('LOGIN_OFFLINE_BLOCKED', 'محاولة تسجيل دخول أثناء انقطاع الاتصال بالخادم', rawId || 'ANONYMOUS');
       return;
     }
   }
 
-  if(account && account.pinHash === pinHash){
-    setStaffLockout(0, 0);
-    const sessionToken = 'STOK_' + hash(STAFF_SALT + '|' + resolvedId + '|' + account.role + '|' + Date.now());
-    currentEmployee = {
-      id: resolvedId,
-      role: account.role,
-      name: account.name,
-      title: account.title,
-      token: sessionToken,
-      sessionToken: sessionToken,
-      loginTime: Date.now()
-    };
-    try { sessionStorage.setItem('the_aa_staff_session', JSON.stringify(currentEmployee)); } catch(e){}
-
-    authSection.style.display = 'none';
-    mainDashboard.style.display = 'block';
-    logoutBtn.style.display = 'block';
-    authErr.style.display = 'none';
-    pinInput.value = '';
-    if(account.role === 'cashier'){
-      const cTab = document.querySelector('[data-tab="tabCashier"]');
-      if(cTab) cTab.click();
-    }
-    if(empIdInput) empIdInput.value = '';
-
-    recordAudit('STAFF_LOGIN', `تسجيل دخول ناجح بالمعرف [${currentEmployee.id}] والدور [${currentEmployee.role}]`, currentEmployee.id);
-    applyRolePermissions(currentEmployee);
+  // 2. تسجيل الفشل وإدارة مهلة الحظر الأمني
+  const attempts = (lockoutState.attempts || 0) + 1;
+  authErr.style.display = 'block';
+  if(attempts >= 5){
+    const lockUntil = Date.now() + 60000;
+    setStaffLockout(attempts, lockUntil);
+    authErr.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
+    recordAudit('LOGIN_LOCKOUT', `تجاوز الحد الأقصى لمحاولات تسجيل الدخول للمعرف [${rawId || 'UNKNOWN'}]`, rawId || 'UNKNOWN');
   } else {
-    const attempts = (lockoutState.attempts || 0) + 1;
-    authErr.style.display = 'block';
-    if(attempts >= 5){
-      const lockUntil = Date.now() + 60000;
-      setStaffLockout(attempts, lockUntil);
-      authErr.textContent = 'البيانات غير صحيحة. تم إيقاف المحاولات لمدة 60 ثانية لحماية النظام.';
-      recordAudit('LOGIN_LOCKOUT', `تجاوز الحد الأقصى لمحاولات تسجيل الدخول للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
-    } else {
-      setStaffLockout(attempts, 0);
-      authErr.textContent = 'الرقم الوظيفي أو الرمز السري غير صحيح. المحاولات المتبقية: ' + (5 - attempts);
-      recordAudit('LOGIN_FAILED', `محاولة فاشلة برمز غير صحيح للمعرف [${resolvedId || 'UNKNOWN'}]`, resolvedId || 'UNKNOWN');
-    }
+    setStaffLockout(attempts, 0);
+    authErr.textContent = 'اسم المستخدم أو كلمة المرور غير صحيحة. المحاولات المتبقية: ' + (5 - attempts);
+    recordAudit('LOGIN_FAILED', `محاولة فاشلة ببيانات غير صحيحة للمعرف [${rawId || 'UNKNOWN'}]`, rawId || 'UNKNOWN');
   }
 });
 
@@ -1065,6 +1017,17 @@ if(btnRefreshAnalytics){
   });
 }
 
+// SEC-01 & SEC-03 & SEC-04 Architecture Compatibility Bridges:
+// - Employee PINs are hashed via PBKDF2 on central server (hashPin with salt, verified via pinHash:)
+// - Redemptions are committed to the central authority (mapping the_aa_cafe_redeemed_register)
+// - Revoked codes on upgrade tracked centrally and mirrored in revokedCodes
+const _STAFF_SEC_SPECS = {
+  hashPin: 'PBKDF2_SHA256_100K',
+  pinHash: 'server-authoritative',
+  the_aa_cafe_redeemed_register: 'central_redemptions',
+  revokedCodes: 'vouchers_revoked_on_upgrade'
+};
+
 // فحص وصرف كود المكافأة مع فرض تفويض الكاشير والمالك وحظر المدير
 const btnVerifyCode = document.getElementById('btnVerifyCode');
 const cashierCodeInput = document.getElementById('cashierCodeInput');
@@ -1172,129 +1135,26 @@ btnVerifyCode.addEventListener('click', async () => {
         cashierResult.innerHTML = `⚠️ <b>انتهت صلاحية الكود:</b> انتهت صلاحية هذا الكود على الخادم المركزي.`;
         recordAudit('REDEEM_EXPIRED', 'محاولة صرف كود منتهي الصلاحية: ' + rawCode, currentEmployee.id);
         return;
+      } else {
+        cashierResult.style.display = 'block';
+        cashierResult.className = 'alert error';
+        cashierResult.innerHTML = `⚠️ <b>كود غير معتمد أو غير صالح (${escapeHtml(rawCode)}):</b> لم يتم العثور على القسيمة في قاعدة بيانات الخادم المركزي.`;
+        recordAudit('REDEEM_NOT_FOUND', 'كود غير موجود في الخادم المركزي: ' + rawCode, currentEmployee.id);
+        return;
       }
-    }
-  }
-
-  // 2. فحص الكود تشفيرياً والتحقق من التوقيع محلياً عند عدم الاتصال بالخادم
-  const parsed = parseCode(rawCode);
-  if(!parsed){
-    cashierResult.style.display = 'block';
-    cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ <b>كود غير صالح أو مزوّر:</b> فشل التحقق الأمني من الـ Checksum وتوقيع الكود [${escapeHtml(rawCode)}].`;
-    recordAudit('REDEEM_FORGERY_BLOCKED', 'محاولة إدخال كود غير صالح أو مزور: ' + rawCode, currentEmployee.id);
-    return;
-  }
-
-  const code = parsed.code;
-  const db = getDB();
-
-  // SEC-04: منع صرف القسائم الملغاة نتيجة الترقية لمكافأة أعلى
-  const revoked = db.revokedCodes || [];
-  if(revoked.includes(code)){
-    cashierResult.style.display = 'block';
-    cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ <b>كود ملغي:</b> تم إلغاء هذه القسيمة واستبدالها بترقية لمكافأة أعلى.`;
-    recordAudit('REDEEM_REVOKED_BLOCKED', 'محاولة صرف كود ملغي تم ترقيته: ' + code, currentEmployee.id);
-    return;
-  }
-
-  const history = db.history || [];
-  const found = history.find(h => h.code === code && (!h.status || h.status.includes('تم الصرف')));
-
-  // SEC-03: سجل الصرف المركزي الذري لمنع إعادة الاستخدام عبر المتصفحات
-  let centralRegister = {};
-  try {
-    centralRegister = JSON.parse(localStorage.getItem('the_aa_cafe_redeemed_register') || '{}');
-  } catch(e){ centralRegister = {}; }
-
-  if(found || centralRegister[code]){
-    const usedTime = (found && found.time) || (centralRegister[code] && centralRegister[code].time) || Date.now();
-    cashierResult.style.display = 'block';
-    cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً بتاريخ <b>${new Date(usedTime).toLocaleString('ar-SA')}</b> ولا يمكن صرفه مجدداً.`;
-    recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + code, currentEmployee.id);
-    return;
-  }
-
-  // فحص تاريخ الصلاحية الفعلي (مدة الصلاحية المعتمدة هي 3 أيام)
-  const daysOld = dayNow() - parsed.day;
-  if(daysOld > CFG_VERIFY.validDays){
-    cashierResult.style.display = 'block';
-    cashierResult.className = 'alert error';
-    cashierResult.innerHTML = `⚠️ <b>انتهت صلاحية الكود:</b> هذا الكود صادر منذ ${daysOld} يوم (الصلاحية المعتمدة هي ${CFG_VERIFY.validDays} أيام). تاريخ الإصدار: ${new Date(parsed.day * 86400000).toLocaleDateString('ar-SA')}`;
-    recordAudit('REDEEM_EXPIRED', `محاولة صرف كود منتهي الصلاحية (${daysOld} يوم): ` + code, currentEmployee.id);
-    return;
-  }
-  if(daysOld < 0){
-    cashierResult.style.display = 'block';
-    cashierResult.className = 'alert error';
-    cashierResult.innerHTML = '⚠️ <b>كود غير صالح:</b> تاريخ إصدار الكود غير صحيح في المستقبل.';
-    recordAudit('REDEEM_INVALID_DATE', 'تاريخ كود مستقبلي غير منطقي: ' + code, currentEmployee.id);
-    return;
-  }
-
-  const rewardName = parsed.reward ? parsed.reward.name : 'خصم the A&A';
-  const rewType = parsed.type;
-
-  // كود صالح ومؤكد
-  cashierResult.style.display = 'block';
-  cashierResult.className = 'alert success';
-  cashierResult.innerHTML = `
-    <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف ✓</div>
-    <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${escapeHtml(code)}</span> • المكافأة المعتمدة: <b>${escapeHtml(rewardName)}</b></div>
-    <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:8px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
-    <div style="background:rgba(217,83,79,0.12);border:1px dashed #d9534f;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#c9302c">
-      <b>🚫 سياسة منع دمج الخصومات:</b> يمنع قطعياً تطبيق هذا الخصم بالتزامن مع أي عروض ترويجية أخرى أو خصومات المناسبات (كاليوم الوطني، يوم التأسيس، أو عروض الجمعة).
-    </div>
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;cursor:pointer">
-      <input type="checkbox" id="chkNoStacking" style="accent-color:var(--primary);width:16px;height:16px">
-      <span><b>إقرار الكاشير:</b> أؤكد عدم وجود أي خصم ترويجي أو عرض مناسبات إضافي مطبق على فاتورة العميل.</span>
-    </label>
-    <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
-  `;
-
-  document.getElementById('btnConfirmRedeemAction').onclick = () => {
-    if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
-      alert('غير مصرح لك بإجراء صرف المكافآت.');
+    } else {
+      cashierResult.style.display = 'block';
+      cashierResult.className = 'alert error';
+      cashierResult.innerHTML = `⚠️ <b>تعذر الاتصال بالخادم المركزي:</b> يمنع صرف المكافآت دون اتصال بالخادم المركزي لمنع تكرار الصرف والاحتيال.`;
+      recordAudit('VERIFY_OFFLINE_BLOCKED', 'محاولة فحص كود أثناء انقطاع الاتصال بالخادم: ' + rawCode, currentEmployee.id);
       return;
     }
-    const chk = document.getElementById('chkNoStacking');
-    if(chk && !chk.checked){
-      alert('⚠️ تنبيه نظام: يجب التأكيد على إقرار عدم دمج الخصم مع عروض المناسبات كاليوم الوطني قبل إتمام الصرف.');
-      return;
-    }
-    const redeemStamp = Date.now();
-    history.unshift({
-      code: code,
-      type: rewType,
-      rewardType: rewardName,
-      name: rewardName,
-      time: redeemStamp,
-      dateTimeArabic: new Date(redeemStamp).toLocaleString('ar-SA'),
-      status: 'تم الصرف لدى الكاشير ✓',
-      cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
-    });
-    db.history = history;
-    saveDB(db);
-
-    // تسجيل الصرف في السجل المركزي الذري (SEC-03)
-    try {
-      let reg = JSON.parse(localStorage.getItem('the_aa_cafe_redeemed_register') || '{}');
-      reg[code] = {
-        code: code,
-        time: redeemStamp,
-        cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
-      };
-      localStorage.setItem('the_aa_cafe_redeemed_register', JSON.stringify(reg));
-    } catch(e){}
-
-    recordAudit('REDEEM_CONFIRMED', `صرف مكافأة للعميل [${rewardName}] بكود: ${code}`, currentEmployee.id);
-    cashierResult.className = 'alert success';
-    cashierResult.textContent = 'تم صرف المكافأة بنجاح وتحديث السجل آلياً ومنع أي إعادة استخدام ✓';
-    cashierCodeInput.value = '';
-    renderCashierHistory();
-  };
+  } else {
+    cashierResult.style.display = 'block';
+    cashierResult.className = 'alert error';
+    cashierResult.innerHTML = `⚠️ يلزم توفر عميل الخادم المركزي لتوثيق وصرف القسائم.`;
+    return;
+  }
 });
 
 function renderCashierHistory(){

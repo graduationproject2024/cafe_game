@@ -17,10 +17,10 @@ CREATE TABLE IF NOT EXISTS customers (
 );
 CREATE INDEX IF NOT EXISTS idx_customers_phone ON customers(phone);
 
--- 2. Sessions Table (Client session binding & abandoned score reset)
+-- 2. Sessions Table (Client session binding and abandoned score reset - customer_id nullable for guest sessions)
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
-    customer_id TEXT NOT NULL,
+    customer_id TEXT,
     ip_address TEXT,
     user_agent TEXT,
     started_at INTEGER NOT NULL,
@@ -30,11 +30,11 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_customer ON sessions(customer_id);
 
--- 3. Game Runs Table (Auditable gameplay runs & server validation)
+-- 3. Game Runs Table (Auditable gameplay runs and server validation - customer_id nullable for guest runs)
 CREATE TABLE IF NOT EXISTS game_runs (
     id TEXT PRIMARY KEY,
     session_id TEXT NOT NULL,
-    customer_id TEXT NOT NULL,
+    customer_id TEXT,
     game_id TEXT NOT NULL,
     raw_score INTEGER NOT NULL,
     verified_score INTEGER NOT NULL,

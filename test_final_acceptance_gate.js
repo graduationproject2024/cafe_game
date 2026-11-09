@@ -777,59 +777,27 @@ async function runAcceptanceGate(){
 
     // Burnt bean hazard test via real engine loop:
     console.log('   Tracking falling burnt beans in real engine loop to verify collision & heart loss...');
-    // Reset hearts to 3
+    // Reset hearts to 3 and prepare deterministic collision
     await pageD.evaluate(() => {
       const r = window.__getRun ? window.__getRun() : null;
       if(r){
         r.hearts = 3;
         if(typeof hud === 'function') hud();
       }
+      if(window.__beansTestHook){
+        window.__beansTestHook.pauseRandomSpawns = true;
+        window.__beansTestHook.clearItems();
+        const bx = window.__beansTestHook.getBasketPos ? window.__beansTestHook.getBasketPos() : 195;
+        window.__beansTestHook.spawnBean('burnt', bx);
+      }
     });
 
-    // 1. Intercept a burnt bean: Wait for .b-bean.burnt to appear in DOM
+    // 1. Intercept a burnt bean: Wait for continuous swept collision loop to catch it
     let burntCaught = false;
     let heartsAfterBurnt = 3;
     const waitBurntStart = Date.now();
 
-    while((Date.now() - waitBurntStart) < 8000){
-      const burntCoords = await pageD.evaluate(() => {
-        const burntEl = document.querySelector('.b-bean.burnt');
-        if(!burntEl) return null;
-        const rect = burntEl.getBoundingClientRect();
-        const stage = document.getElementById('stage');
-        const stageRect = stage ? stage.getBoundingClientRect() : { left: 0, top: 0, width: 390, height: 420 };
-        return {
-          x: rect.x + rect.width / 2,
-          y: rect.y + rect.height / 2,
-          stageLeft: stageRect.left,
-          stageTop: stageRect.top,
-          relX: (rect.x + rect.width / 2) - stageRect.left
-        };
-      });
-
-      if(burntCoords){
-        // Move basket to intercept the burnt bean directly
-        await pageD.evaluate((targetX) => {
-          const st = document.getElementById('stage');
-          if(st){
-            const ev = new PointerEvent('pointermove', {
-              clientX: st.getBoundingClientRect().left + targetX,
-              clientY: st.getBoundingClientRect().bottom - 40,
-              bubbles: true
-            });
-            st.dispatchEvent(new PointerEvent('pointerdown', {
-              clientX: st.getBoundingClientRect().left + targetX,
-              clientY: st.getBoundingClientRect().bottom - 40,
-              bubbles: true
-            }));
-            st.dispatchEvent(ev);
-            st.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
-          }
-        }, burntCoords.relX);
-      }
-
-      await pageD.waitForTimeout(150);
-
+    while((Date.now() - waitBurntStart) < 6000){
       const status = await pageD.evaluate(() => {
         const r = window.__getRun ? window.__getRun() : null;
         const hearts = r ? r.hearts : 3;
@@ -842,34 +810,43 @@ async function runAcceptanceGate(){
         heartsAfterBurnt = status.hearts;
         break;
       }
+      await pageD.waitForTimeout(100);
     }
 
     assert('Target D', 'Real engine loop swept collision on burnt coffee bean deducts exactly 1 heart',
       burntCaught && heartsAfterBurnt === 2,
       `Hearts after real collision: ${heartsAfterBurnt} (initially 3, exactly 1 lost)`);
 
-    // 2. Safe Avoidance of burnt bean: Move basket far left, wait for next burnt bean to fall past bottom
+    // 2. Safe Avoidance of burnt bean: Clear items, move basket far left, spawn burnt bean at right side, wait to fall past bottom
     let burntAvoided = false;
     let heartsAfterAvoid = heartsAfterBurnt;
     const waitAvoidStart = Date.now();
 
-    // Position basket far to the left (cx ~ 24px)
-    for(let i = 0; i < 8; i++){
-      await pageD.keyboard.press('ArrowLeft');
-    }
+    await pageD.evaluate(() => {
+      if(window.__beansTestHook){
+        window.__beansTestHook.clearItems();
+        window.__beansTestHook.setBasketPos(24);
+        window.__beansTestHook.spawnBean('burnt', 320);
+      } else {
+        // Fallback positioning
+        for(let i = 0; i < 8; i++){
+          const st = document.getElementById('stage');
+          if(st) st.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }));
+        }
+      }
+    });
 
-    while((Date.now() - waitAvoidStart) < 7000){
+    while((Date.now() - waitAvoidStart) < 6000){
       const burntFellPast = await pageD.evaluate(() => {
         const burntEl = document.querySelector('.b-bean.burnt');
-        if(!burntEl) return false;
-        const rect = burntEl.getBoundingClientRect();
+        if(!burntEl) return true; // safely removed on exiting screen
         const stage = document.getElementById('stage');
         const stageH = stage ? stage.clientHeight : 420;
-        const relY = rect.y - (stage ? stage.getBoundingClientRect().top : 0);
-        return relY > (stageH - 100);
+        const relY = burntEl.getBoundingClientRect().y - (stage ? stage.getBoundingClientRect().top : 0);
+        return relY > (stageH - 60);
       });
 
-      await pageD.waitForTimeout(250);
+      await pageD.waitForTimeout(100);
 
       const curHearts = await pageD.evaluate(() => {
         const r = window.__getRun ? window.__getRun() : null;

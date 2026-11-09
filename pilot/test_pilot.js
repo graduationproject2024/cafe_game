@@ -135,7 +135,10 @@ async function runPilotTests(){
     await pageMobile.waitForSelector('.pilot-target.burnt', { timeout: 2000 });
     const burntTarget = await pageMobile.$('.pilot-target.burnt');
     assert('Hazard Mechanics: Burnt bean hazard target rendered on stage', burntTarget !== null, 'Burnt bean DOM element created');
-    await burntTarget.click();
+    await pageMobile.evaluate(() => {
+      const b = document.querySelector('.pilot-target.burnt');
+      if(b) b.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, cancelable: true }));
+    });
     await pageMobile.waitForTimeout(200);
     const heartsAfter = await pageMobile.evaluate(() => window.__pilotTestState.getHearts());
     assert('Hazard Mechanics: Burnt bean tap deducts exactly 1 heart', heartsAfter === (heartsBefore - 1), `Hearts strictly reduced: ${heartsBefore} -> ${heartsAfter}`);

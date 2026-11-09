@@ -389,6 +389,49 @@ async function runBackendTests(){
       hasLoginAudit && hasClaimAudit && hasRedeemAudit && hasRaceAudit,
       `Total Audits: ${recentLogs.length}, Found: Login=${hasLoginAudit}, Claim=${hasClaimAudit}, Redeem=${hasRedeemAudit}, RaceBlocked=${hasRaceAudit}`);
 
+    // -------------------------------------------------------------------------
+    // 9. Anonymous Guest Sessions & Phone Binding Lifecycle
+    // -------------------------------------------------------------------------
+    console.log('\n--- 9. Anonymous Guest Sessions & Phone Binding Lifecycle ---');
+
+    // 9a. Customer starts playing as guest before entering phone
+    const guestRes = voucherService.startGuestSession('127.0.0.1');
+    assert('Guest Sessions', 'Anonymous guest session created with signed guest token and null customerId',
+      guestRes && guestRes.session && guestRes.session.isGuest === true && typeof guestRes.session.token === 'string',
+      `Guest Session: ${guestRes?.session?.id}`);
+
+    // 9b. Guest submits a qualifying game run
+    const guestRunRes = voucherService.submitGameRun(guestRes.session.token, 'reflex', 480, 29000, '127.0.0.1');
+    assert('Guest Sessions', 'Guest submits valid game run: feasibility verified and run bound to guest session',
+      guestRunRes && guestRunRes.status === 'VERIFIED' && guestRunRes.verifiedScore === 480 && guestRunRes.isGuest === true,
+      `Run ID: ${guestRunRes?.runId}, Score: ${guestRunRes?.verifiedScore}`);
+
+    // 9c. Guest now enters phone number to claim reward: session binds seamlessly
+    const bindRes = voucherService.bindGuestSession(guestRes.session.token, '0598765432', 'سارة الميموني', '127.0.0.1');
+    assert('Guest Sessions', 'Guest session binds to Saudi mobile: game runs transferred and welcome promo qualified',
+      bindRes && bindRes.customer && bindRes.customer.phone === '0598765432' && bindRes.customer.welcomePromoStatus === 'QUALIFIED' && bindRes.customer.bestScore === 480 && bindRes.session.isGuest === false,
+      `Customer ID: ${bindRes?.customer?.id}, Best Score: ${bindRes?.customer?.bestScore}, Promo: ${bindRes?.customer?.welcomePromoStatus}`);
+
+    // 9d. Bound customer claims server-authoritative voucher using authenticated token
+    const boundClaimRes = voucherService.claimVoucher(bindRes.session.token, 'T', false, '127.0.0.1');
+    assert('Guest Sessions', 'Bound customer claims Tier T voucher successfully from verified guest run',
+      boundClaimRes && boundClaimRes.voucher && boundClaimRes.voucher.type === 'T' && boundClaimRes.voucher.status === 'ACTIVE',
+      `Voucher Code: ${boundClaimRes?.voucher?.code}`);
+
+    // -------------------------------------------------------------------------
+    // 10. Staff Token Revocation / Logout
+    // -------------------------------------------------------------------------
+    console.log('\n--- 10. Staff Token Revocation & Logout ---');
+
+    const tempCashierLogin = authService.login('cashier1', 'Cashier@Madinah2024!', '127.0.0.1');
+    const validBeforeLogout = authService.verifyToken(tempCashierLogin.token);
+    authService.logout(tempCashierLogin.token);
+    const validAfterLogout = authService.verifyToken(tempCashierLogin.token);
+
+    assert('Staff Logout', 'Staff logout revokes bearer token immediately from active tokens cache',
+      validBeforeLogout !== null && validAfterLogout === null,
+      `Before: ${validBeforeLogout?.staffId}, After: ${validAfterLogout}`);
+
   } catch(err){
     console.error('Fatal backend test error:', err);
     process.exitCode = 1;

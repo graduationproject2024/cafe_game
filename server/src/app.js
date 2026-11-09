@@ -42,20 +42,38 @@ class App {
     });
   }
 
+  // Resolves allowed CORS origin based on ALLOWED_ORIGINS environment variable
+  _resolveCorsOrigin(req){
+    const reqOrigin = req ? req.headers['origin'] : null;
+    const envAllowed = process.env.ALLOWED_ORIGINS;
+    if(!envAllowed || envAllowed.trim() === '*'){
+      return reqOrigin || '*';
+    }
+    const allowedList = envAllowed.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    if(!reqOrigin) return '*';
+    const normalizedReq = reqOrigin.trim().toLowerCase();
+    if(allowedList.includes(normalizedReq)){
+      return reqOrigin;
+    }
+    return null; // rejected origin
+  }
+
   // Send JSON response with standard headers & safe origin reflection
   _send(req, res, statusCode, payload){
-    const reqOrigin = req ? req.headers['origin'] : null;
-    const allowedOrigin = reqOrigin || '*';
-
-    res.writeHead(statusCode, {
+    const allowedOrigin = this._resolveCorsOrigin(req);
+    const headers = {
       'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-Session-Token',
       'Cache-Control': 'no-store, no-cache, must-revalidate',
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY'
-    });
+    };
+    if(allowedOrigin){
+      headers['Access-Control-Allow-Origin'] = allowedOrigin;
+    }
+
+    res.writeHead(statusCode, headers);
     res.end(JSON.stringify(payload));
   }
 
@@ -68,12 +86,15 @@ class App {
 
     // CORS preflight
     if(method === 'OPTIONS'){
-      const reqOrigin = req.headers['origin'] || '*';
-      res.writeHead(204, {
-        'Access-Control-Allow-Origin': reqOrigin,
+      const allowedOrigin = this._resolveCorsOrigin(req);
+      const headers = {
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-Session-Token'
-      });
+      };
+      if(allowedOrigin){
+        headers['Access-Control-Allow-Origin'] = allowedOrigin;
+      }
+      res.writeHead(204, headers);
       return res.end();
     }
 
@@ -89,10 +110,25 @@ class App {
         });
       }
 
-      // 2. Customer Start Session
+      // 2a. Guest Start Session (Anonymous gameplay session)
+      if(method === 'POST' && pathname === '/api/v1/sessions/guest'){
+        const result = this.voucherService.startGuestSession(ipAddress);
+        return this._send(req, res, 200, result);
+      }
+
+      // 2b. Bind Guest Session to Saudi Mobile Phone
+      if(method === 'POST' && pathname === '/api/v1/sessions/bind'){
+        const body = await this._parseBody(req);
+        const guestToken = req.headers['x-session-token'] || body.guestSessionToken || body.sessionToken || body.token;
+        const result = this.voucherService.bindGuestSession(guestToken, body.phone, body.nickname, ipAddress);
+        return this._send(req, res, 200, result);
+      }
+
+      // 2c. Customer Start Session
       if(method === 'POST' && pathname === '/api/v1/sessions/start'){
         const body = await this._parseBody(req);
-        const result = this.voucherService.startCustomerSession(body.phone, body.nickname, ipAddress);
+        const guestToken = req.headers['x-session-token'] || body.guestSessionToken;
+        const result = this.voucherService.startCustomerSession(body.phone, body.nickname, ipAddress, guestToken);
         return this._send(req, res, 200, result);
       }
 
@@ -170,6 +206,15 @@ class App {
         return this._send(req, res, 200, result);
       }
 
+      // 7b. Staff Logout / Token Revocation
+      if(method === 'POST' && pathname === '/api/v1/staff/logout'){
+        const authHeader = req.headers['authorization'];
+        if(authHeader){
+          this.authService.logout(authHeader);
+        }
+        return this._send(req, res, 200, { success: true, message: 'Staff logged out successfully.' });
+      }
+
       // 8. Staff Analytics (Manager / Owner only)
       if(method === 'GET' && pathname === '/api/v1/staff/analytics'){
         const authHeader = req.headers['authorization'];
@@ -205,10 +250,9 @@ class App {
     }
   }
 
-  listen(port = 3000, callback){
+  listen(...args){
     this.server = http.createServer((req, res) => this.handleRequest(req, res));
-    this.server.listen(port, callback);
-    return this.server;
+    return this.server.listen(...args);
   }
 
   close(callback){

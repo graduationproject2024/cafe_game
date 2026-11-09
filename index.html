@@ -2408,6 +2408,16 @@ h2 {
 window.addEventListener('error', e => { try { console.warn('[cafe]', e.message); } catch(x){} });
 window.addEventListener('unhandledrejection', e => { try { console.warn('[cafe]', e.reason); } catch(x){} });
 
+/* ============ بيئة العمل وخطافات الاختبار المعزولة ============ */
+const isLocalHost = (typeof location !== 'undefined' && (
+  location.protocol === 'file:' ||
+  location.hostname === 'localhost' ||
+  location.hostname === '127.0.0.1' ||
+  location.hostname === '0.0.0.0'
+));
+const isSimulatedProd = (typeof window !== 'undefined' && !!window.__SIMULATE_PROD__);
+const isTestEnv = isLocalHost && !isSimulatedProd;
+
 /* ============ إعدادات كافيه the A&A المختص - المدينة المنورة ============ */
 var currentLang = (function(){
   try { return localStorage.getItem('the_aa_lang') || 'ar'; } catch(e){ return 'ar'; }
@@ -3433,18 +3443,63 @@ const AA_BACKEND_CLIENT = {
   sessionToken: (function(){
     try { return sessionStorage.getItem('aa_customer_session_token') || null; } catch(e){ return null; }
   })(),
-  async startSession(phone, nickname){
-    if(!phone) return null;
+  isGuest: false,
+  async initGuestSession(){
+    if(this.sessionToken) return { session: { token: this.sessionToken } };
     try {
-      const res = await fetch(this.baseUrl + '/sessions/start', {
+      const res = await fetch(this.baseUrl + '/sessions/guest', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, nickname: nickname || 'ضيف the A&A' })
+        headers: { 'Content-Type': 'application/json' }
       });
       if(res.ok){
         const data = await res.json();
         if(data && data.session && data.session.token){
           this.sessionToken = data.session.token;
+          this.isGuest = true;
+          try { sessionStorage.setItem('aa_customer_session_token', this.sessionToken); } catch(e){}
+          return data;
+        }
+      }
+    } catch(e){}
+    return null;
+  },
+  async bindSession(phone, nickname){
+    const guestToken = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+    try {
+      const res = await fetch(this.baseUrl + '/sessions/bind', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(guestToken ? { 'X-Session-Token': guestToken } : {})
+        },
+        body: JSON.stringify({ guestSessionToken: guestToken, phone, nickname: nickname || 'ضيف the A&A' })
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(data && data.session && data.session.token){
+          this.sessionToken = data.session.token;
+          this.isGuest = false;
+          try { sessionStorage.setItem('aa_customer_session_token', this.sessionToken); } catch(e){}
+          return data;
+        }
+      }
+    } catch(e){}
+    return null;
+  },
+  async startSession(phone, nickname){
+    if(!phone) return null;
+    try {
+      const guestToken = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+      const res = await fetch(this.baseUrl + '/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, nickname: nickname || 'ضيف the A&A', guestSessionToken: guestToken })
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(data && data.session && data.session.token){
+          this.sessionToken = data.session.token;
+          this.isGuest = false;
           try { sessionStorage.setItem('aa_customer_session_token', this.sessionToken); } catch(e){}
           return data;
         }
@@ -3453,7 +3508,11 @@ const AA_BACKEND_CLIENT = {
     return null;
   },
   async submitRun(gameId, score, durationMs){
-    const token = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+    let token = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+    if(!token){
+      const g = await this.initGuestSession();
+      if(g && g.session) token = g.session.token;
+    }
     if(!token) return null;
     try {
       const res = await fetch(this.baseUrl + '/runs/submit', {
@@ -3470,7 +3529,7 @@ const AA_BACKEND_CLIENT = {
   },
   async claimVoucher(targetType, isUpgrade){
     const token = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
-    if(!token) return null;
+    if(!token) return { offline: true, error: 'No session token' };
     try {
       const res = await fetch(this.baseUrl + '/vouchers/claim', {
         method: 'POST',
@@ -3480,9 +3539,11 @@ const AA_BACKEND_CLIENT = {
         },
         body: JSON.stringify({ targetType: targetType || 'T', isUpgrade: !!isUpgrade })
       });
-      if(res.ok) return await res.json();
-    } catch(e){}
-    return null;
+      const data = await res.json().catch(() => ({}));
+      return { status: res.status, ok: res.ok, ...data };
+    } catch(e){
+      return { offline: true, error: 'Connection failed' };
+    }
   }
 };
 window.AA_BACKEND_CLIENT = AA_BACKEND_CLIENT;
@@ -3723,7 +3784,7 @@ function endRun(reason){
   save();
 
   // Phase 2: إرسال نتيجة الجولة للخادم المركزي الآمن
-  if(S.phone && window.AA_BACKEND_CLIENT){
+  if(S.phone && window.AA_BACKEND_CLIENT && (!isTestEnv || window.AA_BACKEND_CLIENT.sessionToken)){
     window.AA_BACKEND_CLIENT.submitRun(gm.id, rawScore, Math.max(3000, Date.now() - (run.startedAt || (Date.now() - 30000))));
   }
 
@@ -4380,6 +4441,45 @@ const GAMES = [
     });
 
     let items = [], timer = 0, lastSpawnX = c.W() / 2;
+
+    if(isTestEnv){
+      window.__beansTestHook = {
+        pauseRandomSpawns: false,
+        clearItems(){
+          items.forEach(it => {
+            it.resolved = true;
+            try { it.e.remove(); } catch(err){}
+          });
+          items = [];
+        },
+        spawnBean(type, x){
+          const burnt = (type === 'burnt');
+          const bonus = (type === 'bonus');
+          const icon = burnt ? '✕' : (bonus ? '✨' : '☕');
+          const itCls = burnt ? 'burnt' : (bonus ? 'bonus' : 'gold');
+          const e = el('div', 'b-bean ' + itCls, icon);
+          const ix = (typeof x === 'number') ? x : (c.W() / 2);
+          e.style.left = (ix - 17) + 'px';
+          st.append(e);
+          const itemObj = { e: e, x: ix, y: -10, burnt: burnt, bonus: bonus, resolved: false };
+          items.push(itemObj);
+          return itemObj;
+        },
+        setBasketPos(x){
+          playerMoved = true;
+          setPos(x);
+        },
+        getBasketPos(){
+          return cx;
+        },
+        getItems(){
+          return items;
+        }
+      };
+      c.cleanup(() => {
+        try { delete window.__beansTestHook; } catch(err){}
+      });
+    }
     c.loop(dt => {
       const safeDt = Math.min(dt, 0.05);
       const W = c.W(), H = c.H(), d = c.d();
@@ -4387,6 +4487,9 @@ const GAMES = [
       timer -= safeDt * 1000;
 
       if(timer <= 0){
+        if(isTestEnv && window.__beansTestHook && window.__beansTestHook.pauseRandomSpawns){
+          timer = 5000;
+        } else {
         timer = Math.max(380, lerp(720, 400, d) / Math.min(diffMul, 1.2) * rnd(0.9, 1.1));
         const roll = Math.random();
         const burnt = roll < lerp(0.18, 0.35, d);
@@ -4406,6 +4509,7 @@ const GAMES = [
         e.style.left = (ix - 17) + 'px';
         st.append(e);
         items.push({ e: e, x: ix, y: -20, burnt: burnt, bonus: bonus, resolved: false });
+        }
       }
 
       const vy = Math.min(360, lerp(160, 320, d) * Math.min(diffMul, 1.25));
@@ -5522,10 +5626,10 @@ function commitReward(type, isUpgrade){
     }
   }
 
-  finalizeRewardClaim(type, isUpgrade);
+  return finalizeRewardClaim(type, isUpgrade);
 }
 
-function finalizeRewardClaim(type, isUpgrade){
+async function finalizeRewardClaim(type, isUpgrade){
   if(S.claim && !isUpgrade){
     banner(currentLang === 'en' ? 'Voucher already claimed for this session.' : 'تم صرف القسيمة مسبقاً لهذه الجلسة.');
     renderReward(S.claim);
@@ -5543,8 +5647,51 @@ function finalizeRewardClaim(type, isUpgrade){
     banner(currentLang === 'en' ? 'Authentic gameplay certificate required. Play a round first!' : 'شهادة اللعب غير متوفرة أو غير مؤكدة! العب جولة أولاً للتأهل.');
     return;
   }
+
+  S.voucherState = 'CLAIM_PENDING';
+
+  // Phase 2: طلب إصدار وتوثيق القسيمة من الخادم المركزي ذو الصلاحية الحصرية
+  let srvData = null;
+  if(!isTestEnv || (window.AA_BACKEND_CLIENT && window.AA_BACKEND_CLIENT.sessionToken)){
+    if(window.AA_BACKEND_CLIENT){
+      try {
+        srvData = await window.AA_BACKEND_CLIENT.claimVoucher(type, isUpgrade);
+      } catch(err){
+        srvData = { offline: true };
+      }
+    }
+  }
+
+  let c = null;
+  let srvSig = null;
+  let srvExp = null;
+
+  if(srvData && srvData.voucher && srvData.voucher.code){
+    c = srvData.voucher.code;
+    srvSig = srvData.voucher.signature;
+    srvExp = srvData.voucher.expiresAt;
+    S.voucherState = 'SERVER_VOUCHER_ISSUED';
+  } else if(srvData && srvData.status === 409){
+    S.voucherState = 'ELIGIBLE';
+    banner(currentLang === 'en' ? 'Voucher already claimed. Duplicate claims prohibited.' : 'تم صرف القسيمة مسبقاً. يمنع تكرار الصرف.');
+    if(S.claim) renderReward(S.claim);
+    return;
+  } else if(srvData && srvData.status === 403){
+    S.voucherState = 'NOT_ELIGIBLE';
+    banner(currentLang === 'en' ? 'Ineligible for requested tier voucher.' : 'غير مؤهل لهذه الفئة من المكافآت.');
+    return;
+  } else if(!isTestEnv){
+    // في بيئة الإنتاج: يُمنع قطعياً توليد أي قسيمة تجارية محلياً عند عدم الاتصال بالخادم
+    S.voucherState = 'ELIGIBLE';
+    banner(currentLang === 'en' ? 'Connection to central server required to issue authenticated vouchers. Please check your internet connection.' : 'يلزم الاتصال بالخادم المركزي لإصدار قسائم معتمدة. يرجى التأكد من اتصال الإنترنت والمحاولة مجدداً.');
+    return;
+  } else {
+    // حصرياً في بيئة اختبارات المتصفح المحلية المنفصلة (Unit-Testing Harness)
+    c = mintCode(type);
+    S.voucherState = 'SERVER_VOUCHER_ISSUED';
+  }
+
   const day = dayNow();
-  const c = mintCode(type);
   if(isUpgrade && S.claim){
     const oldCode = fmtCode(S.claim.code);
     // SEC-04: إلغاء القسيمة السابقة وإدراجها في قائمة revokedCodes في قاعدة بيانات الموظفين
@@ -5565,9 +5712,20 @@ function finalizeRewardClaim(type, isUpgrade){
     S.claim.code = c;
     S.claim.upgraded = true;
     S.claim.redeemed = false;
+    if(srvSig) S.claim.serverSignature = srvSig;
+    if(srvExp) S.claim.serverExpiresAt = srvExp;
   } else {
-    S.claim = { type: type, code: c, day: day, redeemed: false };
+    S.claim = {
+      type: type,
+      code: c,
+      day: day,
+      redeemed: false,
+      ...(srvSig ? { serverSignature: srvSig } : {}),
+      ...(srvExp ? { serverExpiresAt: srvExp } : {})
+    };
   }
+
+  S.voucherState = 'ACTIVE';
 
   // تحديث حالة الحافز الترحيبي وإغلاق دورة الاستحقاق رسمياً بعد الصرف الفعلي
   if(S.welcomePromoStatus === 'QUALIFIED' || S.welcomePromoQualified){
@@ -5601,32 +5759,6 @@ function finalizeRewardClaim(type, isUpgrade){
     order: S.order,
     nickname: S.nickname
   });
-
-  // Phase 2: طلب إصدار وتوثيق القسيمة على الخادم المركزي الآمن
-  if(window.AA_BACKEND_CLIENT){
-    window.AA_BACKEND_CLIENT.claimVoucher(type, isUpgrade).then(srvData => {
-      if(srvData && srvData.voucher && srvData.voucher.code){
-        const serverCode = srvData.voucher.code;
-        if(S.claim){
-          S.claim.code = serverCode;
-          S.claim.serverSignature = srvData.voucher.signature;
-          S.claim.serverExpiresAt = srvData.voucher.expiresAt;
-        }
-        try {
-          const rawWallet = localStorage.getItem('the_aa_cafe_vouchers_wallet');
-          let wallet = rawWallet ? JSON.parse(rawWallet) : [];
-          if(Array.isArray(wallet) && wallet[0]){
-            wallet[0].code = serverCode;
-            wallet[0].serverSignature = srvData.voucher.signature;
-            localStorage.setItem('the_aa_cafe_vouchers_wallet', JSON.stringify(wallet));
-          }
-        } catch(e){}
-        const rwCodeEl = document.getElementById('rwCode');
-        if(rwCodeEl) rwCodeEl.textContent = fmtCode(serverCode);
-        save();
-      }
-    }).catch(() => {});
-  }
 
   syncToGoogleSheet(isUpgrade ? 'UPGRADE_REWARD' : 'CLAIM_REWARD');
 
@@ -6140,7 +6272,7 @@ if(chPhoneInput){
 
 const btnConfirmChoicePhone = $('#btnConfirmChoicePhone');
 if(btnConfirmChoicePhone){
-  btnConfirmChoicePhone.addEventListener('click', () => {
+  btnConfirmChoicePhone.addEventListener('click', async () => {
     const rawVal = ($('#chPhone').value || '').trim();
     const v = SaudiPhone.validate(rawVal);
     const err = $('#chErr');
@@ -6177,9 +6309,11 @@ if(btnConfirmChoicePhone){
 
     syncToGoogleSheet('REGISTER', { phone: v.canonical, order: orderVal });
 
-    // Phase 2: بدء جلسة عميل مشفرة على الخادم المركزي
-    if(window.AA_BACKEND_CLIENT){
-      window.AA_BACKEND_CLIENT.startSession(v.canonical, S.nickname);
+    // Phase 2: ربط جلسة الضيف وتوثيق العميل على الخادم المركزي
+    if(window.AA_BACKEND_CLIENT && (!isTestEnv || window.AA_BACKEND_CLIENT.sessionToken)){
+      try {
+        await window.AA_BACKEND_CLIENT.bindSession(v.canonical, S.nickname);
+      } catch(e){}
     }
 
     const phoneCard = $('#choicePhoneCard');
@@ -6187,7 +6321,7 @@ if(btnConfirmChoicePhone){
     const isUp = (phoneCard && phoneCard.dataset.isUpgrade === '1');
     if(phoneCard) phoneCard.style.display = 'none';
 
-    finalizeRewardClaim(pType, isUp);
+    await finalizeRewardClaim(pType, isUp);
   });
 }
 
@@ -6890,14 +7024,6 @@ try {
 
 // Target 7 & Critical Target F: حصر كافة خطافات الاختبار والتصحيح التشخيصي داخل بيئة الاختبار المحلية حصراً
 // في أي سيرفر أو دومين إنتاجي أو خارجي، تُعزل الخطافات تماماً ولا يمكن تفعيلها عبر أي متغير في الكونسول
-const isLocalHost = (typeof location !== 'undefined' && (
-  location.protocol === 'file:' ||
-  location.hostname === 'localhost' ||
-  location.hostname === '127.0.0.1' ||
-  location.hostname === '0.0.0.0'
-));
-const isSimulatedProd = (typeof window !== 'undefined' && !!window.__SIMULATE_PROD__);
-const isTestEnv = isLocalHost && !isSimulatedProd;
 if(isTestEnv){
   window.GAMES = (typeof GAMES !== 'undefined' ? GAMES : []);
   window.DifficultyEngine = (typeof DifficultyEngine !== 'undefined' ? DifficultyEngine : null);

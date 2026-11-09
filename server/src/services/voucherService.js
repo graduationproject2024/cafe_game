@@ -50,9 +50,121 @@ class VoucherService {
   }
 
   /**
-   * Finding P0-04: Starts customer session & mints cryptographic session token
+   * Starts an anonymous guest session for visitors who begin playing before entering phone
    */
-  startCustomerSession(phone, nickname = 'ضيف the A&A', ipAddress = '127.0.0.1'){
+  startGuestSession(ipAddress = '127.0.0.1'){
+    const now = Date.now();
+    const sessionId = 'GUEST_' + Date.now().toString(36) + '_' + crypto.randomBytes(4).toString('hex');
+    this.db.prepare(`
+      INSERT INTO sessions (id, customer_id, ip_address, started_at, last_active_at, is_active)
+      VALUES (?, NULL, ?, ?, ?, 1)
+    `).run(sessionId, ipAddress, now, now);
+
+    const guestToken = cryptoService.mintGuestSessionToken(sessionId);
+    return {
+      session: {
+        id: sessionId,
+        token: guestToken,
+        isGuest: true,
+        startedAt: now
+      }
+    };
+  }
+
+  /**
+   * Binds an anonymous guest session to a customer profile upon entering Saudi mobile number
+   * Seamlessly transfers all verified gameplay runs and recalculates qualification
+   */
+  bindGuestSession(guestToken, phone, nickname = 'ضيف the A&A', ipAddress = '127.0.0.1'){
+    const tokenPayload = cryptoService.verifyCustomerSessionToken(guestToken);
+    if(!tokenPayload || !tokenPayload.sessionId){
+      const err = new Error('Invalid or expired guest session token');
+      err.status = 401;
+      throw err;
+    }
+
+    const sessionId = tokenPayload.sessionId;
+    const session = this.db.prepare('SELECT * FROM sessions WHERE id = ? AND is_active = 1').get(sessionId);
+    if(!session){
+      const err = new Error('Session not found or expired');
+      err.status = 404;
+      throw err;
+    }
+
+    const normalizedPhone = this.normalizeSaudiPhone(phone);
+    if(!normalizedPhone){
+      const err = new Error('Invalid Saudi phone number. Must start with 05 and have 10 digits.');
+      err.status = 400;
+      throw err;
+    }
+
+    const now = Date.now();
+    let customer = this.db.prepare('SELECT * FROM customers WHERE phone = ?').get(normalizedPhone);
+    if(!customer){
+      const customerId = 'CUST_' + Date.now().toString(36) + '_' + crypto.randomBytes(3).toString('hex');
+      this.db.prepare(`
+        INSERT INTO customers (id, phone, nickname, welcome_promo_status, first_promo_awarded, total_visits, best_score, created_at, last_active_at)
+        VALUES (?, ?, ?, 'ELIGIBLE', 0, 1, 0, ?, ?)
+      `).run(customerId, normalizedPhone, nickname, now, now);
+      customer = this.db.prepare('SELECT * FROM customers WHERE id = ?').get(customerId);
+    } else {
+      this.db.prepare(`
+        UPDATE customers SET last_active_at = ?, nickname = COALESCE(?, nickname)
+        WHERE id = ?
+      `).run(now, nickname, customer.id);
+      customer = this.db.prepare('SELECT * FROM customers WHERE id = ?').get(customer.id);
+    }
+
+    // Bind session to customer
+    this.db.prepare('UPDATE sessions SET customer_id = ?, last_active_at = ? WHERE id = ?').run(customer.id, now, sessionId);
+
+    // Transfer all guest runs from this session to the customer
+    this.db.prepare('UPDATE game_runs SET customer_id = ? WHERE session_id = ? AND customer_id IS NULL').run(customer.id, sessionId);
+
+    // Calculate customer's maximum score including newly bound runs
+    const maxRunRow = this.db.prepare('SELECT MAX(verified_score) as maxScore FROM game_runs WHERE customer_id = ? AND status = "VERIFIED"').get(customer.id);
+    const maxRunScore = maxRunRow ? (maxRunRow.maxScore || 0) : 0;
+    const newBest = Math.max(customer.best_score || 0, maxRunScore);
+
+    let promoStatus = customer.welcome_promo_status;
+    if(customer.total_visits <= 2 && newBest >= 350 && promoStatus === 'ELIGIBLE'){
+      promoStatus = 'QUALIFIED';
+    }
+
+    this.db.prepare(`
+      UPDATE customers SET best_score = ?, welcome_promo_status = ?, last_active_at = ?
+      WHERE id = ?
+    `).run(newBest, promoStatus, now, customer.id);
+    customer = this.db.prepare('SELECT * FROM customers WHERE id = ?').get(customer.id);
+
+    const fullSessionToken = cryptoService.mintCustomerSessionToken(sessionId, customer.id, customer.phone);
+
+    return {
+      session: {
+        id: sessionId,
+        token: fullSessionToken,
+        isGuest: false,
+        startedAt: session.started_at
+      },
+      customer: {
+        id: customer.id,
+        phone: customer.phone,
+        nickname: customer.nickname,
+        welcomePromoStatus: customer.welcome_promo_status,
+        totalVisits: customer.total_visits,
+        bestScore: customer.best_score
+      }
+    };
+  }
+
+  /**
+   * Finding P0-04: Starts customer session & mints cryptographic session token
+   * Optionally binds an existing guest session token if provided
+   */
+  startCustomerSession(phone, nickname = 'ضيف the A&A', ipAddress = '127.0.0.1', guestSessionToken = null){
+    if(guestSessionToken){
+      return this.bindGuestSession(guestSessionToken, phone, nickname, ipAddress);
+    }
     const normalizedPhone = this.normalizeSaudiPhone(phone);
     if(!normalizedPhone){
       const err = new Error('Invalid Saudi phone number. Must start with 05 and have 10 digits.');
@@ -91,6 +203,7 @@ class VoucherService {
       session: {
         id: sessionId,
         token: sessionToken,
+        isGuest: false,
         startedAt: now
       },
       customer: {
@@ -143,7 +256,7 @@ class VoucherService {
       throw err;
     }
 
-    const customer = this.db.prepare('SELECT * FROM customers WHERE id = ?').get(session.customer_id);
+    const customer = session.customer_id ? this.db.prepare('SELECT * FROM customers WHERE id = ?').get(session.customer_id) : null;
     const score = parseInt(rawScore, 10);
     const duration = parseInt(durationMs, 10);
 
@@ -171,11 +284,11 @@ class VoucherService {
     this.db.prepare(`
       INSERT INTO game_runs (id, session_id, customer_id, game_id, raw_score, verified_score, duration_ms, status, rejection_reason, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(runId, session.id, customer.id, gameId, score, verifiedScore, duration, status, reason, now);
+    `).run(runId, session.id, customer ? customer.id : null, gameId, score, verifiedScore, duration, status, reason, now);
 
     if(!isFeasible){
       if(this.auditService){
-        this.auditService.log('RUN_BOUNDS_REJECTED', customer.id, 'CUSTOMER', {
+        this.auditService.log('RUN_BOUNDS_REJECTED', customer ? customer.id : session.id, 'CUSTOMER', {
           gameId,
           rawScore: score,
           ceiling,
@@ -187,24 +300,34 @@ class VoucherService {
       throw err;
     }
 
-    // Update customer best score
-    const newBest = Math.max(customer.best_score || 0, verifiedScore);
-    let promoStatus = customer.welcome_promo_status;
-    if(customer.total_visits <= 2 && verifiedScore >= 350 && promoStatus === 'ELIGIBLE'){
-      promoStatus = 'QUALIFIED';
-    }
+    // Update customer best score if bound to a registered customer profile
+    let newBest = verifiedScore;
+    let promoStatus = 'ELIGIBLE';
 
-    this.db.prepare(`
-      UPDATE customers SET best_score = ?, welcome_promo_status = ?, last_active_at = ?
-      WHERE id = ?
-    `).run(newBest, promoStatus, now, customer.id);
+    if(customer){
+      newBest = Math.max(customer.best_score || 0, verifiedScore);
+      promoStatus = customer.welcome_promo_status;
+      if(customer.total_visits <= 2 && verifiedScore >= 350 && promoStatus === 'ELIGIBLE'){
+        promoStatus = 'QUALIFIED';
+      }
+
+      this.db.prepare(`
+        UPDATE customers SET best_score = ?, welcome_promo_status = ?, last_active_at = ?
+        WHERE id = ?
+      `).run(newBest, promoStatus, now, customer.id);
+    } else {
+      if(verifiedScore >= 350){
+        promoStatus = 'QUALIFIED';
+      }
+    }
 
     return {
       runId,
       status: 'VERIFIED',
       verifiedScore,
       bestScore: newBest,
-      welcomePromoStatus: promoStatus
+      welcomePromoStatus: promoStatus,
+      isGuest: !customer
     };
   }
 

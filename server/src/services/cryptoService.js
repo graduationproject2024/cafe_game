@@ -113,14 +113,26 @@ class CryptoService {
    */
   mintCustomerSessionToken(sessionId, customerId, phone, expMs = 24 * 3600 * 1000){
     const expiresAt = Date.now() + expMs;
-    const payload = { sessionId, customerId, phone, exp: expiresAt };
+    const payload = { sessionId, customerId, phone, guest: false, exp: expiresAt };
     const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
     const sig = this.signPayload(payloadB64);
     return `${payloadB64}.${sig}`;
   }
 
   /**
-   * Validates and unpacks customer session token
+   * Creates a tamper-evident anonymous guest session token
+   * Allows customer to play games immediately before entering phone number
+   */
+  mintGuestSessionToken(sessionId, expMs = 24 * 3600 * 1000){
+    const expiresAt = Date.now() + expMs;
+    const payload = { sessionId, guest: true, customerId: null, exp: expiresAt };
+    const payloadB64 = Buffer.from(JSON.stringify(payload)).toString('base64url');
+    const sig = this.signPayload(payloadB64);
+    return `${payloadB64}.${sig}`;
+  }
+
+  /**
+   * Validates and unpacks customer session token (supports both guest and authenticated tokens)
    */
   verifyCustomerSessionToken(tokenString){
     if(!tokenString || typeof tokenString !== 'string') return null;
@@ -132,7 +144,8 @@ class CryptoService {
 
     try {
       const payload = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8'));
-      if(!payload || !payload.sessionId || !payload.customerId) return null;
+      if(!payload || !payload.sessionId) return null;
+      if(!payload.guest && !payload.customerId) return null;
       if(Date.now() > payload.exp) return null; // Expired
       return payload;
     } catch(e){
