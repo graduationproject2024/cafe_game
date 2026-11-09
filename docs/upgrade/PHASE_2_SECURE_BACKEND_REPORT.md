@@ -185,3 +185,4 @@ OVERALL BACKEND STATUS: 23 / 23 PASSED (100%) ✓
    ```
 3. **Database Inspection:**
    The SQLite database is maintained at `server/src/db/aa_cafe.db`.
+

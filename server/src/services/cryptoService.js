@@ -95,3 +95,4 @@ class CryptoService {
 }
 
 module.exports = new CryptoService();
+

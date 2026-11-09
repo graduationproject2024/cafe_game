@@ -107,3 +107,4 @@ module.exports = {
     return new Database(':memory:');
   }
 };
+

@@ -126,3 +126,4 @@ OVERALL PILOT STATUS: 11 / 11 PASSED (100%)
    ```
 3. **Inspect Captured Evidence:**  
    Review high-resolution screenshots located in `pilot/screenshots/`.
+
