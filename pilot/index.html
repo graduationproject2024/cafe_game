@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>A&A Cafe — Reflex Rush | سرعة الباريستا (Premium Pilot)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Tajawal:wght@400;500;700;800&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #120b07;
+      --bg-card: rgba(35, 23, 16, 0.85);
+      --bg-surface: #1e130c;
+      --gold-primary: #d4af37;
+      --gold-light: #f3e5ab;
+      --gold-dark: #997a15;
+      --crema: #e6b980;
+      --crema-light: #f7dfbe;
+      --espresso: #2a1810;
+      --espresso-deep: #190e09;
+      --accent-green: #2e7d32;
+      --error-red: #c62828;
+      --text-main: #fdfaf7;
+      --text-muted: #bfa593;
+      --border-gold: rgba(212, 175, 55, 0.35);
+      --border-subtle: rgba(230, 185, 128, 0.15);
+      --shadow-luxury: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(212, 175, 55, 0.12);
+      --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.12) 0%, transparent 60%),
+        radial-gradient(circle at 80% 100%, rgba(230, 185, 128, 0.08) 0%, transparent 50%),
+        linear-gradient(180deg, #160d08 0%, #0d0704 100%);
+      color: var(--text-main);
+      font-family: 'Tajawal', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 16px;
+    }
+
+    body[dir="ltr"] {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Arabesque Geometric Lattice Background Overlay */
+    .madinah-pattern {
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(var(--border-subtle) 1px, transparent 1px);
+      background-size: 24px 24px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Main Container */
+    .pilot-container {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      min-height: 780px;
+      height: 92vh;
+      max-height: 860px;
+      background: var(--bg-card);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-gold);
+      border-radius: 28px;
+      box-shadow: var(--shadow-luxury);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    /* Header Nav */
+    .pilot-header {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      background: rgba(22, 13, 8, 0.6);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold-primary), var(--espresso));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      border: 1px solid var(--gold-light);
+      box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      color: var(--gold-light);
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-subtle);
+      color: var(--crema-light);
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s var(--ease-out);
+    }
+
+    .btn-icon:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: var(--gold-primary);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon:active {
+      transform: scale(0.94);
+    }
+
+    /* HUD Bar */
+    .hud-bar {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      padding: 12px 20px;
+      background: rgba(18, 11, 7, 0.7);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hud-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-item.score-item {
+      align-items: flex-start;
+    }
+
+    body[dir="ltr"] .hud-item.score-item {
+      align-items: flex-start;
+    }
+
+    .hud-item.hearts-item {
+      align-items: flex-end;
+    }
+
+    body[dir="ltr"] .hud-item.hearts-item {
+      align-items: flex-end;
+    }
+
+    .hud-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .hud-score-box {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .hud-score-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      text-shadow: 0 0 12px rgba(212, 175, 55, 0.4);
+      transition: transform 0.15s var(--spring);
+    }
+
+    .hud-score-val.bump {
+      transform: scale(1.2);
+      color: var(--gold-primary);
+    }
+
+    .hud-score-pts {
+      font-size: 11px;
+      color: var(--gold-light);
+    }
+
+    /* Circular SVG Timer */
+    .timer-center {
+      position: relative;
+      width: 58px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timer-center svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .timer-bg {
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 4;
+      fill: none;
+    }
+
+    .timer-ring {
+      stroke: var(--gold-primary);
+      stroke-width: 4;
+      stroke-linecap: round;
+      fill: none;
+      stroke-dasharray: 163.36;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear, stroke 0.3s;
+    }
+
+    .timer-ring.warning {
+      stroke: var(--error-red);
+      filter: drop-shadow(0 0 6px rgba(198, 40, 40, 0.6));
+    }
+
+    .timer-val {
+      font-size: 18px;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      color: var(--crema-light);
+    }
+
+    /* Hearts Box */
+    .hearts-box {
+      display: flex;
+      gap: 5px;
+      margin-top: 2px;
+    }
+
+    .heart-bean {
+      width: 20px;
+      height: 20px;
+      transition: transform 0.3s var(--spring), opacity 0.3s;
+    }
+
+    .heart-bean.lost {
+      opacity: 0.2;
+      transform: scale(0.7);
+      filter: grayscale(1);
+    }
+
+    /* Combo Banner */
+    .combo-pill {
+      margin: 8px auto 0;
+      padding: 4px 14px;
+      background: linear-gradient(90deg, rgba(212, 175, 55, 0.15), rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.15));
+      border: 1px solid var(--border-gold);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s var(--spring);
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    .combo-pill.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Stage Area */
+    .stage {
+      flex: 1;
+      position: relative;
+      margin: 12px;
+      background: radial-gradient(circle at 50% 50%, rgba(42, 24, 16, 0.6) 0%, rgba(18, 11, 7, 0.95) 100%);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      overflow: hidden;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    /* Targets */
+    .pilot-target {
+      position: absolute;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transform: scale(0);
+      animation: targetSpawn 0.35s var(--spring) forwards;
+      touch-action: manipulation;
+    }
+
+    @keyframes targetSpawn {
+      0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .pilot-target:active {
+      transform: scale(0.92) !important;
+    }
+
+    /* 1. Golden Espresso Cup (High Score) */
+    .pilot-target.gold {
+      background: radial-gradient(circle at 35% 35%, #f6e0a4 0%, #d4af37 60%, #856404 100%);
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+      border: 2px solid #fff;
+    }
+
+    /* 2. Decoy Milk Pitcher */
+    .pilot-target.decoy {
+      background: radial-gradient(circle at 35% 35%, #9e9e9e 0%, #616161 70%, #424242 100%);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+      border: 2px solid #ccc;
+    }
+
+    /* 3. Burnt Bean Hazard */
+    .pilot-target.burnt {
+      background: radial-gradient(circle at 35% 35%, #42120e 0%, #200705 70%, #0d0202 100%);
+      box-shadow: 0 0 16px rgba(198, 40, 40, 0.5), inset 0 2px 4px rgba(255, 133, 122, 0.4);
+      border: 2px solid var(--error-red);
+    }
+
+    .target-icon {
+      width: 44px;
+      height: 44px;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+      pointer-events: none;
+    }
+
+    /* Floating Score Pop */
+    .score-pop {
+      position: absolute;
+      font-size: 16px;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      pointer-events: none;
+      animation: popFloat 0.75s var(--ease-out) forwards;
+      z-index: 10;
+    }
+
+    .score-pop.gold {
+      color: var(--gold-light);
+      text-shadow: 0 0 8px rgba(212, 175, 55, 0.8);
+    }
+
+    .score-pop.hazard {
+      color: #ff6b6b;
+      text-shadow: 0 0 8px rgba(198, 40, 40, 0.8);
+    }
+
+    .score-pop.decoy {
+      color: #bbb;
+    }
+
+    @keyframes popFloat {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.8); }
+      50% { transform: translate(-50%, -90px) scale(1.2); opacity: 1; }
+      100% { opacity: 0; transform: translate(-50%, -120px) scale(1); }
+    }
+
+    /* Overlay Screens (Start & Result) */
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(18, 11, 7, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      z-index: 20;
+      transition: opacity 0.3s, visibility 0.3s;
+    }
+
+    .screen-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .hero-cup-art {
+      width: 90px;
+      height: 90px;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 8px 24px rgba(212, 175, 55, 0.35));
+      animation: floatArt 3s ease-in-out infinite;
+    }
+
+    @keyframes floatArt {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .screen-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--gold-light);
+      margin-bottom: 8px;
+    }
+
+    .screen-desc {
+      font-size: 13px;
+      color: var(--crema);
+      line-height: 1.6;
+      max-width: 320px;
+      margin-bottom: 24px;
+    }
+
+    .btn-action-primary {
+      background: linear-gradient(135deg, var(--gold-primary) 0%, #b8860b 100%);
+      color: #120b07;
+      font-weight: 800;
+      font-size: 16px;
+      padding: 14px 36px;
+      border: 1px solid var(--gold-light);
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s var(--spring);
+    }
+
+    .btn-action-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(212, 175, 55, 0.55);
+    }
+
+    .btn-action-primary:active {
+      transform: scale(0.96);
+    }
+
+    /* Result Card */
+    .result-stats-card {
+      background: rgba(42, 24, 16, 0.8);
+      border: 1px solid var(--border-gold);
+      border-radius: 20px;
+      padding: 18px 22px;
+      width: 100%;
+      max-width: 320px;
+      margin-bottom: 20px;
+    }
+
+    .result-score-highlight {
+      font-size: 44px;
+      font-weight: 800;
+      font-family: 'Outfit', sans-serif;
+      color: var(--gold-light);
+      text-shadow: 0 0 16px rgba(212, 175, 55, 0.4);
+      margin-bottom: 4px;
+    }
+
+    .result-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      background: rgba(46, 125, 50, 0.2);
+      border: 1px solid #4caf50;
+      color: #a5d6a7;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
+      }
+      .pilot-target {
+        transform: scale(1) !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="madinah-pattern"></div>
+
+  <div class="pilot-container" id="pilotApp">
+    <!-- Header -->
+    <header class="pilot-header">
+      <div class="brand-title">
+        <div class="brand-badge">A&A</div>
+        <div class="brand-text">
+          <h1 id="txtAppName">the A&A Cafe</h1>
+          <p id="txtGameSub">سرعة الباريستا • Reflex Rush</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <button class="btn-icon" id="btnSoundToggle" aria-label="Toggle Sound">
+          <span id="soundIcon">🔊</span>
+        </button>
+        <button class="btn-icon" id="btnLangToggle" aria-label="Toggle Language">
+          <span id="langText">EN</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- HUD -->
+    <div class="hud-bar">
+      <div class="hud-item score-item">
+        <span class="hud-label" id="lblScore">النقاط</span>
+        <div class="hud-score-box">
+          <span class="hud-score-val" id="hudScore">0</span>
+          <span class="hud-score-pts" id="txtPts">نقطة</span>
+        </div>
+      </div>
+
+      <div class="timer-center">
+        <svg viewBox="0 0 60 60">
+          <circle class="timer-bg" cx="30" cy="30" r="26"></circle>
+          <circle class="timer-ring" id="timerRing" cx="30" cy="30" r="26"></circle>
+        </svg>
+        <span class="timer-val" id="hudTimer">30</span>
+      </div>
+
+      <div class="hud-item hearts-item">
+        <span class="hud-label" id="lblHearts">القلوب</span>
+        <div class="hearts-box" id="heartsBox">
+          <!-- 3 Coffee Bean Hearts SVG -->
+          <svg class="heart-bean" id="heart1" viewBox="0 0 24 24" fill="#d4af37">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93c-2.8-.4-4.93-2.53-5.33-5.33-.2-.1-.4-.2-.6-.3-.7-.4-1.1-1.2-1.1-2 0-1.3 1-2.3 2.3-2.3.8 0 1.5.4 1.9 1 .1.2.2.4.3.6 2.8.4 4.93 2.53 5.33 5.33.2.1.4.2.6.3.7.4 1.1 1.2 1.1 2 0 1.3-1 2.3-2.3 2.3-.8 0-1.5-.4-1.9-1-.1-.2-.2-.4-.3-.6z"/>
+          </svg>
+          <svg class="heart-bean" id="heart2" viewBox="0 0 24 24" fill="#d4af37">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93c-2.8-.4-4.93-2.53-5.33-5.33-.2-.1-.4-.2-.6-.3-.7-.4-1.1-1.2-1.1-2 0-1.3 1-2.3 2.3-2.3.8 0 1.5.4 1.9 1 .1.2.2.4.3.6 2.8.4 4.93 2.53 5.33 5.33.2.1.4.2.6.3.7.4 1.1 1.2 1.1 2 0 1.3-1 2.3-2.3 2.3-.8 0-1.5-.4-1.9-1-.1-.2-.2-.4-.3-.6z"/>
+          </svg>
+          <svg class="heart-bean" id="heart3" viewBox="0 0 24 24" fill="#d4af37">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.93c-2.8-.4-4.93-2.53-5.33-5.33-.2-.1-.4-.2-.6-.3-.7-.4-1.1-1.2-1.1-2 0-1.3 1-2.3 2.3-2.3.8 0 1.5.4 1.9 1 .1.2.2.4.3.6 2.8.4 4.93 2.53 5.33 5.33.2.1.4.2.6.3.7.4 1.1 1.2 1.1 2 0 1.3-1 2.3-2.3 2.3-.8 0-1.5-.4-1.9-1-.1-.2-.2-.4-.3-.6z"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Combo Bar -->
+    <div class="combo-pill" id="comboPill">
+      <span>🔥</span>
+      <span id="comboText">سلسلة متتالية 2x!</span>
+    </div>
+
+    <!-- Active Game Stage -->
+    <main class="stage" id="gameStage">
+      <!-- Targets spawn here dynamically -->
+    </main>
+
+    <!-- Start Overlay Screen -->
+    <div class="screen-overlay" id="startScreen">
+      <!-- Luxury Vector Espresso Art -->
+      <svg class="hero-cup-art" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="44" stroke="#d4af37" stroke-width="2" stroke-dasharray="4 2"/>
+        <path d="M30 42h40v24c0 11-9 20-20 20s-20-9-20-20V42z" fill="#2a1810" stroke="#d4af37" stroke-width="2.5"/>
+        <path d="M70 48h6c4.4 0 8 3.6 8 8s-3.6 8-8 8h-6" stroke="#d4af37" stroke-width="2.5"/>
+        <path d="M34 42c4-6 10-6 14 0m-4-10c4-6 10-6 14 0" stroke="#e6b980" stroke-width="2" stroke-linecap="round"/>
+        <ellipse cx="50" cy="42" rx="18" ry="4" fill="#d4af37"/>
+      </svg>
+      <h2 class="screen-title" id="txtStartTitle">سرعة الباريستا</h2>
+      <p class="screen-desc" id="txtStartDesc">
+        المس أهداف الإسبريسو الذهبية بأقصى سرعة ممكنة. تجنّب حبوب البن المحروقة ✕ التي تخصم قلباً، واحذر إبريق الحليب المشتت!
+      </p>
+      <button class="btn-action-primary" id="btnStartGame">
+        <span id="txtStartBtn">ابدأ التحدي</span>
+        <span>☕</span>
+      </button>
+    </div>
+
+    <!-- Result Overlay Screen -->
+    <div class="screen-overlay hidden" id="resultScreen">
+      <svg class="hero-cup-art" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="46" fill="rgba(212, 175, 55, 0.1)" stroke="#d4af37" stroke-width="3"/>
+        <path d="M36 50l9 9 19-19" stroke="#d4af37" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <h2 class="screen-title" id="txtResTitle">اكتمل التحدي!</h2>
+      <div class="result-stats-card">
+        <div class="result-score-highlight" id="resScore">420</div>
+        <div class="hud-label" id="lblFinalScore">مجموع النقاط المكتسبة</div>
+        <div class="result-badge" id="resPromoBadge">🎉 مؤهل لخصم 5% الترحيبي!</div>
+      </div>
+      <button class="btn-action-primary" id="btnPlayAgain">
+        <span id="txtAgainBtn">العب مرة أخرى</span>
+        <span>↺</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Audio Engine -->
+  <script src="sfx.js"></script>
+
+  <!-- Gameplay Logic -->
+  <script>
+    (function(){
+      'use strict';
+
+      // Localization Dictionary
+      const I18N = {
+        ar: {
+          appTitle: 'the A&A Cafe',
+          gameSub: 'سرعة الباريستا • Reflex Rush',
+          score: 'النقاط',
+          pts: 'نقطة',
+          hearts: 'القلوب',
+          startTitle: 'سرعة الباريستا',
+          startDesc: 'المس أهداف الإسبريسو الذهبية بأقصى سرعة ممكنة. تجنّب حبوب البن المحروقة ✕ التي تخصم قلباً، واحذر إبريق الحليب المشتت!',
+          startBtn: 'ابدأ التحدي',
+          resTitle: 'اكتمل التحدي!',
+          finalScore: 'مجموع النقاط المكتسبة',
+          promoQualified: '🎉 مؤهل لخصم 5% الترحيبي (>= 350)!',
+          promoUnqualified: 'حاول مجدداً للوصول لـ 350 نقطة والتأهل!',
+          againBtn: 'العب مرة أخرى',
+          comboText: streak => `سلسلة متتالية ${streak}x!`,
+          goldPop: pts => `+${pts} ذهبي! ✨`,
+          decoyPop: '-10 إبريق مشتت',
+          hazardPop: 'حبة محروقة! (-1 ❤️)'
+        },
+        en: {
+          appTitle: 'the A&A Cafe',
+          gameSub: 'Reflex Rush • Barista Speed',
+          score: 'Score',
+          pts: 'pts',
+          hearts: 'Hearts',
+          startTitle: 'Reflex Rush',
+          startDesc: 'Tap golden espresso cups as fast as they appear! Avoid burnt beans ✕ which cost a heart, and ignore decoy milk pitchers.',
+          startBtn: 'Start Challenge',
+          resTitle: 'Challenge Complete!',
+          finalScore: 'Total Score Earned',
+          promoQualified: '🎉 Qualified for 5% Welcome Discount (>= 350)!',
+          promoUnqualified: 'Try again to reach 350 pts to qualify!',
+          againBtn: 'Play Again',
+          comboText: streak => `${streak}x Streak Combo!`,
+          goldPop: pts => `+${pts} Reserve! ✨`,
+          decoyPop: '-10 Decoy Pitcher',
+          hazardPop: 'Burnt Bean! (-1 ❤️)'
+        }
+      };
+
+      let currentLang = 'ar';
+      let score = 0;
+      let hearts = 3;
+      let timer = 30;
+      let combo = 0;
+      let isPlaying = false;
+      let gameInterval = null;
+      let spawnTimeout = null;
+      const MAX_TIMER = 30;
+      const CIRCUMFERENCE = 163.36;
+
+      // DOM Elements
+      const stage = document.getElementById('gameStage');
+      const hudScore = document.getElementById('hudScore');
+      const hudTimer = document.getElementById('hudTimer');
+      const timerRing = document.getElementById('timerRing');
+      const comboPill = document.getElementById('comboPill');
+      const comboText = document.getElementById('comboText');
+      const startScreen = document.getElementById('startScreen');
+      const resultScreen = document.getElementById('resultScreen');
+      const btnStart = document.getElementById('btnStartGame');
+      const btnPlayAgain = document.getElementById('btnPlayAgain');
+      const btnLang = document.getElementById('btnLangToggle');
+      const btnSound = document.getElementById('btnSoundToggle');
+      const soundIcon = document.getElementById('soundIcon');
+      const langText = document.getElementById('langText');
+      const heartEls = [
+        document.getElementById('heart1'),
+        document.getElementById('heart2'),
+        document.getElementById('heart3')
+      ];
+
+      // Language Switcher
+      function setLanguage(lang){
+        currentLang = lang;
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        langText.textContent = lang === 'ar' ? 'EN' : 'عربي';
+
+        const dict = I18N[lang];
+        document.getElementById('txtAppName').textContent = dict.appTitle;
+        document.getElementById('txtGameSub').textContent = dict.gameSub;
+        document.getElementById('lblScore').textContent = dict.score;
+        document.getElementById('txtPts').textContent = dict.pts;
+        document.getElementById('lblHearts').textContent = dict.hearts;
+        document.getElementById('txtStartTitle').textContent = dict.startTitle;
+        document.getElementById('txtStartDesc').textContent = dict.startDesc;
+        document.getElementById('txtStartBtn').textContent = dict.startBtn;
+        document.getElementById('txtResTitle').textContent = dict.resTitle;
+        document.getElementById('lblFinalScore').textContent = dict.finalScore;
+        document.getElementById('txtAgainBtn').textContent = dict.againBtn;
+      }
+
+      btnLang.addEventListener('click', () => {
+        setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+      });
+
+      // Sound Toggle
+      btnSound.addEventListener('click', () => {
+        const isMuted = window.AASoundEngine.toggleMute();
+        soundIcon.textContent = isMuted ? '🔇' : '🔊';
+      });
+
+      // Update Sound Icon on Load
+      if(window.AASoundEngine.isMuted()){
+        soundIcon.textContent = '🔇';
+      }
+
+      // Timer Animation Ring
+      function updateTimerDisplay(){
+        hudTimer.textContent = timer;
+        const offset = CIRCUMFERENCE - (timer / MAX_TIMER) * CIRCUMFERENCE;
+        timerRing.style.strokeDashoffset = offset;
+        if(timer <= 5){
+          timerRing.classList.add('warning');
+        } else {
+          timerRing.classList.remove('warning');
+        }
+      }
+
+      // Update Hearts Display
+      function updateHeartsDisplay(){
+        heartEls.forEach((el, index) => {
+          if(index < hearts){
+            el.classList.remove('lost');
+          } else {
+            el.classList.add('lost');
+          }
+        });
+      }
+
+      // Spawn Target
+      function spawnTarget(){
+        if(!isPlaying) return;
+
+        // Clean up expired targets
+        const existing = stage.querySelectorAll('.pilot-target');
+        if(existing.length >= 3){
+          existing[0].remove();
+        }
+
+        const stageW = stage.clientWidth;
+        const stageH = stage.clientHeight;
+        const targetSize = 74;
+        const padding = 20;
+
+        const x = Math.floor(Math.random() * (stageW - targetSize - padding * 2)) + padding;
+        const y = Math.floor(Math.random() * (stageH - targetSize - padding * 2)) + padding;
+
+        const roll = Math.random();
+        let type = 'gold'; // 65% gold, 20% decoy, 15% burnt
+        if(roll < 0.15){
+          type = 'burnt';
+        } else if(roll < 0.35){
+          type = 'decoy';
+        }
+
+        const target = document.createElement('div');
+        target.className = `pilot-target ${type}`;
+        target.style.left = `${x}px`;
+        target.style.top = `${y}px`;
+        target.dataset.type = type;
+        target.dataset.spawnTime = Date.now();
+
+        // SVG Icon inside target
+        let iconSvg = '';
+        if(type === 'gold'){
+          iconSvg = `
+            <svg class="target-icon" viewBox="0 0 24 24" fill="#fff">
+              <path d="M20 3H4v10c0 2.21 1.79 4 4 4h6c2.21 0 4-1.79 4-4v-3h2c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 5h-2V5h2v3zM4 19h16v2H4z"/>
+            </svg>`;
+        } else if(type === 'decoy'){
+          iconSvg = `
+            <svg class="target-icon" viewBox="0 0 24 24" fill="#fff">
+              <path d="M19 12h-2V3H7v9H5c-1.1 0-2 .9-2 2v5c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-5c0-1.1-.9-2-2-2zm-8-7h2v7h-2V5z"/>
+            </svg>`;
+        } else {
+          iconSvg = `
+            <svg class="target-icon" viewBox="0 0 24 24" fill="#ff6b6b">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>`;
+        }
+        target.innerHTML = iconSvg;
+
+        target.addEventListener('pointerdown', handleTargetTap);
+        stage.appendChild(target);
+
+        // Schedule next spawn with slight speed ramp
+        const nextDelay = Math.max(450, 850 - (MAX_TIMER - timer) * 12);
+        spawnTimeout = setTimeout(spawnTarget, nextDelay);
+      }
+
+      // Handle Target Tap
+      function handleTargetTap(e){
+        e.preventDefault();
+        e.stopPropagation();
+        if(!isPlaying) return;
+
+        const target = e.currentTarget;
+        const type = target.dataset.type;
+        const reactionTime = Date.now() - parseInt(target.dataset.spawnTime, 10);
+        const rect = target.getBoundingClientRect();
+        const stageRect = stage.getBoundingClientRect();
+        const popX = rect.left + rect.width / 2 - stageRect.left;
+        const popY = rect.top + rect.height / 2 - stageRect.top;
+
+        target.remove();
+
+        if(type === 'gold'){
+          // Fast reaction yields higher points (25 to 75 pts)
+          const speedBonus = Math.max(0, Math.floor((1200 - reactionTime) / 20));
+          const earned = 35 + speedBonus;
+          score += earned;
+          combo++;
+
+          window.AASoundEngine.playTap(combo);
+          if(combo >= 3){
+            window.AASoundEngine.playGold();
+          }
+
+          showScorePop(popX, popY, I18N[currentLang].goldPop(earned), 'gold');
+          updateComboDisplay();
+        } else if(type === 'decoy'){
+          score = Math.max(0, score - 10);
+          combo = 0;
+          window.AASoundEngine.playDecoy();
+          showScorePop(popX, popY, I18N[currentLang].decoyPop, 'decoy');
+          updateComboDisplay();
+        } else if(type === 'burnt'){
+          hearts--;
+          combo = 0;
+          window.AASoundEngine.playHazard();
+          showScorePop(popX, popY, I18N[currentLang].hazardPop, 'hazard');
+          updateHeartsDisplay();
+          updateComboDisplay();
+
+          if(hearts <= 0){
+            endGame('out_of_hearts');
+            return;
+          }
+        }
+
+        // HUD bump animation
+        hudScore.textContent = score;
+        hudScore.classList.add('bump');
+        setTimeout(() => hudScore.classList.remove('bump'), 150);
+      }
+
+      function updateComboDisplay(){
+        if(combo >= 2){
+          comboPill.classList.add('active');
+          comboText.textContent = I18N[currentLang].comboText(combo);
+          if(combo === 3 || combo === 5){
+            window.AASoundEngine.playComboStreak(combo);
+          }
+        } else {
+          comboPill.classList.remove('active');
+        }
+      }
+
+      function showScorePop(x, y, text, type){
+        const pop = document.createElement('div');
+        pop.className = `score-pop ${type}`;
+        pop.textContent = text;
+        pop.style.left = `${x}px`;
+        pop.style.top = `${y}px`;
+        stage.appendChild(pop);
+        setTimeout(() => pop.remove(), 750);
+      }
+
+      // Start Game
+      function startGame(){
+        window.AASoundEngine.init();
+        score = 0;
+        hearts = 3;
+        timer = MAX_TIMER;
+        combo = 0;
+        isPlaying = true;
+
+        hudScore.textContent = '0';
+        updateTimerDisplay();
+        updateHeartsDisplay();
+        updateComboDisplay();
+        stage.innerHTML = '';
+
+        startScreen.classList.add('hidden');
+        resultScreen.classList.add('hidden');
+
+        gameInterval = setInterval(() => {
+          timer--;
+          updateTimerDisplay();
+          if(timer <= 0){
+            endGame('time_up');
+          }
+        }, 1000);
+
+        spawnTarget();
+      }
+
+      // End Game
+      function endGame(reason){
+        isPlaying = false;
+        clearInterval(gameInterval);
+        clearTimeout(spawnTimeout);
+        stage.innerHTML = '';
+        comboPill.classList.remove('active');
+
+        window.AASoundEngine.playVictory();
+
+        document.getElementById('resScore').textContent = score;
+        const promoBadge = document.getElementById('resPromoBadge');
+        if(score >= 350){
+          promoBadge.textContent = I18N[currentLang].promoQualified;
+          promoBadge.style.background = 'rgba(46, 125, 50, 0.2)';
+          promoBadge.style.borderColor = '#4caf50';
+          promoBadge.style.color = '#a5d6a7';
+        } else {
+          promoBadge.textContent = I18N[currentLang].promoUnqualified;
+          promoBadge.style.background = 'rgba(198, 40, 40, 0.2)';
+          promoBadge.style.borderColor = '#c62828';
+          promoBadge.style.color = '#ff8a80';
+        }
+
+        resultScreen.classList.remove('hidden');
+      }
+
+      btnStart.addEventListener('click', startGame);
+      btnPlayAgain.addEventListener('click', startGame);
+
+      // Expose state for automated testing
+      window.__pilotTestState = {
+        getScore: () => score,
+        getHearts: () => hearts,
+        getTimer: () => timer,
+        isPlaying: () => isPlaying,
+        startGame: startGame,
+        endGame: endGame,
+        setLanguage: setLanguage
+      };
+    })();
+  </script>
+</body>
+</html>

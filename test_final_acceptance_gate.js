@@ -16,12 +16,17 @@ const fs = require('fs');
 const path = require('path');
 
 // Ensure unhandled rejections / uncaught exceptions set exit code 1
+let suiteFailed = false;
+const EXPECTED_MIN_ASSERTIONS = 38;
+
 process.on('unhandledRejection', (err) => {
   console.error('CRITICAL: Unhandled rejection in test runner:', err);
+  suiteFailed = true;
   process.exitCode = 1;
 });
 process.on('uncaughtException', (err) => {
   console.error('CRITICAL: Uncaught exception in test runner:', err);
+  suiteFailed = true;
   process.exitCode = 1;
 });
 
@@ -56,6 +61,8 @@ function assert(target, desc, condition, detail){
   if(detail) console.log(`   -> ${detail}`);
   if(!condition){
     console.error(`   ASSERTION FAILED: ${desc}`);
+    suiteFailed = true;
+    process.exitCode = 1;
   }
 }
 
@@ -220,6 +227,62 @@ async function runAcceptanceGate(){
       dupAttemptResult.finalDbCoupons === dupAttemptResult.initialDbCoupons &&
       dupAttemptResult.welcomePromoStatus === 'CLAIMED',
       `Wallet count: ${dupAttemptResult.walletAfterCount} (init: ${dupAttemptResult.initialWalletCount}), Screen: ${dupAttemptResult.screenAfterClaimFlow}`);
+
+    // 10. Legitimate Voucher Upgrade: Customer subsequently earns 7500 pts (Tier S - 7% discount)
+    const upgradeResult = await pageA.evaluate(() => {
+      const salt = 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE';
+      function hash(s){
+        let h = 0x811c9dc5;
+        for(let i = 0; i < s.length; i++){
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 0x01000193);
+        }
+        return (h >>> 0);
+      }
+      const S = window.getCafeState ? window.getCafeState() : JSON.parse(localStorage.getItem('the_aa_cafe_games_v4') || '{}').S;
+      const initialCode = S.claim ? S.claim.code : '';
+      const day = Math.floor(Date.now() / 86400000);
+      const start = Date.now() - 30000;
+      const end = Date.now();
+      const score = 7500;
+      const sig = hash(['RUN_CERT', score, 'reflex', day, start, end, salt].join('|'));
+
+      // Seed legitimate 7500 pts runCert for upgrade
+      S.runCert = { score, gameId: 'reflex', day, start, end, sig };
+      S.best = score;
+      if(window.signSession) S.sig = window.signSession(S);
+
+      // Execute upgrade to Tier S (7% discount)
+      if(typeof window.commitReward === 'function'){
+        window.commitReward('S', true);
+      }
+
+      const db = JSON.parse(localStorage.getItem('the_aa_cafe_db_v4') || '{}');
+      const wallet = JSON.parse(localStorage.getItem('the_aa_cafe_vouchers_wallet') || '[]');
+      const updatedS = window.getCafeState ? window.getCafeState() : JSON.parse(localStorage.getItem('the_aa_cafe_games_v4') || '{}').S;
+
+      const formattedOld = (window.fmtCode ? window.fmtCode(initialCode) : initialCode.replace(/-/g, ''));
+      const revokedList = db.revokedCodes || [];
+      const isOldRevoked = revokedList.includes(formattedOld) || revokedList.some(r => r.replace(/-/g, '') === formattedOld.replace(/-/g, ''));
+
+      return {
+        initialCode,
+        newCode: updatedS.claim?.code,
+        newType: updatedS.claim?.type,
+        isUpgraded: !!updatedS.claim?.upgraded,
+        isOldRevoked,
+        walletCount: wallet.length,
+        topWalletType: wallet[0]?.type,
+        topWalletCode: wallet[0]?.code
+      };
+    });
+
+    assert('Target A', 'Legitimate voucher upgrade to Tier S (7%) successfully revokes old code and updates wallet',
+      upgradeResult.newType === 'S' &&
+      upgradeResult.isUpgraded === true &&
+      upgradeResult.isOldRevoked === true &&
+      upgradeResult.topWalletType === 'S',
+      `New Type: ${upgradeResult.newType}, Upgraded: ${upgradeResult.isUpgraded}, Old Revoked: ${upgradeResult.isOldRevoked}, Wallet Top: ${upgradeResult.topWalletCode}`);
 
     await pageA.close();
 
@@ -452,6 +515,62 @@ async function runAcceptanceGate(){
       unqualifiedResult.visitCount === 2 && unqualifiedResult.welcomePromoStatus === 'INELIGIBLE',
       `Visits: ${unqualifiedResult.visitCount}, Status: ${unqualifiedResult.welcomePromoStatus}`);
 
+    // Scenario 4: Expired voucher rollover (issued 3 days ago on Day D-3)
+    const expirationRollover = await pageB.evaluate(() => {
+      const currentDay = Math.floor(Date.now() / 86400000);
+      const threeDaysAgo = currentDay - 3;
+
+      const expiredVoucherState = {
+        playerId: 'P_EXPIRED_USER',
+        visitCount: 2,
+        day: threeDaysAgo,
+        welcomePromoStatus: 'CLAIMED',
+        firstPromoAwarded: true,
+        welcomePromoQualified: false,
+        welcomePromoCert: null,
+        best: 5000,
+        claim: {
+          code: 'TAAA-EXP-IRED',
+          type: 'T',
+          day: threeDaysAgo,
+          redeemed: false
+        },
+        phone: '0559998877',
+        nickname: 'سلمان'
+      };
+
+      const salt = 'AA_MADINAH_SPECIALTY_COFFEE_2024_PROD_SALT_V4_SECURE';
+      function hash(s){
+        let h = 0x811c9dc5;
+        for(let i = 0; i < s.length; i++){
+          h ^= s.charCodeAt(i);
+          h = Math.imul(h, 0x01000193);
+        }
+        return (h >>> 0);
+      }
+      let acc = hash(salt + '|' + expiredVoucherState.phone + '|undefined|5000|' + (Date.now() - 3 * 86400000) + '|0');
+      for(let i = 0; i < 3; i++) acc = hash(acc + '|' + salt + '|' + expiredVoucherState.phone);
+      expiredVoucherState.sig = acc;
+
+      localStorage.setItem('the_aa_cafe_games_v4', JSON.stringify({ S: expiredVoucherState }));
+      return { setup: true };
+    });
+
+    await pageB.reload();
+
+    const expiredResult = await pageB.evaluate(() => {
+      const S = window.getCafeState ? window.getCafeState() : JSON.parse(localStorage.getItem('the_aa_cafe_games_v4') || '{}').S;
+      return {
+        claim: S.claim,
+        day: S.day,
+        currentDay: Math.floor(Date.now() / 86400000)
+      };
+    });
+
+    assert('Target B', 'Claimed voucher issued 3 days ago strictly expires and resets active claim to null on rollover',
+      expiredResult.claim === null && expiredResult.day === expiredResult.currentDay,
+      `Active Claim: ${expiredResult.claim}, State Day: ${expiredResult.day}`);
+
     await pageB.close();
 
     // -------------------------------------------------------------
@@ -656,25 +775,117 @@ async function runAcceptanceGate(){
       stationaryOutcome.hasDeduction && stationaryOutcome.popsObserved,
       `Score drop observed: -${stationaryOutcome.diff} pts (exact -10 deduction verified), Pop: ${stationaryOutcome.popText}`);
 
-    // Burnt bean hazard test:
-    const burntTest = await pageD.evaluate(() => {
+    // Burnt bean hazard test via real engine loop:
+    console.log('   Tracking falling burnt beans in real engine loop to verify collision & heart loss...');
+    // Reset hearts to 3
+    await pageD.evaluate(() => {
       const r = window.__getRun ? window.__getRun() : null;
-      let heartsBefore = 3;
-      let heartsAfterBurnt = 3;
       if(r){
         r.hearts = 3;
-        const c = window.makeCtx ? window.makeCtx({ id: 'beans', weight: 1.3 }) : null;
-        if(c){
-          c.loseHeart();
-          heartsAfterBurnt = r.hearts;
-        }
+        if(typeof hud === 'function') hud();
       }
-      return { heartsBefore, heartsAfterBurnt };
     });
 
-    assert('Target D', 'Burnt coffee bean collision deducts heart correctly (-1 ❤️)',
-      burntTest.heartsAfterBurnt === 2,
-      `Hearts before: 3, Hearts after: ${burntTest.heartsAfterBurnt}`);
+    // 1. Intercept a burnt bean: Wait for .b-bean.burnt to appear in DOM
+    let burntCaught = false;
+    let heartsAfterBurnt = 3;
+    const waitBurntStart = Date.now();
+
+    while((Date.now() - waitBurntStart) < 8000){
+      const burntCoords = await pageD.evaluate(() => {
+        const burntEl = document.querySelector('.b-bean.burnt');
+        if(!burntEl) return null;
+        const rect = burntEl.getBoundingClientRect();
+        const stage = document.getElementById('stage');
+        const stageRect = stage ? stage.getBoundingClientRect() : { left: 0, top: 0, width: 390, height: 420 };
+        return {
+          x: rect.x + rect.width / 2,
+          y: rect.y + rect.height / 2,
+          stageLeft: stageRect.left,
+          stageTop: stageRect.top,
+          relX: (rect.x + rect.width / 2) - stageRect.left
+        };
+      });
+
+      if(burntCoords){
+        // Move basket to intercept the burnt bean directly
+        await pageD.evaluate((targetX) => {
+          const st = document.getElementById('stage');
+          if(st){
+            const ev = new PointerEvent('pointermove', {
+              clientX: st.getBoundingClientRect().left + targetX,
+              clientY: st.getBoundingClientRect().bottom - 40,
+              bubbles: true
+            });
+            st.dispatchEvent(new PointerEvent('pointerdown', {
+              clientX: st.getBoundingClientRect().left + targetX,
+              clientY: st.getBoundingClientRect().bottom - 40,
+              bubbles: true
+            }));
+            st.dispatchEvent(ev);
+            st.dispatchEvent(new PointerEvent('pointerup', { bubbles: true }));
+          }
+        }, burntCoords.relX);
+      }
+
+      await pageD.waitForTimeout(150);
+
+      const status = await pageD.evaluate(() => {
+        const r = window.__getRun ? window.__getRun() : null;
+        const hearts = r ? r.hearts : 3;
+        const pops = Array.from(document.querySelectorAll('.pop.miss, .pop')).map(p => p.textContent).join(' ');
+        return { hearts, pops, isBurntPop: pops.includes('محروقة') || pops.includes('Burnt') };
+      });
+
+      if(status.hearts < 3 || status.isBurntPop){
+        burntCaught = true;
+        heartsAfterBurnt = status.hearts;
+        break;
+      }
+    }
+
+    assert('Target D', 'Real engine loop swept collision on burnt coffee bean deducts exactly 1 heart',
+      burntCaught && heartsAfterBurnt === 2,
+      `Hearts after real collision: ${heartsAfterBurnt} (initially 3, exactly 1 lost)`);
+
+    // 2. Safe Avoidance of burnt bean: Move basket far left, wait for next burnt bean to fall past bottom
+    let burntAvoided = false;
+    let heartsAfterAvoid = heartsAfterBurnt;
+    const waitAvoidStart = Date.now();
+
+    // Position basket far to the left (cx ~ 24px)
+    for(let i = 0; i < 8; i++){
+      await pageD.keyboard.press('ArrowLeft');
+    }
+
+    while((Date.now() - waitAvoidStart) < 7000){
+      const burntFellPast = await pageD.evaluate(() => {
+        const burntEl = document.querySelector('.b-bean.burnt');
+        if(!burntEl) return false;
+        const rect = burntEl.getBoundingClientRect();
+        const stage = document.getElementById('stage');
+        const stageH = stage ? stage.clientHeight : 420;
+        const relY = rect.y - (stage ? stage.getBoundingClientRect().top : 0);
+        return relY > (stageH - 100);
+      });
+
+      await pageD.waitForTimeout(250);
+
+      const curHearts = await pageD.evaluate(() => {
+        const r = window.__getRun ? window.__getRun() : null;
+        return r ? r.hearts : 2;
+      });
+
+      if(burntFellPast){
+        burntAvoided = true;
+        heartsAfterAvoid = curHearts;
+        break;
+      }
+    }
+
+    assert('Target D', 'Safe avoidance of burnt bean: falling past screen without collision deducts 0 hearts',
+      burntAvoided && heartsAfterAvoid === heartsAfterBurnt,
+      `Hearts maintained: ${heartsAfterAvoid} (zero hearts lost on avoidance)`);
 
     await pageD.close();
 
@@ -965,6 +1176,7 @@ async function runAcceptanceGate(){
 
   } catch(err){
     console.error('Fatal acceptance test execution error:', err);
+    suiteFailed = true;
     process.exitCode = 1;
   } finally {
     await browser.close();
@@ -981,13 +1193,15 @@ async function runAcceptanceGate(){
   const total = results.length;
   const passed = results.filter(r => r.status === 'PASS').length;
   const failed = results.filter(r => r.status === 'FAIL').length;
-  console.log(`\nOVERALL STATUS: ${passed} / ${total} PASSED (${Math.round(passed / total * 100)}%) ${failed === 0 ? '✓' : '✗'}\n`);
+  const meetsMinThreshold = total >= EXPECTED_MIN_ASSERTIONS;
 
-  if(failed > 0){
-    console.error(`❌ TEST SUITE FAILED with ${failed} failure(s). Setting non-zero exit code.`);
+  console.log(`\nOVERALL STATUS: ${passed} / ${total} PASSED (${Math.round(passed / total * 100)}%) ${failed === 0 && meetsMinThreshold && !suiteFailed ? '✓' : '✗'}\n`);
+
+  if(failed > 0 || suiteFailed || process.exitCode === 1 || !meetsMinThreshold){
+    console.error(`❌ TEST SUITE FAILED (failed: ${failed}, total: ${total}/${EXPECTED_MIN_ASSERTIONS}, suiteFailed: ${suiteFailed}, exitCode: ${process.exitCode}). Non-zero exit code strictly maintained.`);
     process.exitCode = 1;
   } else {
-    console.log(`✅ TEST SUITE PASSED all ${passed} assertion(s).`);
+    console.log(`✅ TEST SUITE PASSED all ${passed}/${total} assertion(s) (meets threshold >= ${EXPECTED_MIN_ASSERTIONS}).`);
     process.exitCode = 0;
   }
 }

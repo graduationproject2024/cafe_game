@@ -17,6 +17,8 @@ jobs:
     name: Final Acceptance Gate & Regression Verification
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout Repository
@@ -28,7 +30,7 @@ jobs:
           node-version: 20
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Chromium with System Dependencies
         run: npx playwright install --with-deps chromium
@@ -42,8 +44,13 @@ jobs:
       - name: Run Phase 1.1.1 Hotfix Verification Suite (20 Assertions)
         run: node test_phase_1_1_1_hotfix.js
 
-      - name: Run Final Acceptance Gate Verification Suite (36 Assertions)
+      - name: Run Final Acceptance Gate Verification Suite (39 Assertions)
         run: node test_final_acceptance_gate.js
+
+      - name: Run Secure Phase 2 Backend Verification Suite
+        run: |
+          cd server
+          npm test
 
       - name: Upload Test Artifacts & Screenshots on Failure
         if: failure()

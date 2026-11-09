@@ -1,0 +1,20 @@
+{
+  "name": "aa-cafe-secure-backend",
+  "version": "2.0.0",
+  "description": "the A&A Specialty Cafe & Sweets — Phase 2 Secure Server-Authoritative Backend",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node tests/backend.test.js"
+  },
+  "keywords": [
+    "aa-cafe",
+    "secure-backend",
+    "vouchers",
+    "atomic-redemption",
+    "rbac"
+  ],
+  "author": "A&A Autonomous Engineering Team",
+  "license": "UNLICENSED",
+  "private": true
+}
