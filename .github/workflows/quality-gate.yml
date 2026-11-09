@@ -27,7 +27,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install Dependencies
         run: npm ci
@@ -51,6 +51,12 @@ jobs:
         run: |
           cd server
           npm test
+
+      - name: Run Premium Visual & Audio Pilot Verification Suite
+        run: node pilot/test_pilot.js
+
+      - name: Run Full Real E2E Browser & Backend Integration Suite
+        run: node tests/e2e_integration.test.js
 
       - name: Upload Test Artifacts & Screenshots on Failure
         if: failure()

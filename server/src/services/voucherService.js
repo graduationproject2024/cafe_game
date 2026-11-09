@@ -12,6 +12,20 @@ const REWARDS = {
   G: { nameAr: 'ترقية مجانية لمشروبك المفضل', nameEn: 'Free Specialty Drink Upgrade', tier: 3, minScore: 10000 }
 };
 
+const VALID_GAME_IDS = ['reflex', 'pattern', 'shuffle', 'stack', 'beans', 'pour', 'rhythm', 'pairhunt', 'basketball'];
+
+const GAME_CEILINGS = {
+  reflex: 1200,
+  pattern: 900,
+  shuffle: 900,
+  stack: 1000,
+  beans: 900,
+  pour: 1200,
+  rhythm: 1200,
+  pairhunt: 1000,
+  basketball: 1500
+};
+
 class VoucherService {
   constructor(db, auditService){
     this.db = db;
@@ -36,7 +50,7 @@ class VoucherService {
   }
 
   /**
-   * Starts or resumes a customer session
+   * Finding P0-04: Starts customer session & mints cryptographic session token
    */
   startCustomerSession(phone, nickname = 'ضيف the A&A', ipAddress = '127.0.0.1'){
     const normalizedPhone = this.normalizeSaudiPhone(phone);
@@ -70,8 +84,15 @@ class VoucherService {
       VALUES (?, ?, ?, ?, ?, 1)
     `).run(sessionId, customer.id, ipAddress, now, now);
 
+    // Cryptographic Session Token: binds sessionId, customerId and phone
+    const sessionToken = cryptoService.mintCustomerSessionToken(sessionId, customer.id, customer.phone);
+
     return {
-      session: { id: sessionId, startedAt: now },
+      session: {
+        id: sessionId,
+        token: sessionToken,
+        startedAt: now
+      },
       customer: {
         id: customer.id,
         phone: customer.phone,
@@ -84,9 +105,31 @@ class VoucherService {
   }
 
   /**
-   * Server-Side Game Run Feasibility & Bounds Validation
+   * Finding P0-06: Server-Side Game Run Feasibility & Anti-Abuse Bounds Validation
    */
-  submitGameRun(sessionId, gameId, rawScore, durationMs, ipAddress = '127.0.0.1'){
+  submitGameRun(sessionIdentifier, gameId, rawScore, durationMs, ipAddress = '127.0.0.1'){
+    // Validate game ID
+    if(!VALID_GAME_IDS.includes(gameId)){
+      const err = new Error(`Invalid gameId '${gameId}'. Must be one of the approved 9 games.`);
+      err.status = 400;
+      throw err;
+    }
+
+    // Resolve session: either signed token or direct session ID
+    let sessionId = sessionIdentifier;
+    let expectedCustomerId = null;
+
+    if(typeof sessionIdentifier === 'string' && sessionIdentifier.includes('.')){
+      const tokenPayload = cryptoService.verifyCustomerSessionToken(sessionIdentifier);
+      if(!tokenPayload){
+        const err = new Error('Invalid or expired customer session token');
+        err.status = 401;
+        throw err;
+      }
+      sessionId = tokenPayload.sessionId;
+      expectedCustomerId = tokenPayload.customerId;
+    }
+
     const session = this.db.prepare('SELECT * FROM sessions WHERE id = ? AND is_active = 1').get(sessionId);
     if(!session){
       const err = new Error('Invalid or expired game session');
@@ -94,23 +137,30 @@ class VoucherService {
       throw err;
     }
 
+    if(expectedCustomerId && session.customer_id !== expectedCustomerId){
+      const err = new Error('Session ownership mismatch');
+      err.status = 403;
+      throw err;
+    }
+
     const customer = this.db.prepare('SELECT * FROM customers WHERE id = ?').get(session.customer_id);
     const score = parseInt(rawScore, 10);
     const duration = parseInt(durationMs, 10);
 
-    // Feasibility bounds: prevent client spoofing impossible scores
+    // Feasibility bounds check per game
     let isFeasible = true;
     let reason = '';
+    const ceiling = GAME_CEILINGS[gameId] || 1500;
 
     if(isNaN(score) || score < 0){
       isFeasible = false;
       reason = 'Score must be non-negative integer';
-    } else if(duration < 2000 && score > 50){
+    } else if(duration < 2500 && score > 60){
       isFeasible = false;
-      reason = 'Duration too short for reported score';
-    } else if(score > 30000){
+      reason = `Impossible reaction time: duration ${duration}ms too short for score ${score}`;
+    } else if(score > ceiling){
       isFeasible = false;
-      reason = 'Score exceeds theoretical engine ceiling';
+      reason = `Score ${score} exceeds theoretical engine ceiling of ${ceiling} for game [${gameId}]`;
     }
 
     const now = Date.now();
@@ -125,7 +175,12 @@ class VoucherService {
 
     if(!isFeasible){
       if(this.auditService){
-        this.auditService.log('RUN_BOUNDS_REJECTED', customer.id, 'CUSTOMER', { gameId, rawScore: score, reason }, ipAddress);
+        this.auditService.log('RUN_BOUNDS_REJECTED', customer.id, 'CUSTOMER', {
+          gameId,
+          rawScore: score,
+          ceiling,
+          reason
+        }, ipAddress);
       }
       const err = new Error('Game score rejected by server feasibility check: ' + reason);
       err.status = 422;
@@ -154,10 +209,31 @@ class VoucherService {
   }
 
   /**
-   * Server-Authoritative Voucher Claim & Upgrade
+   * Finding P0-04: Server-Authoritative Voucher Claim with Impersonation Defense
    */
-  claimVoucher(customerId, targetType = 'T', isUpgrade = false, ipAddress = '127.0.0.1'){
+  claimVoucher(customerIdentity, targetType = 'T', isUpgrade = false, ipAddress = '127.0.0.1'){
     return this.db.transaction((db) => {
+      let customerId = customerIdentity;
+
+      // If customerIdentity is a signed session token: verify cryptographically
+      if(typeof customerIdentity === 'string' && customerIdentity.includes('.')){
+        const tokenPayload = cryptoService.verifyCustomerSessionToken(customerIdentity);
+        if(!tokenPayload){
+          const err = new Error('Invalid or expired customer session token');
+          err.status = 401;
+          throw err;
+        }
+        customerId = tokenPayload.customerId;
+      } else if(typeof customerIdentity === 'object' && customerIdentity !== null){
+        customerId = customerIdentity.customerId || customerIdentity.id;
+      }
+
+      if(!customerId || typeof customerId !== 'string'){
+        const err = new Error('Valid customer session token or ID required');
+        err.status = 401;
+        throw err;
+      }
+
       const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(customerId);
       if(!customer){
         const err = new Error('Customer not found');
@@ -274,9 +350,9 @@ class VoucherService {
   }
 
   /**
-   * Cashier Voucher Verification
+   * Section 5.1: Protected Voucher Verification (Hides customer PII from unauthenticated requests)
    */
-  verifyVoucher(rawCode){
+  verifyVoucher(rawCode, staffMember = null){
     if(!rawCode) return { valid: false, reason: 'Empty voucher code' };
     const clean = rawCode.trim().toUpperCase();
 
@@ -305,7 +381,8 @@ class VoucherService {
     }
 
     const reward = REWARDS[voucher.type] || { nameAr: 'مكافأة the A&A', nameEn: 'A&A Reward' };
-    return {
+
+    const response = {
       valid: true,
       status: 'ACTIVE',
       voucher: {
@@ -316,11 +393,22 @@ class VoucherService {
         rewardNameAr: reward.nameAr,
         rewardNameEn: reward.nameEn,
         issuedAt: voucher.issued_at,
-        expiresAt: voucher.expires_at,
-        customerNickname: voucher.nickname,
-        customerPhone: voucher.phone
+        expiresAt: voucher.expires_at
       }
     };
+
+    // Only expose customer details to authenticated staff
+    if(staffMember && staffMember.id){
+      if(staffMember.role === 'cashier' || staffMember.role === 'owner'){
+        response.voucher.customerNickname = voucher.nickname;
+        response.voucher.customerPhone = voucher.phone;
+      } else if(staffMember.role === 'manager'){
+        response.voucher.customerNickname = voucher.nickname;
+        response.voucher.customerPhone = voucher.phone ? voucher.phone.slice(0, 3) + '***' + voucher.phone.slice(-4) : '';
+      }
+    }
+
+    return response;
   }
 }
 

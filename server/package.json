@@ -16,6 +16,9 @@
   ],
   "author": "A&A Autonomous Engineering Team",
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.5.0"
+  },
   "private": true
 }
 

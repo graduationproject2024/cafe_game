@@ -682,6 +682,75 @@ const ROLE_PERMISSIONS = {
 
 let currentEmployee = null;
 
+// ============ عميل واجهة برمجة التطبيقات للموظفين (Phase 2 Secure Staff Client) ============
+const AA_STAFF_BACKEND = {
+  baseUrl: (function(){
+    try {
+      if(window.location.protocol === 'http:' || window.location.protocol === 'https:'){
+        return window.location.origin + '/api/v1';
+      }
+    } catch(e){}
+    return 'http://127.0.0.1:3000/api/v1';
+  })(),
+  getToken(){
+    try { return sessionStorage.getItem('aa_staff_bearer_token') || ''; } catch(e){ return ''; }
+  },
+  async login(username, password){
+    try {
+      const res = await fetch(this.baseUrl + '/staff/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(data && data.token){
+          try { sessionStorage.setItem('aa_staff_bearer_token', data.token); } catch(e){}
+          return { success: true, staff: data.staff, token: data.token };
+        }
+      }
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.error || 'فشل تسجيل الدخول' };
+    } catch(e){
+      return { offline: true };
+    }
+  },
+  async verifyVoucher(code){
+    const token = this.getToken();
+    try {
+      const res = await fetch(this.baseUrl + '/vouchers/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ code })
+      });
+      return await res.json();
+    } catch(e){
+      return { offline: true };
+    }
+  },
+  async redeemVoucher(code, orderRef, notes){
+    const token = this.getToken();
+    try {
+      const res = await fetch(this.baseUrl + '/vouchers/redeem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ code, orderRef, notes })
+      });
+      const data = await res.json();
+      return { status: res.status, ...data };
+    } catch(e){
+      return { offline: true };
+    }
+  }
+};
+window.AA_STAFF_BACKEND = AA_STAFF_BACKEND;
+
 function hasPermission(role, perm){
   if(!role) return false;
   if(role === 'owner') return true;
@@ -701,7 +770,7 @@ const logoutBtn = document.getElementById('logoutBtn');
 const authErr = document.getElementById('authErr');
 const userBadge = document.getElementById('userBadge');
 
-loginBtn.addEventListener('click', () => {
+loginBtn.addEventListener('click', async () => {
   const lockoutState = getStaffLockout();
   const now = Date.now();
   if(now < lockoutState.lockoutUntil){
@@ -711,12 +780,41 @@ loginBtn.addEventListener('click', () => {
     return;
   }
 
-  const rawId = (empIdInput ? empIdInput.value : '').trim().toUpperCase();
+  const rawId = (empIdInput ? empIdInput.value : '').trim();
+  const rawIdUpper = rawId.toUpperCase();
   const pin = (pinInput.value || '').trim();
-  const pinHash = hashPin(pin);
 
-  let account = STAFF_ACCOUNTS[rawId];
-  let resolvedId = rawId;
+  // 1. Try real server-authoritative authentication first
+  if(window.AA_STAFF_BACKEND){
+    const srvRes = await window.AA_STAFF_BACKEND.login(rawId, pin);
+    if(srvRes && srvRes.success && srvRes.staff){
+      setStaffLockout(0, 0);
+      currentEmployee = {
+        id: srvRes.staff.id || srvRes.staff.username,
+        role: srvRes.staff.role,
+        name: srvRes.staff.fullName || srvRes.staff.name || rawId,
+        title: srvRes.staff.role === 'cashier' ? 'كاشير 🎟️' : (srvRes.staff.role === 'manager' ? 'مدير العمليات 🛡️' : 'مالك المقهى 👑'),
+        token: srvRes.token,
+        sessionToken: srvRes.token,
+        loginTime: Date.now()
+      };
+      try { sessionStorage.setItem('the_aa_staff_session', JSON.stringify(currentEmployee)); } catch(e){}
+      authSection.style.display = 'none';
+      mainDashboard.style.display = 'block';
+      logoutBtn.style.display = 'block';
+      authErr.style.display = 'none';
+      pinInput.value = '';
+      if(empIdInput) empIdInput.value = '';
+      recordAudit('STAFF_LOGIN', `تسجيل دخول ناجح بالخادم للموظف [${currentEmployee.id}] والدور [${currentEmployee.role}]`, currentEmployee.id);
+      applyRolePermissions(currentEmployee);
+      return;
+    }
+  }
+
+  // 2. Fallback to local authentication when offline
+  const pinHash = hashPin(pin);
+  let account = STAFF_ACCOUNTS[rawIdUpper];
+  let resolvedId = rawIdUpper;
 
   if(!account){
     const matchedKey = Object.keys(STAFF_ACCOUNTS).find(k => STAFF_ACCOUNTS[k].pinHash === pinHash);
@@ -972,7 +1070,7 @@ const btnVerifyCode = document.getElementById('btnVerifyCode');
 const cashierCodeInput = document.getElementById('cashierCodeInput');
 const cashierResult = document.getElementById('cashierResult');
 
-btnVerifyCode.addEventListener('click', () => {
+btnVerifyCode.addEventListener('click', async () => {
   if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
     recordAudit('UNAUTHORIZED_ACTION_BLOCKED', 'محاولة فحص/صرف مكافأة من مستخدم غير مصرح (الكاشير والمالك فقط)', currentEmployee ? currentEmployee.id : 'Anonymous');
     alert('غير مصرح لك بإجراء صرف المكافآت. هذا الإجراء مخصص للكاشير والمالك فقط.');
@@ -986,7 +1084,99 @@ btnVerifyCode.addEventListener('click', () => {
     return;
   }
 
-  // فحص الكود تشفيرياً والتحقق من التوقيع والـ Checksum
+  // 1. فحص الكود عبر الخادم المركزي الآمن (Phase 2 Secure Backend Check)
+  if(window.AA_STAFF_BACKEND){
+    const srvRes = await window.AA_STAFF_BACKEND.verifyVoucher(rawCode);
+    if(srvRes && !srvRes.offline){
+      if(srvRes.valid && srvRes.voucher){
+        const v = srvRes.voucher;
+        const rewardName = v.rewardNameAr || 'خصم the A&A';
+        const code = v.code;
+        const custDetails = v.customerPhone ? `<div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">بيانات العميل: <b>${escapeHtml(v.customerNickname || 'ضيف')}</b> (${escapeHtml(v.customerPhone)})</div>` : '';
+
+        cashierResult.style.display = 'block';
+        cashierResult.className = 'alert success';
+        cashierResult.innerHTML = `
+          <div style="font-size:15px;font-weight:800;margin-bottom:6px">الكود معتمد وصالح للصرف (الخادم المركزي) ✓</div>
+          <div style="font-size:13px;margin-bottom:6px">الكود: <span class="code-box">${escapeHtml(code)}</span> • المكافأة: <b>${escapeHtml(rewardName)}</b></div>
+          ${custDetails}
+          <div style="font-size:12px;color:#d4a62a;font-weight:700;margin-bottom:8px">📌 تنبيه للكاشير: هذه القسيمة صالحة للاستخدام على <b>الطلب القادم</b> للعميل وليست على الطلب الحالي.</div>
+          <div style="background:rgba(217,83,79,0.12);border:1px dashed #d9534f;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#c9302c">
+            <b>🚫 سياسة منع دمج الخصومات:</b> يمنع قطعياً تطبيق هذا الخصم بالتزامن مع أي عروض ترويجية أخرى أو خصومات المناسبات (كاليوم الوطني، يوم التأسيس، أو عروض الجمعة).
+          </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:12px;margin-bottom:12px;cursor:pointer">
+            <input type="checkbox" id="chkNoStacking" style="accent-color:var(--primary);width:16px;height:16px">
+            <span><b>إقرار الكاشير:</b> أؤكد عدم وجود أي خصم ترويجي أو عرض مناسبات إضافي مطبق على فاتورة العميل.</span>
+          </label>
+          <button id="btnConfirmRedeemAction" class="btn" style="width:auto;padding:8px 18px">تأكيد صرف المكافأة للعميل الآن ✓</button>
+        `;
+
+        document.getElementById('btnConfirmRedeemAction').onclick = async () => {
+          if(!currentEmployee || !hasPermission(currentEmployee.role, 'REDEEM_COUPON')){
+            alert('غير مصرح لك بإجراء صرف المكافآت.');
+            return;
+          }
+          const chk = document.getElementById('chkNoStacking');
+          if(chk && !chk.checked){
+            alert('⚠️ تنبيه نظام: يجب التأكيد على إقرار عدم دمج الخصم مع عروض المناسبات كاليوم الوطني قبل إتمام الصرف.');
+            return;
+          }
+
+          // Atomic server redemption
+          const redRes = await window.AA_STAFF_BACKEND.redeemVoucher(code, 'ORDER_' + Date.now());
+          if(redRes && redRes.status === 409){
+            cashierResult.style.display = 'block';
+            cashierResult.className = 'alert error';
+            cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: تم رفض الصرف من الخادم المركزي لأن الكود تم صرفه مسبقاً!`;
+            recordAudit('REDEEM_RACE_BLOCKED', 'محاولة صرف كود مصروف مسبقاً: ' + code, currentEmployee.id);
+            return;
+          }
+
+          const redeemStamp = Date.now();
+          const db = getDB();
+          db.history = db.history || [];
+          db.history.unshift({
+            code: code,
+            type: v.type,
+            rewardType: rewardName,
+            name: rewardName,
+            time: redeemStamp,
+            dateTimeArabic: new Date(redeemStamp).toLocaleString('ar-SA'),
+            status: 'تم الصرف لدى الكاشير ✓',
+            cashier: currentEmployee.name + ' (' + currentEmployee.id + ')'
+          });
+          saveDB(db);
+
+          recordAudit('REDEEM_CONFIRMED', `صرف مكافأة للعميل [${rewardName}] بكود: ${code}`, currentEmployee.id);
+          cashierResult.className = 'alert success';
+          cashierResult.textContent = 'تم صرف المكافأة بنجاح وتحديث السجل المركزي آلياً ومنع أي إعادة استخدام ✓';
+          cashierCodeInput.value = '';
+          renderCashierHistory();
+        };
+        return;
+      } else if(srvRes.status === 'REVOKED'){
+        cashierResult.style.display = 'block';
+        cashierResult.className = 'alert error';
+        cashierResult.innerHTML = `⚠️ <b>كود ملغي:</b> تم إلغاء هذه القسيمة واستبدالها بترقية لمكافأة أعلى.`;
+        recordAudit('REDEEM_REVOKED_BLOCKED', 'محاولة صرف كود ملغي تم ترقيته: ' + rawCode, currentEmployee.id);
+        return;
+      } else if(srvRes.status === 'REDEEMED'){
+        cashierResult.style.display = 'block';
+        cashierResult.className = 'alert error';
+        cashierResult.innerHTML = `⚠️ تنبيه احتيال أو إعادة استخدام: هذا الكود تم صرفه مسبقاً ولا يمكن صرفه مجدداً.`;
+        recordAudit('REDEEM_REJECTED', 'محاولة صرف كود مستخدم مسبقاً: ' + rawCode, currentEmployee.id);
+        return;
+      } else if(srvRes.status === 'EXPIRED'){
+        cashierResult.style.display = 'block';
+        cashierResult.className = 'alert error';
+        cashierResult.innerHTML = `⚠️ <b>انتهت صلاحية الكود:</b> انتهت صلاحية هذا الكود على الخادم المركزي.`;
+        recordAudit('REDEEM_EXPIRED', 'محاولة صرف كود منتهي الصلاحية: ' + rawCode, currentEmployee.id);
+        return;
+      }
+    }
+  }
+
+  // 2. فحص الكود تشفيرياً والتحقق من التوقيع محلياً عند عدم الاتصال بالخادم
   const parsed = parseCode(rawCode);
   if(!parsed){
     cashierResult.style.display = 'block';

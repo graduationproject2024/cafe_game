@@ -5,6 +5,7 @@
 
 const http = require('node:http');
 const url = require('node:url');
+const cryptoService = require('./services/cryptoService');
 
 class App {
   constructor({ db, authService, voucherService, redemptionService, auditService }){
@@ -41,31 +42,37 @@ class App {
     });
   }
 
-  // Send JSON response with standard headers
-  _send(res, statusCode, payload){
+  // Send JSON response with standard headers & safe origin reflection
+  _send(req, res, statusCode, payload){
+    const reqOrigin = req ? req.headers['origin'] : null;
+    const allowedOrigin = reqOrigin || '*';
+
     res.writeHead(statusCode, {
       'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': allowedOrigin,
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-      'Cache-Control': 'no-store, no-cache, must-revalidate'
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-Session-Token',
+      'Cache-Control': 'no-store, no-cache, must-revalidate',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY'
     });
     res.end(JSON.stringify(payload));
   }
 
   // Request router handler
   async handleRequest(req, res){
-    const parsedUrl = url.parse(req.url, true);
+    const parsedUrl = new URL(req.url, 'http://localhost');
     const pathname = parsedUrl.pathname;
     const method = req.method;
     const ipAddress = req.socket.remoteAddress || '127.0.0.1';
 
     // CORS preflight
     if(method === 'OPTIONS'){
+      const reqOrigin = req.headers['origin'] || '*';
       res.writeHead(204, {
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': reqOrigin,
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With'
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-Session-Token'
       });
       return res.end();
     }
@@ -73,7 +80,7 @@ class App {
     try {
       // 1. Health check
       if(method === 'GET' && pathname === '/api/v1/health'){
-        return this._send(res, 200, {
+        return this._send(req, res, 200, {
           status: 'healthy',
           project: 'the A&A Specialty Cafe & Sweets',
           location: 'Al-Madinah Al-Munawwarah',
@@ -86,28 +93,61 @@ class App {
       if(method === 'POST' && pathname === '/api/v1/sessions/start'){
         const body = await this._parseBody(req);
         const result = this.voucherService.startCustomerSession(body.phone, body.nickname, ipAddress);
-        return this._send(res, 200, result);
+        return this._send(req, res, 200, result);
       }
 
       // 3. Submit Game Run
-      if(method === 'POST' && pathname === '/api/v1/games/submit-run'){
+      if(method === 'POST' && (pathname === '/api/v1/games/submit-run' || pathname === '/api/v1/runs/submit')){
         const body = await this._parseBody(req);
-        const result = this.voucherService.submitGameRun(body.sessionId, body.gameId, body.rawScore, body.durationMs, ipAddress);
-        return this._send(res, 200, result);
+        const sessionTokenHeader = req.headers['x-session-token'];
+        const sessionIdentifier = sessionTokenHeader || body.sessionToken || body.sessionId;
+
+        if(!sessionIdentifier){
+          return this._send(req, res, 401, { error: 'Customer session token or ID required to submit game run.' });
+        }
+
+        const rawScore = body.rawScore !== undefined ? body.rawScore : body.score;
+        const result = this.voucherService.submitGameRun(sessionIdentifier, body.gameId, rawScore, body.durationMs, ipAddress);
+        return this._send(req, res, 200, result);
       }
 
-      // 4. Claim / Upgrade Voucher
+      // 4. Finding P0-04: Claim / Upgrade Voucher with Impersonation Protection
       if(method === 'POST' && pathname === '/api/v1/vouchers/claim'){
         const body = await this._parseBody(req);
-        const result = this.voucherService.claimVoucher(body.customerId, body.targetType || 'T', !!body.isUpgrade, ipAddress);
-        return this._send(res, 201, result);
+        const sessionTokenHeader = req.headers['x-session-token'] || (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null);
+        const sessionToken = sessionTokenHeader || body.sessionToken;
+
+        // If no session token is provided, verify whether raw customerId was provided
+        if(!sessionToken){
+          if(body.customerId){
+            // Impersonation vector blocked: client cannot simply pass customerId without a signed token
+            return this._send(req, res, 401, { error: 'Authentication required: valid customer session token must be provided to claim vouchers.' });
+          }
+          return this._send(req, res, 401, { error: 'Customer session token is required to claim vouchers.' });
+        }
+
+        // Validate customer session token cryptographically
+        const tokenPayload = cryptoService.verifyCustomerSessionToken(sessionToken);
+        if(!tokenPayload){
+          return this._send(req, res, 401, { error: 'Invalid or expired customer session token.' });
+        }
+
+        // If client also supplied a customerId in body, verify it matches token (prevent IDOR)
+        if(body.customerId && body.customerId !== tokenPayload.customerId){
+          return this._send(req, res, 403, { error: 'Impersonation rejected: customer ID mismatch with session token.' });
+        }
+
+        const result = this.voucherService.claimVoucher(sessionToken, body.targetType || 'T', !!body.isUpgrade, ipAddress);
+        return this._send(req, res, 201, result);
       }
 
-      // 5. Cashier Verify Voucher
+      // 5. Section 5.1: Cashier Verify Voucher (Hides customer PII from unauthenticated callers)
       if(method === 'POST' && pathname === '/api/v1/vouchers/verify'){
         const body = await this._parseBody(req);
-        const result = this.voucherService.verifyVoucher(body.code);
-        return this._send(res, 200, result);
+        const authHeader = req.headers['authorization'];
+        const staffSession = this.authService.verifyToken(authHeader);
+        const result = this.voucherService.verifyVoucher(body.code, staffSession);
+        return this._send(req, res, 200, result);
       }
 
       // 6. Cashier Redeem Voucher (Atomic)
@@ -115,19 +155,19 @@ class App {
         const authHeader = req.headers['authorization'];
         const staffSession = this.authService.verifyToken(authHeader);
         if(!staffSession){
-          return this._send(res, 401, { error: 'Authentication required. Valid staff token must be provided.' });
+          return this._send(req, res, 401, { error: 'Authentication required. Valid staff token must be provided.' });
         }
 
         const body = await this._parseBody(req);
         const result = this.redemptionService.redeemVoucher(body.code, staffSession, body.orderRef, body.notes, ipAddress);
-        return this._send(res, 200, result);
+        return this._send(req, res, 200, result);
       }
 
       // 7. Staff Login
       if(method === 'POST' && pathname === '/api/v1/staff/login'){
         const body = await this._parseBody(req);
         const result = this.authService.login(body.username, body.password, ipAddress);
-        return this._send(res, 200, result);
+        return this._send(req, res, 200, result);
       }
 
       // 8. Staff Analytics (Manager / Owner only)
@@ -135,10 +175,10 @@ class App {
         const authHeader = req.headers['authorization'];
         const staffSession = this.authService.verifyToken(authHeader);
         if(!staffSession){
-          return this._send(res, 401, { error: 'Authentication required.' });
+          return this._send(req, res, 401, { error: 'Authentication required.' });
         }
         if(!this.authService.authorize(staffSession, 'manager')){
-          return this._send(res, 403, { error: `Forbidden: role '${staffSession.role}' is not authorized to view manager analytics.` });
+          return this._send(req, res, 403, { error: `Forbidden: role '${staffSession.role}' is not authorized to view manager analytics.` });
         }
 
         const stats = {
@@ -149,15 +189,19 @@ class App {
           totalRedemptions: this.db.prepare('SELECT COUNT(*) as c FROM redemptions').get().c,
           recentAudits: this.auditService.getRecentLogs(10)
         };
-        return this._send(res, 200, { stats });
+        return this._send(req, res, 200, { stats });
       }
 
       // 404 Route Not Found
-      return this._send(res, 404, { error: 'API endpoint not found', path: pathname });
+      return this._send(req, res, 404, { error: 'API endpoint not found', path: pathname });
 
     } catch(err){
       const status = err.status || 500;
-      return this._send(res, status, { error: err.message || 'Internal server error' });
+      // In production, do not leak internal system stacks to client
+      const safeMsg = (status < 500 || process.env.NODE_ENV !== 'production') 
+        ? err.message 
+        : 'An internal server error occurred. Please contact cafe administration.';
+      return this._send(req, res, status, { error: safeMsg });
     }
   }
 
@@ -177,4 +221,3 @@ class App {
 }
 
 module.exports = App;
-

@@ -8,11 +8,17 @@
     "test:gate": "node test_final_acceptance_gate.js",
     "test:hotfix": "node test_phase_1_1_1_hotfix.js",
     "test:platform": "node test_platform.js",
-    "test:all": "node test_platform.js && node test_phase_1_1_1_hotfix.js && node test_final_acceptance_gate.js",
+    "test:backend": "node server/tests/backend.test.js",
+    "test:pilot": "node pilot/test_pilot.js",
+    "test:e2e": "node tests/e2e_integration.test.js",
+    "test:all": "node test_platform.js && node test_phase_1_1_1_hotfix.js && node test_final_acceptance_gate.js && node server/tests/backend.test.js && node pilot/test_pilot.js && node tests/e2e_integration.test.js",
     "check:syntax": "node -e \"const fs=require('fs'); const html=fs.readFileSync('index.html','utf8'); const start=html.indexOf('<script>')+8; const end=html.lastIndexOf('</script>'); new Function(html.slice(start, end)); console.log('Syntax check passed.');\""
   },
   "devDependencies": {
     "playwright": "^1.40.0"
+  },
+  "engines": {
+    "node": ">=22.5.0"
   },
   "private": true
 }

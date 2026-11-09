@@ -50,8 +50,8 @@ An independent source-level review of the test runner identified five remaining 
 - **Identified Defect:** Missing lockfile and potential dependency drift in CI.
 - **Remediation:**
   - Generated and committed reproducible `package-lock.json`.
-  - Updated `.github/workflows/quality-gate.yml` to use `npm ci`, Node.js 20, and `permissions: contents: read`.
-  - Added verification steps for both `test_final_acceptance_gate.js` (39 assertions) and the Phase 2 backend suite (`cd server && npm test`).
+  - Updated `.github/workflows/quality-gate.yml` to use `npm ci`, Node.js 22 (supporting native `node:sqlite`), and `permissions: contents: read`.
+  - Added verification steps for `test_final_acceptance_gate.js` (39 assertions), Phase 2 backend suite (`server/tests/backend.test.js`), visual pilot suite (`pilot/test_pilot.js`), and E2E integration suite (`tests/e2e_integration.test.js`).
 
 ---
 

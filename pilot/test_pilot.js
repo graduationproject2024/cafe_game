@@ -129,30 +129,16 @@ async function runPilotTests(){
     assert('Gameplay & Real Pointer Interaction: Tap targets to accumulate score', score >= 100, `Accumulated Score: ${score} pts`);
     assert('Dynamic Combo Streak: Visual multiplier feedback triggers on streaks', comboShotTaken === true, `Combo celebration verified & captured`);
 
-    // 6. Hazard & Burnt Bean Interaction
-    // Wait for a burnt bean target to appear and tap it
-    let burntTapped = false;
-    let heartsBefore = await pageMobile.evaluate(() => window.__pilotTestState.getHearts());
-    const hazardStart = Date.now();
-    while((Date.now() - hazardStart) < 6000){
-      const burnt = await pageMobile.$('.pilot-target.burnt');
-      if(burnt){
-        try {
-          await burnt.click({ timeout: 400 });
-          burntTapped = true;
-          break;
-        } catch(e){}
-      }
-      await pageMobile.waitForTimeout(150);
-    }
-
-    if(burntTapped){
-      const heartsAfter = await pageMobile.evaluate(() => window.__pilotTestState.getHearts());
-      assert('Hazard Mechanics: Burnt bean tap deducts exactly 1 heart', heartsAfter === (heartsBefore - 1), `Hearts: ${heartsBefore} -> ${heartsAfter}`);
-    } else {
-      // If none spawned randomly in time, simulate tap directly via internal handler
-      assert('Hazard Mechanics: Burnt bean target styling and icon rendered', true, 'Burnt bean structure verified');
-    }
+    // 6. Hazard & Burnt Bean Interaction (Deterministic Spawning & Real Pointer Hit)
+    const heartsBefore = await pageMobile.evaluate(() => window.__pilotTestState.getHearts());
+    await pageMobile.evaluate(() => window.__pilotTestState.spawnBurntBean());
+    await pageMobile.waitForSelector('.pilot-target.burnt', { timeout: 2000 });
+    const burntTarget = await pageMobile.$('.pilot-target.burnt');
+    assert('Hazard Mechanics: Burnt bean hazard target rendered on stage', burntTarget !== null, 'Burnt bean DOM element created');
+    await burntTarget.click();
+    await pageMobile.waitForTimeout(200);
+    const heartsAfter = await pageMobile.evaluate(() => window.__pilotTestState.getHearts());
+    assert('Hazard Mechanics: Burnt bean tap deducts exactly 1 heart', heartsAfter === (heartsBefore - 1), `Hearts strictly reduced: ${heartsBefore} -> ${heartsAfter}`);
 
     // 7. End Game & Result Screen Verification
     await pageMobile.evaluate(() => window.__pilotTestState.endGame('test_complete'));

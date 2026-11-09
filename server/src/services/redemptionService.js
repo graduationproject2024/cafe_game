@@ -22,7 +22,8 @@ class RedemptionService {
       throw err;
     }
 
-    if(!staffMember || !staffMember.id){
+    const staffId = staffMember ? (staffMember.id || staffMember.staffId) : null;
+    if(!staffMember || !staffId){
       const err = new Error('Authenticated staff member is required for redemption');
       err.status = 401;
       throw err;
@@ -31,7 +32,7 @@ class RedemptionService {
     // Role check: Only cashier or owner can redeem vouchers
     if(staffMember.role !== 'cashier' && staffMember.role !== 'owner'){
       if(this.auditService){
-        this.auditService.log('REDEEM_UNAUTHORIZED_ROLE', staffMember.id, 'STAFF', {
+        this.auditService.log('REDEEM_UNAUTHORIZED_ROLE', staffId, 'STAFF', {
           role: staffMember.role,
           code: rawCode
         }, ipAddress);

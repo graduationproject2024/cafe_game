@@ -5,7 +5,7 @@
 **Target Showcase Game:** Reflex Rush (`reflex` / سرعة الباريستا)  
 **Location:** `pilot/`  
 **Isolated Branch:** `feature/aa-game-visual-pilot`  
-**Status:** **VERIFIED** (11/11 Playwright Tests Passed, High-DPI Screenshots Captured)
+**Status:** **VERIFIED** (12/12 Playwright Tests Passed, High-DPI Screenshots Captured, Deterministic Hazard Tap Proved)
 
 ---
 

@@ -782,7 +782,7 @@
       }
 
       // Spawn Target
-      function spawnTarget(){
+      function spawnTarget(forcedType){
         if(!isPlaying) return;
 
         // Clean up expired targets
@@ -799,12 +799,14 @@
         const x = Math.floor(Math.random() * (stageW - targetSize - padding * 2)) + padding;
         const y = Math.floor(Math.random() * (stageH - targetSize - padding * 2)) + padding;
 
-        const roll = Math.random();
-        let type = 'gold'; // 65% gold, 20% decoy, 15% burnt
-        if(roll < 0.15){
-          type = 'burnt';
-        } else if(roll < 0.35){
-          type = 'decoy';
+        let type = forcedType || 'gold';
+        if(!forcedType){
+          const roll = Math.random();
+          if(roll < 0.15){
+            type = 'burnt';
+          } else if(roll < 0.35){
+            type = 'decoy';
+          }
         }
 
         const target = document.createElement('div');
@@ -987,7 +989,9 @@
         isPlaying: () => isPlaying,
         startGame: startGame,
         endGame: endGame,
-        setLanguage: setLanguage
+        setLanguage: setLanguage,
+        spawnBurntBean: () => spawnTarget('burnt'),
+        spawnTarget: (type) => spawnTarget(type)
       };
     })();
   </script>

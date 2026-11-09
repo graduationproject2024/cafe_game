@@ -3420,6 +3420,73 @@ function syncCustomerTransactionToStaffDB(type, data){
   }
 }
 
+/* ============ عميل واجهة برمجة التطبيقات للخادم المركزي (Phase 2 Secure Backend API) ============ */
+const AA_BACKEND_CLIENT = {
+  baseUrl: (function(){
+    try {
+      if(window.location.protocol === 'http:' || window.location.protocol === 'https:'){
+        return window.location.origin + '/api/v1';
+      }
+    } catch(e){}
+    return 'http://127.0.0.1:3000/api/v1';
+  })(),
+  sessionToken: (function(){
+    try { return sessionStorage.getItem('aa_customer_session_token') || null; } catch(e){ return null; }
+  })(),
+  async startSession(phone, nickname){
+    if(!phone) return null;
+    try {
+      const res = await fetch(this.baseUrl + '/sessions/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, nickname: nickname || 'ضيف the A&A' })
+      });
+      if(res.ok){
+        const data = await res.json();
+        if(data && data.session && data.session.token){
+          this.sessionToken = data.session.token;
+          try { sessionStorage.setItem('aa_customer_session_token', this.sessionToken); } catch(e){}
+          return data;
+        }
+      }
+    } catch(e){}
+    return null;
+  },
+  async submitRun(gameId, score, durationMs){
+    const token = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+    if(!token) return null;
+    try {
+      const res = await fetch(this.baseUrl + '/runs/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Token': token
+        },
+        body: JSON.stringify({ gameId, rawScore: score, score, durationMs: durationMs || 30000 })
+      });
+      if(res.ok) return await res.json();
+    } catch(e){}
+    return null;
+  },
+  async claimVoucher(targetType, isUpgrade){
+    const token = this.sessionToken || (function(){ try { return sessionStorage.getItem('aa_customer_session_token'); } catch(e){ return null; } })();
+    if(!token) return null;
+    try {
+      const res = await fetch(this.baseUrl + '/vouchers/claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Session-Token': token
+        },
+        body: JSON.stringify({ targetType: targetType || 'T', isUpgrade: !!isUpgrade })
+      });
+      if(res.ok) return await res.json();
+    } catch(e){}
+    return null;
+  }
+};
+window.AA_BACKEND_CLIENT = AA_BACKEND_CLIENT;
+
 function save(){
   S.extraHeartClaimed = S.extraHeartFollowClaimed;
   S.sig = signSession(S);
@@ -3654,6 +3721,11 @@ function endRun(reason){
   }
 
   save();
+
+  // Phase 2: إرسال نتيجة الجولة للخادم المركزي الآمن
+  if(S.phone && window.AA_BACKEND_CLIENT){
+    window.AA_BACKEND_CLIENT.submitRun(gm.id, rawScore, Math.max(3000, Date.now() - (run.startedAt || (Date.now() - 30000))));
+  }
 
   syncToGoogleSheet('GAME_RESULT', { gameName: gm.name, score: rawScore });
 
@@ -5530,6 +5602,32 @@ function finalizeRewardClaim(type, isUpgrade){
     nickname: S.nickname
   });
 
+  // Phase 2: طلب إصدار وتوثيق القسيمة على الخادم المركزي الآمن
+  if(window.AA_BACKEND_CLIENT){
+    window.AA_BACKEND_CLIENT.claimVoucher(type, isUpgrade).then(srvData => {
+      if(srvData && srvData.voucher && srvData.voucher.code){
+        const serverCode = srvData.voucher.code;
+        if(S.claim){
+          S.claim.code = serverCode;
+          S.claim.serverSignature = srvData.voucher.signature;
+          S.claim.serverExpiresAt = srvData.voucher.expiresAt;
+        }
+        try {
+          const rawWallet = localStorage.getItem('the_aa_cafe_vouchers_wallet');
+          let wallet = rawWallet ? JSON.parse(rawWallet) : [];
+          if(Array.isArray(wallet) && wallet[0]){
+            wallet[0].code = serverCode;
+            wallet[0].serverSignature = srvData.voucher.signature;
+            localStorage.setItem('the_aa_cafe_vouchers_wallet', JSON.stringify(wallet));
+          }
+        } catch(e){}
+        const rwCodeEl = document.getElementById('rwCode');
+        if(rwCodeEl) rwCodeEl.textContent = fmtCode(serverCode);
+        save();
+      }
+    }).catch(() => {});
+  }
+
   syncToGoogleSheet(isUpgrade ? 'UPGRADE_REWARD' : 'CLAIM_REWARD');
 
   const o = store.get();
@@ -6078,6 +6176,11 @@ if(btnConfirmChoicePhone){
     LeaderboardEngine.recordScore(targetGameId, S.best || 5000, S.nickname, S.phone, S.avatar || '☕', S.playerId);
 
     syncToGoogleSheet('REGISTER', { phone: v.canonical, order: orderVal });
+
+    // Phase 2: بدء جلسة عميل مشفرة على الخادم المركزي
+    if(window.AA_BACKEND_CLIENT){
+      window.AA_BACKEND_CLIENT.startSession(v.canonical, S.nickname);
+    }
 
     const phoneCard = $('#choicePhoneCard');
     const pType = (phoneCard && phoneCard.dataset.pendingType) ? phoneCard.dataset.pendingType : 'T';
